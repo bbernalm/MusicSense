@@ -122,5 +122,7 @@ export class WaveProgress {
     }
     ratio = Math.min(1, Math.max(0, ratio));
     this.overlay.style.setProperty('--lg-progress', String(ratio));
+    // La pista gris de la barra nativa usa el mismo valor para empezar tras la onda
+    this.slider?.style.setProperty('--lg-progress', String(ratio));
   }
 }

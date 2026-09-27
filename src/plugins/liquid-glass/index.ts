@@ -3,6 +3,8 @@ import { createPlugin } from '@/utils';
 
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
+import nowPlayingStyle from './now-playing.css?inline';
+import { PlayerLayout } from './player';
 import { LiquidRefraction } from './refraction';
 import style from './style.css?inline';
 import { WaveProgress } from './wave';
@@ -39,7 +41,7 @@ export default createPlugin({
   description: () => t('plugins.liquid-glass.description'),
   restartNeeded: false,
   config: defaultConfig,
-  stylesheets: [style, lyricsStyle],
+  stylesheets: [style, lyricsStyle, nowPlayingStyle],
   menu: async ({ getConfig, setConfig }) => {
     const config = await getConfig();
     const blurLevels = [15, 30, 50];
@@ -81,6 +83,7 @@ export default createPlugin({
     refraction: null as LiquidRefraction | null,
     wave: null as WaveProgress | null,
     lyrics: null as LyricsMode | null,
+    player: null as PlayerLayout | null,
     onDataChange: null as ((event: Event) => void) | null,
 
     async start({ getConfig }) {
@@ -99,8 +102,13 @@ export default createPlugin({
     onPlayerApiReady(playerApi) {
       this.wave = new WaveProgress();
       this.wave.start();
-      this.lyrics = new LyricsMode(t('plugins.liquid-glass.lyrics-button'));
+      this.lyrics = new LyricsMode(
+        t('plugins.liquid-glass.lyrics-button'),
+        (provider) => t('plugins.liquid-glass.lyrics-credit', { provider }),
+      );
       this.lyrics.start();
+      this.player = new PlayerLayout(t('plugins.liquid-glass.add-to-playlist'));
+      this.player.start();
 
       const update = () => {
         const thumbnails =
@@ -136,6 +144,8 @@ export default createPlugin({
       this.wave = null;
       this.lyrics?.stop();
       this.lyrics = null;
+      this.player?.stop();
+      this.player = null;
       this.lastArtwork = '';
     },
 

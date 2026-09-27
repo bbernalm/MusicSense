@@ -602,7 +602,9 @@
     },
     "liquid-glass": {
       "description": "Apple Music-style liquid glass design with an animated album art background and Apple typography",
+      "add-to-playlist": "Save to playlist",
       "lyrics-button": "Lyrics",
+      "lyrics-credit": "Lyrics: {{provider}} · Style inspired by Better Lyrics",
       "menu": {
         "aberration": "Chromatic aberration",
         "animated-background": "Animated background",

@@ -26,8 +26,10 @@ Se activa en el menú **Plugins → Liquid Glass**. Conviene desactivar *Album C
 | --- | --- |
 | `index.ts` | Definición del complemento, menú (fondo animado, aberración cromática, nivel de desenfoque 15/30/50), fondo con la portada y arranque de los demás módulos |
 | `style.css` | Todo el diseño: variables `--lg-*`, fondos transparentes, vidrio, tipografía, buscador, reproductor, onda, borde de luz |
-| `refraction.ts` | Refracción con aberración cromática: genera un mapa de desplazamiento por panel (canvas) y lo aplica con `backdrop-filter: url(#filtro SVG)` (solo Chromium). Solo en `#player-bar-background` y `ytmusic-search-box .search-box` |
-| `lyrics.ts` / `lyrics.css` | Botón de letras (burbuja) en la píldora y modo letras: abre la pantalla del reproductor en la pestaña "Letra", oculta las pestañas y la caja del panel. Estilo Apple Music para las letras de *Synced Lyrics* (sobrescribe sus variables `--lyrics-*` en `body`) |
+| `refraction.ts` | Refracción con aberración cromática (lente ancho estilo iOS 26): genera un mapa de desplazamiento por panel (canvas) y lo aplica con `backdrop-filter: url(#filtro SVG)` (solo Chromium). En `#player-bar-background`, `#lg-side-background` y `ytmusic-search-box .search-box` |
+| `player.ts` | Crea `#lg-side-background` (vidrio de la cápsula), el botón "+" (abre "Guardar en una playlist" del menú ⋮ oculto, clase `lg-silent-menu`), marca `lg-np` (pantalla del reproductor abierta) y `lg-paused`, y mide portada/panel para las variables `--np-*` y `--np-art` |
+| `now-playing.css` | Pantalla del reproductor según el boceto del usuario: portada cuadrada grande a la izquierda con título, ♡, +, progreso, controles y volumen debajo; panel (letras/cola) a la derecha y la cápsula bajo él. La barra ocupa toda la ventana con `pointer-events: none` y cada grupo se posiciona con `--np-*` |
+| `lyrics.ts` / `lyrics.css` | Botón de letras (burbuja) en la cápsula y modo letras: abre la pantalla del reproductor en la pestaña "Letra" y oculta las pestañas. Estilo Apple Music para las letras de *Synced Lyrics* (sobrescribe sus variables `--lyrics-*` en `body`). Selector de fuente oculto (sigue montado porque elige la mejor fuente). Crédito al pie: fuente real + "estilo inspirado en Better Lyrics" |
 | `wave.ts` | Barra de progreso ondulada estilo Android dibujada encima del slider nativo `#progress-bar` (el nativo sigue gestionando clics y arrastre) |
 
 Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liquid-glass`.
@@ -38,9 +40,11 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
 - Tipografía: SF Pro si está instalada en el PC (su licencia no permite incluirla); si no, Segoe UI Variable.
 - Barra superior: vidrio que solo aparece al hacer scroll y se oculta en la pantalla del reproductor.
 - Menú lateral estilo iPad: tarjeta de vidrio flotante (`#guide-renderer`) que termina encima del reproductor; elemento activo en rojo de acento; al cerrarlo con el botón superior (ícono de barra lateral) desaparece del todo (sin la columna de íconos `#mini-guide`).
-- Letras: se usa el complemento *Synced Lyrics* de Pear Desktop (debe estar activado), no el código de Better Lyrics (licencia GPLv3). Pendiente de Better Lyrics: sincronización por palabra/sílaba, traducciones y pantalla completa.
+- Letras: se usa el complemento *Synced Lyrics* de Pear Desktop (debe estar activado), no el código de Better Lyrics (licencia GPLv3). Su API propia de letras por sílaba exige Cloudflare Turnstile + JWT (solo para su extensión): no usarla. Pendiente: resaltado progresivo por palabra (simulado), traducciones y pantalla completa.
+- "Portada animada" de Better Lyrics = fondo con la portada desenfocada en movimiento (ya existe). Aquí además la portada se encoge con rebote al pausar (`lg-paused`).
 - `.background-gradient` envuelve todo el contenido de las páginas: nunca ocultarlo (antes el inicio salía vacío por eso).
-- Reproductor: píldora flotante (66 px de alto) + cápsula aparte a la derecha (`.right-controls`: volumen siempre visible, repetir, aleatorio, abrir reproductor); ambas centradas como grupo (máx. 1100 px). Sin botón "No me gusta". Botones escalados por grupo con `zoom`, onda de progreso dentro de la píldora, indicador en forma de píldora vertical. El usuario aprobó el aspecto de la barra y el buscador.
+- Reproductor cerrado (4.ª imagen del usuario): píldora (66 px) con portada redonda, título/artista, ♡ (el "Me gusta" con máscara de corazón) y +; a la derecha (`--lg-controls-width`) la onda de progreso con los controles debajo. Cápsula (`.right-controls`): volumen siempre visible, silenciar, letras, repetir, aleatorio, abrir reproductor. Sin "No me gusta" ni menú ⋮ ni tiempo. Grupo centrado (máx. 1120 px). El mini reproductor cuadrado se oculta con `opacity: 0`.
+- La pista gris de la barra empieza donde acaba la onda (gradiente con `--lg-progress`, que `wave.ts` pone también en el slider).
 - La etiqueta de tiempo al pasar el ratón (`#hover-time-info`) la recalcula `wave.ts`, porque YouTube Music la calcula como si la barra empezara en el borde de la ventana.
 - Buscador: píldora de vidrio; sugerencias en un panel aparte con fondo más opaco (dentro de la barra superior el `backdrop-filter` no se aplica).
 - Borde de luz especular (degradado diagonal con máscara) en reproductor, buscador, sugerencias y panel "A continuación".
@@ -48,15 +52,17 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
 
 ### Pendiente o por verificar
 
-- Falta que el usuario confirme la cápsula de la derecha y la aberración en la app real.
-- La referencia de aberración del usuario es el vidrio de iOS 26 / Apple Music: borde brillante, lente sutil en los bordes y un irisado leve. La versión anterior se veía con "bordes raros llenos de colores"; evita desplazamientos fuertes y paneles grandes.
-- Hay un mini reproductor cuadrado (miniatura del video) que aparece abajo a la derecha al cerrar la pantalla del reproductor; no se ha tratado.
+- Falta que el usuario confirme el nuevo lente (más fuerte) en la app real, con contenido colorido detrás.
+- La referencia de vidrio del usuario es la barra de pestañas de iOS 26: tinte oscuro, fondo visible, lente ancho en los bordes con irisado. Una versión muy antigua se veía con "bordes raros llenos de colores"; si vuelve a pasar, bajar `scale` en `refraction.ts`.
+- Con sesión iniciada, comprobar que "+" abre el diálogo de playlists (sin sesión muestra el aviso de acceso anclado arriba a la izquierda).
 - Ideas propuestas y no hechas: pantalla completa con letras sincronizadas, crossfade o Automix entre canciones, colores de acento tomados de la portada.
 
 ## Notas técnicas
 
 - Estructura de YouTube Music verificada:
-  - `ytmusic-player-bar` es `position: fixed` con `display: grid`. Actúa como contenedor incluso de sus hijos `position: fixed` (tiene `view-transition-name` y `will-change`), así que la cápsula se coloca con `position: absolute` y `left: calc(100% + gap)` respecto a la barra.
+  - `ytmusic-player-bar` es `position: fixed` con `display: grid`. Actúa como contenedor incluso de sus hijos `position: fixed`, así que la cápsula se coloca con `position: absolute` respecto a la barra. Además (por `view-transition-name`) aísla el `backdrop-filter` de sus hijos: los fondos de vidrio deben ser elementos hermanos (`#player-bar-background`, `#lg-side-background`).
+  - Pantalla del reproductor: portada en `ytmusic-player-page #player > #song-image`; YouTube Music calcula su tamaño con `#main-panel` (padding lateral propio), por eso el tamaño cuadrado se fija con `--np-art`. Pestañas: `#tabsContent > .tab-header` (2.ª = Letra).
+  - Menú ⋮ de la barra: `ytmusic-menu-renderer #button-shape button`; los elementos del menú tienen `data.icon.iconType` (`ADD_TO_PLAYLIST`, etc.).
   - Para inspeccionar la app en vivo: `pnpm exec electron-vite dev --watch --remoteDebuggingPort 9333` y conectarse por el protocolo de DevTools (`http://127.0.0.1:9333/json`).
   - `#progress-bar` (`tp-yt-paper-slider`) viene con `left: -16px`, `transform: translateY(-16px)` y `#sliderContainer` con `margin: 0 16px`. Por eso se reposiciona entero.
   - `#play-pause-button` mide 52 px y los demás botones 36 px. No fuerces tamaños por botón: descuadra los íconos.

@@ -19,8 +19,9 @@ El complemento vive en [`src/plugins/liquid-glass/`](src/plugins/liquid-glass/) 
 
 - **Fondo vivo:** la portada de la canción actual, muy desenfocada, con un fundido al cambiar de canción y un movimiento lento opcional.
 - **Superficies de vidrio:** menú lateral, barra superior, menús emergentes, pestañas y chips translúcidos con un borde de luz.
-- **Reproductor flotante:** una píldora centrada con los controles, la canción y una barra de progreso ondulada, más una cápsula aparte para el volumen, repetir, aleatorio y abrir el reproductor.
-- **Letras estilo Apple Music:** botón de letras en el reproductor que muestra la letra sincronizada, grande y junto a la portada, con la línea actual resaltada y las demás atenuadas. Usa el complemento *Synced Lyrics*, que debe estar activado.
+- **Reproductor flotante:** una píldora con la portada redonda, la canción, ♡ y + (guardar en una playlist), y a la derecha una barra de progreso ondulada sobre los controles; más una cápsula aparte con volumen, letras, repetir, aleatorio y abrir el reproductor.
+- **Pantalla del reproductor:** portada grande que se encoge al pausar; debajo, título, ♡, +, progreso, controles y volumen; a la derecha el panel de letras o la cola, con la cápsula debajo.
+- **Letras estilo Apple Music:** la letra sincronizada, grande, con la línea actual resaltada y las demás atenuadas. La fuente se elige sola (primero la sincronizada de YouTube Music) y se indica al pie. Usa el complemento *Synced Lyrics*, que debe estar activado. Estilo inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics).
 - **Menú lateral estilo iPad:** tarjeta de vidrio flotante que se muestra u oculta por completo con el botón superior.
 - **Buscador:** campo en forma de píldora y sugerencias en un panel de vidrio.
 - **Refracción:** aberración cromática sutil en los bordes del reproductor y del buscador (se puede desactivar).
@@ -33,7 +34,8 @@ Para que no haya conflictos, conviene desactivar *Album Color Theme*, *Transpare
 | `index.ts` | Definición del complemento, menú y fondo con la portada |
 | `style.css` | Todo el diseño del tema |
 | `refraction.ts` | Refracción con aberración cromática (filtros SVG) |
-| `lyrics.ts` / `lyrics.css` | Botón y modo de letras, estilo de las letras |
+| `player.ts` / `now-playing.css` | Vidrio de la cápsula, botón +, portada animada y diseño de la pantalla del reproductor |
+| `lyrics.ts` / `lyrics.css` | Botón y modo de letras, estilo de las letras y crédito de la fuente |
 | `wave.ts` | Barra de progreso ondulada y corrección del tiempo al pasar el ratón |
 
 ## Desarrollo

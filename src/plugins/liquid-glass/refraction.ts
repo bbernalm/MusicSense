@@ -11,7 +11,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export const REFRACTION_TARGETS = [
   '#player-bar-background',
-  'ytmusic-player-bar .right-controls',
+  '#lg-side-background',
   'ytmusic-search-box .search-box',
 ];
 
@@ -42,7 +42,8 @@ const buildDisplacementMap = (
   const halfW = width / 2;
   const halfH = height / 2;
   const r = Math.min(radius, halfW, halfH);
-  const edge = clamp(Math.min(width, height) * 0.45, 8, 24); // grosor del "lente"
+  // Grosor del "lente": una banda ancha en el borde, como el vidrio de iOS 26
+  const edge = clamp(Math.min(width, height) * 0.42, 10, 30);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -181,8 +182,8 @@ export class LiquidRefraction {
     if (!map) return;
 
     // Intensidad del desplazamiento; cada canal se mueve distinto (aberración)
-    const scale = clamp(Math.min(width, height) * 0.6, 14, 36);
-    const scales = [scale, scale * 0.95, scale * 0.9];
+    const scale = clamp(Math.min(width, height) * 0.85, 18, 56);
+    const scales = [scale, scale * 0.9, scale * 0.8];
 
     const filter = document.createElementNS(SVG_NS, 'filter');
     filter.id = target.filterId;
@@ -219,7 +220,7 @@ export class LiquidRefraction {
     // Primero un desenfoque suave, luego la refracción para que el borde irisado se note
     target.element.style.setProperty(
       'backdrop-filter',
-      `blur(${Math.round(this.blur * 0.4)}px) url(#${target.filterId}) saturate(170%) brightness(1.05)`,
+      `blur(${Math.round(this.blur * 0.25)}px) url(#${target.filterId}) saturate(180%) brightness(0.95)`,
       'important',
     );
   }

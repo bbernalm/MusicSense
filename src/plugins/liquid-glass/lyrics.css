@@ -3,34 +3,7 @@
  * y modo letras: pantalla del reproductor con portada + letras grandes.
  */
 
-/* ---------- Botón de letras en la píldora ---------- */
-.lg-lyrics-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  margin: 0 2px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--ytmusic-text-primary, #fff);
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.15s ease;
-}
-
-.lg-lyrics-button:hover {
-  background: var(--lg-glass-hover);
-}
-
-.lg-lyrics-button:active {
-  transform: scale(0.92);
-}
-
+/* ---------- Botón de letras en la cápsula (base: .lg-icon-button) ---------- */
 .lg-lyrics-button.active {
   background: rgba(255, 255, 255, 0.9);
   color: #111;
@@ -102,33 +75,18 @@ body.liquid-glass .synced-lyrics-vlist {
   mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
 }
 
-/* Selector de proveedor: pastilla de vidrio discreta */
-body.liquid-glass div:has(> .lyrics-picker) > .lyrics-picker {
-  margin: 0 8px;
-  border-radius: 18px;
-  background: rgba(20, 20, 24, 0.45);
-  backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid var(--lg-edge);
-  height: 3.6em;
-  padding-block: 0.5em;
+/* Sin selector de fuente: Synced Lyrics elige sola la mejor (primero la
+   sincronizada de YouTube Music). Se oculta pero sigue montado, porque es
+   el que hace esa elección. */
+body.liquid-glass #synced-lyrics-container div:has(> .lyrics-picker) {
+  visibility: hidden !important;
+  height: 12px !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
 }
 
 /* ---------- Modo letras ---------- */
-/* El panel lateral pierde su caja: las letras flotan sobre el fondo */
-body.liquid-glass.lg-lyrics-open ytmusic-player-page #side-panel {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  flex: 1.25 1 0% !important;
-  max-width: none !important;
-}
-
-body.liquid-glass.lg-lyrics-open ytmusic-player-page #side-panel::after {
-  display: none;
-}
-
-/* Sin pestañas: solo letras (el botón de la píldora vuelve a la cola) */
+/* Panel de vidrio sin pestañas (el botón de la cápsula vuelve a la cola) */
 body.liquid-glass.lg-lyrics-open
   ytmusic-player-page
   #side-panel
@@ -136,10 +94,32 @@ body.liquid-glass.lg-lyrics-open
   display: none !important;
 }
 
-body.liquid-glass.lg-lyrics-open ytmusic-player-page #main-panel {
-  flex: 1 1 0% !important;
+body.liquid-glass.lg-lyrics-open ytmusic-player-page #tab-renderer {
+  padding: 8px 18px 36px 8px;
+  box-sizing: border-box;
 }
 
 body.liquid-glass.lg-lyrics-open {
-  --lyrics-font-size: clamp(1.7rem, 2.5vw, 3rem);
+  --lyrics-font-size: clamp(1.5rem, 2.2vw, 2.6rem);
+}
+
+/* Crédito al pie del panel */
+.lg-lyrics-credit {
+  display: none;
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.lg-lyrics-open .lg-lyrics-credit:not(:empty) {
+  display: block;
 }

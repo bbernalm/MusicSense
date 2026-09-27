@@ -12,6 +12,8 @@ body.liquid-glass {
 
   --lg-glass: rgba(255, 255, 255, 0.07);
   --lg-glass-strong: rgba(28, 28, 32, 0.55);
+  /* tinte del vidrio tipo iOS 26: oscuro pero deja ver el fondo refractado */
+  --lg-glass-tint: rgba(14, 14, 18, 0.38);
   --lg-glass-hover: rgba(255, 255, 255, 0.12);
   --lg-edge: rgba(255, 255, 255, 0.16);
   --lg-highlight: rgba(255, 255, 255, 0.28);
@@ -347,19 +349,24 @@ body.liquid-glass ytmusic-nav-bar #guide-icon::before {
 }
 
 /* ---------- Reproductor flotante, compacto y centrado ----------
- * Dos piezas centradas como grupo: la píldora principal y, a su derecha,
- * una cápsula con volumen, repetir, aleatorio y el botón de la pantalla del reproductor.
+ * Dos piezas centradas como grupo:
+ * - Píldora: portada redonda, título y artista, corazón y "+"; a la derecha
+ *   la barra de progreso con los controles debajo.
+ * - Cápsula: volumen, letras, repetir, aleatorio y abrir el reproductor.
+ * Los fondos de vidrio son #player-bar-background y #lg-side-background.
  */
 body.liquid-glass {
-  --lg-side-width: 250px;
+  --lg-side-width: 290px;
   --lg-gap: 10px;
-  --lg-group-width: min(1100px, calc(100vw - 32px));
+  --lg-group-width: min(1120px, calc(100vw - 32px));
   --lg-bar-width: calc(
     var(--lg-group-width) - var(--lg-side-width) - var(--lg-gap)
   );
   --lg-bar-left: calc((100vw - var(--lg-group-width)) / 2);
   --lg-bar-height: 66px;
   --lg-bar-bottom: 12px;
+  /* ancho de la zona de controles dentro de la píldora */
+  --lg-controls-width: 40%;
 }
 
 body.liquid-glass ytmusic-app-layout {
@@ -382,56 +389,197 @@ body.liquid-glass ytmusic-player-bar {
   transform: none !important;
 }
 
-body.liquid-glass #player-bar-background {
-  background: var(--lg-glass-strong) !important;
+/* Vidrio de la píldora y de la cápsula */
+body.liquid-glass #player-bar-background,
+body.liquid-glass #lg-side-background {
+  background: var(--lg-glass-tint) !important;
   backdrop-filter: var(--lg-filter) !important;
   border: 1px solid var(--lg-edge) !important;
-  border-radius: 22px !important;
+  border-radius: 24px !important;
   box-shadow: var(--lg-shadow) !important;
   opacity: 1 !important;
+  transition:
+    opacity 0.3s ease,
+    left 0.35s ease,
+    top 0.35s ease,
+    width 0.35s ease;
 }
 
-/* Fila de controles: debajo de la onda, todo centrado verticalmente */
+body.liquid-glass #lg-side-background {
+  position: fixed;
+  z-index: var(--lg-bar-z, 3);
+  left: calc(var(--lg-bar-left) + var(--lg-bar-width) + var(--lg-gap));
+  bottom: var(--lg-bar-bottom);
+  width: var(--lg-side-width);
+  height: var(--lg-bar-height);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
 body.liquid-glass ytmusic-player-bar {
   background: transparent !important;
-  padding: 16px 10px 0 !important;
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  padding: 0 14px 0 10px !important;
+  grid-template-columns: minmax(0, 1fr) var(--lg-controls-width) !important;
+  grid-template-areas: none !important;
   align-items: center !important;
 }
 
-body.liquid-glass ytmusic-player-bar .left-controls,
-body.liquid-glass ytmusic-player-bar .middle-controls,
-body.liquid-glass ytmusic-player-bar .right-controls {
+/* Izquierda de la píldora: portada, título y botones */
+body.liquid-glass ytmusic-player-bar .middle-controls {
+  grid-area: 1 / 1 !important;
   width: auto !important;
-  height: 50px !important;
+  min-width: 0;
+  height: 100% !important;
   align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+/* Derecha de la píldora: controles bajo la barra de progreso */
+body.liquid-glass ytmusic-player-bar .left-controls {
+  grid-area: 1 / 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding-top: 18px;
+  box-sizing: border-box;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Escala los grupos de botones completos para no descuadrar los íconos */
 body.liquid-glass ytmusic-player-bar .left-controls-buttons {
-  zoom: 0.78;
+  zoom: 0.72;
   align-items: center !important;
 }
 
 body.liquid-glass ytmusic-player-bar .right-controls-buttons,
-body.liquid-glass ytmusic-player-bar .toggle-player-page-button,
-body.liquid-glass ytmusic-player-bar .middle-controls-buttons {
+body.liquid-glass ytmusic-player-bar .toggle-player-page-button {
   zoom: 0.85;
 }
 
 body.liquid-glass ytmusic-player-bar .time-info {
-  font-size: 11px !important;
-  margin: 0 6px !important;
-  opacity: 0.75;
-}
-
-body.liquid-glass ytmusic-player-bar .middle-controls {
-  justify-content: center !important;
-}
-
-/* Sin botón de "No me gusta" (el primer hijo es "Me gusta") */
-body.liquid-glass ytmusic-player-bar #like-button-renderer > yt-button-shape {
   display: none !important;
+}
+
+/* Portada redonda */
+body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
+  width: 46px !important;
+  height: 46px !important;
+  flex: none;
+}
+
+body.liquid-glass ytmusic-player-bar .image {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 50% !important;
+  object-fit: cover;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+body.liquid-glass ytmusic-player-bar .content-info-wrapper {
+  margin: 0 12px !important;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+body.liquid-glass ytmusic-player-bar .title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+body.liquid-glass ytmusic-player-bar .byline {
+  font-size: 12px !important;
+}
+
+/* Corazón y "+" junto al título; sin "No me gusta" ni menú ⋮ */
+body.liquid-glass ytmusic-player-bar .middle-controls-buttons {
+  display: flex !important;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+body.liquid-glass ytmusic-player-bar #like-button-renderer > yt-button-shape,
+body.liquid-glass
+  ytmusic-player-bar
+  .middle-controls-buttons
+  > ytmusic-menu-renderer {
+  display: none !important;
+}
+
+/* El menú ⋮ se abre por dentro para "Guardar en una playlist": sin mostrarse */
+body.lg-silent-menu ytmusic-popup-container tp-yt-iron-dropdown {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* "Me gusta" con forma de corazón */
+body.liquid-glass ytmusic-player-bar #like-button-renderer button {
+  position: relative;
+}
+
+body.liquid-glass
+  ytmusic-player-bar
+  #like-button-renderer
+  button
+  .ytSpecButtonShapeNextIcon {
+  opacity: 0;
+}
+
+body.liquid-glass ytmusic-player-bar #like-button-renderer button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  -webkit-mask: var(--lg-heart-outline) center / contain no-repeat;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+body.liquid-glass
+  ytmusic-player-bar
+  #like-button-renderer
+  button[aria-pressed='true']::before {
+  background: var(--lg-accent);
+  -webkit-mask-image: var(--lg-heart-filled);
+  transform: scale(1.08);
+}
+
+body.liquid-glass {
+  --lg-heart-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7.8-4.6-7.8-10.4A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 7.8 2.7c0 5.8-7.8 10.4-7.8 10.4Z' fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --lg-heart-filled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7.8-4.6-7.8-10.4A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 7.8 2.7c0 5.8-7.8 10.4-7.8 10.4Z' fill='black' stroke='black' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Botones propios (+ y letras) con el mismo aspecto que los nativos */
+.lg-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin: 0 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ytmusic-text-primary, #fff);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.lg-icon-button:hover {
+  background: var(--lg-glass-hover);
+}
+
+.lg-icon-button:active {
+  transform: scale(0.92);
 }
 
 /* Cápsula de la derecha: sale de la píldora y flota a su lado.
@@ -446,51 +594,36 @@ body.liquid-glass ytmusic-player-bar .right-controls {
   height: var(--lg-bar-height) !important;
   box-sizing: border-box !important;
   padding: 0 12px !important;
+  align-items: center !important;
   justify-content: center !important;
-  background: var(--lg-glass-strong) !important;
-  backdrop-filter: var(--lg-filter);
-  border: 1px solid var(--lg-edge) !important;
-  border-radius: 22px !important;
-  box-shadow: var(--lg-shadow) !important;
+  background: transparent !important;
+}
+
+body.liquid-glass ytmusic-player-bar .right-controls-buttons {
+  align-items: center !important;
 }
 
 /* El volumen siempre visible (YouTube Music lo oculta hasta pasar el ratón) */
 body.liquid-glass ytmusic-player-bar #volume-slider {
   opacity: 1 !important;
-  width: 72px !important;
+  width: 80px !important;
 }
 
-body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
-  height: 36px !important;
-}
-
-body.liquid-glass ytmusic-player-bar .image {
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 8px !important;
-}
-
-body.liquid-glass ytmusic-player-bar .content-info-wrapper {
-  margin: 0 10px !important;
-  min-width: 0;
-}
-
-body.liquid-glass ytmusic-player-bar .title {
-  font-size: 13px !important;
-  font-weight: 600 !important;
-}
-
-body.liquid-glass ytmusic-player-bar .byline {
-  font-size: 11px !important;
+/* Mini reproductor cuadrado (miniatura del video) al cerrar la pantalla del
+   reproductor: se oculta, la píldora ya muestra la portada */
+body.liquid-glass:not(.lg-np) ytmusic-player-page #player {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* ---------- Barra de progreso ondulada ---------- */
-/* YouTube Music la desplaza 16 px y le pone márgenes: se reposiciona dentro de la píldora */
+/* YouTube Music la desplaza 16 px y le pone márgenes: se reposiciona encima
+   de los controles, en la parte derecha de la píldora */
 body.liquid-glass ytmusic-player-bar #progress-bar {
-  left: 22px !important;
+  left: calc(100% - var(--lg-controls-width) - 4px) !important;
   right: auto !important;
-  width: calc(100% - 44px) !important;
-  top: 12px !important;
+  width: calc(var(--lg-controls-width) - 18px) !important;
+  top: 15px !important;
   margin: 0 !important;
   transform: translateY(-16px) !important;
 }
@@ -509,11 +642,16 @@ body.liquid-glass ytmusic-player-bar #progress-bar #sliderKnobContainer {
   width: 100% !important;
 }
 
-/* Parte pendiente: línea recta tenue. La parte reproducida la dibuja la onda */
+/* Parte pendiente: línea recta tenue que empieza donde termina la onda
+   (la parte reproducida la dibuja la onda, sin línea debajo) */
 body.liquid-glass ytmusic-player-bar #progress-bar #progressContainer {
   height: 3px !important;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22) !important;
+  background: linear-gradient(
+    90deg,
+    transparent calc(var(--lg-progress, 0) * 100% + 8px),
+    rgba(255, 255, 255, 0.22) 0
+  ) !important;
 }
 
 body.liquid-glass ytmusic-player-bar #progress-bar #primaryProgress,
@@ -609,7 +747,7 @@ body.liquid-glass ytmusic-player-bar yt-icon-button:active {
 
 /* ---------- Borde de luz del vidrio (brillo especular) ---------- */
 body.liquid-glass #player-bar-background::after,
-body.liquid-glass ytmusic-player-bar .right-controls::after,
+body.liquid-glass #lg-side-background::after,
 body.liquid-glass ytmusic-search-box .search-box::after,
 body.liquid-glass #suggestion-list::after,
 body.liquid-glass ytmusic-player-page #side-panel::after {

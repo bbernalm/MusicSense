@@ -6,6 +6,8 @@
  * cuándo se muestran y su aspecto (ver lyrics.css).
  */
 
+import { lyricsStore } from '@/plugins/synced-lyrics/renderer/store';
+
 const MODE_CLASS = 'lg-lyrics-open';
 const BUTTON_CLASS = 'lg-lyrics-button';
 
@@ -31,11 +33,23 @@ const getTabs = () => document.querySelectorAll<HTMLElement>(TAB_SELECTOR);
 const isLyricsTabSelected = () =>
   getTabs()[1]?.getAttribute('aria-selected') === 'true';
 
+// Nombre visible de cada fuente de Synced Lyrics
+const PROVIDER_LABELS: Record<string, string> = {
+  YTMusic: 'YouTube Music',
+  LRCLib: 'LRCLib',
+  MusixMatch: 'Musixmatch',
+  LyricsGenius: 'Genius',
+};
+
 export class LyricsMode {
   private button: HTMLButtonElement | null = null;
+  private credit: HTMLDivElement | null = null;
   private timer: number | null = null;
 
-  constructor(private readonly label: string) {}
+  constructor(
+    private readonly label: string,
+    private readonly creditText: (provider: string) => string,
+  ) {}
 
   start() {
     // YouTube Music puede volver a crear la barra: se revisa periódicamente
@@ -48,6 +62,8 @@ export class LyricsMode {
     this.timer = null;
     this.button?.remove();
     this.button = null;
+    this.credit?.remove();
+    this.credit = null;
     document.body.classList.remove(MODE_CLASS);
   }
 
@@ -57,16 +73,37 @@ export class LyricsMode {
     document.body.classList.toggle(MODE_CLASS, open);
     this.button?.classList.toggle('active', open);
     this.button?.setAttribute('aria-pressed', String(open));
+    if (open) this.updateCredit();
+  }
+
+  // Crédito al pie del panel de letras: fuente real y estilo de Better Lyrics
+  private updateCredit() {
+    const side = document.querySelector('ytmusic-player-page #side-panel');
+    if (!side) return;
+    if (!this.credit?.isConnected) {
+      this.credit = document.createElement('div');
+      this.credit.className = 'lg-lyrics-credit';
+      side.append(this.credit);
+    }
+
+    const provider = lyricsStore.provider;
+    const state = lyricsStore.lyrics[provider];
+    const found = state?.state === 'done' && state.data !== null;
+    const text = found
+      ? this.creditText(PROVIDER_LABELS[provider] ?? provider)
+      : '';
+    if (this.credit.textContent !== text) this.credit.textContent = text;
   }
 
   private attachButton() {
+    // En la cápsula derecha, antes de "repetir"
     const container = document.querySelector<HTMLElement>(
-      'ytmusic-player-bar .middle-controls-buttons',
+      'ytmusic-player-bar .right-controls-buttons',
     );
     if (!container) return;
 
     const button = document.createElement('button');
-    button.className = BUTTON_CLASS;
+    button.className = `lg-icon-button ${BUTTON_CLASS}`;
     button.type = 'button';
     button.title = this.label;
     button.setAttribute('aria-label', this.label);
@@ -76,8 +113,7 @@ export class LyricsMode {
       this.toggle().catch(console.error);
     });
 
-    const menu = container.querySelector('ytmusic-menu-renderer');
-    container.insertBefore(button, menu);
+    container.insertBefore(button, container.querySelector('.repeat'));
     this.button = button;
   }
 
