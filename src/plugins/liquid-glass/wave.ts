@@ -10,7 +10,20 @@ type SliderElement = HTMLElement & {
   max?: number;
 };
 
+// 3:07 o 1:02:05
+const formatTime = (totalSeconds: number) => {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = String(seconds % 60).padStart(2, '0');
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${secs}`
+    : `${minutes}:${secs}`;
+};
+
 export class WaveProgress {
+  private elapsed: HTMLSpanElement | null = null;
+  private remaining: HTMLSpanElement | null = null;
   private overlay: HTMLDivElement | null = null;
   private slider: SliderElement | null = null;
   private video: HTMLVideoElement | null = null;
@@ -38,6 +51,10 @@ export class WaveProgress {
     }
     this.overlay?.remove();
     this.overlay = null;
+    this.elapsed?.remove();
+    this.remaining?.remove();
+    this.elapsed = null;
+    this.remaining = null;
     this.slider = null;
     this.video = null;
   }
@@ -102,14 +119,7 @@ export class WaveProgress {
       1,
       Math.max(0, (event.clientX - rect.left) / rect.width),
     );
-    const seconds = Math.floor(ratio * duration);
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = String(seconds % 60).padStart(2, '0');
-    label.textContent =
-      hours > 0
-        ? `${hours}:${String(minutes).padStart(2, '0')}:${secs}`
-        : `${minutes}:${secs}`;
+    label.textContent = formatTime(ratio * duration);
     label.style.left = `${event.clientX - bar.getBoundingClientRect().left}px`;
   }
 
@@ -127,5 +137,30 @@ export class WaveProgress {
     this.overlay.style.setProperty('--lg-progress', String(ratio));
     // La pista gris de la barra nativa usa el mismo valor para empezar tras la onda
     this.slider?.style.setProperty('--lg-progress', String(ratio));
+    this.renderTimes(ratio);
+  }
+
+  // Tiempo transcurrido a la izquierda de la barra y restante a la derecha
+  private renderTimes(ratio: number) {
+    const bar = document.querySelector('ytmusic-player-bar');
+    if (!bar) return;
+    if (!this.elapsed?.isConnected || !this.remaining?.isConnected) {
+      this.elapsed?.remove();
+      this.remaining?.remove();
+      this.elapsed = document.createElement('span');
+      this.elapsed.className = 'lg-time lg-time-elapsed';
+      this.remaining = document.createElement('span');
+      this.remaining.className = 'lg-time lg-time-remaining';
+      bar.append(this.elapsed, this.remaining);
+    }
+    const duration = this.video?.duration ?? 0;
+    const known = Number.isFinite(duration) && duration > 0;
+    const current = known ? ratio * duration : 0;
+    const elapsedText = known ? formatTime(current) : '';
+    const remainingText = known ? `-${formatTime(duration - current)}` : '';
+    if (this.elapsed.textContent !== elapsedText)
+      this.elapsed.textContent = elapsedText;
+    if (this.remaining.textContent !== remainingText)
+      this.remaining.textContent = remainingText;
   }
 }

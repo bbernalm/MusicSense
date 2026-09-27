@@ -182,6 +182,9 @@ export default createPlugin({
       this.lyrics.start();
       this.player = new PlayerLayout({
         addToPlaylist: t('plugins.liquid-glass.add-to-playlist'),
+        share: t('plugins.liquid-glass.player.share'),
+        loading: t('plugins.liquid-glass.player.loading'),
+        idle: t('plugins.liquid-glass.player.idle'),
       });
       this.player.start(playerApi);
       this.playerApi = playerApi;

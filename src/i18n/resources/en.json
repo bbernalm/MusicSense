@@ -619,6 +619,11 @@
           }
         }
       },
+      "player": {
+        "idle": "Nothing playing yet",
+        "loading": "Loading",
+        "share": "Share"
+      },
       "name": "Liquid Glass",
       "settings": "Settings",
       "settings-panel": {

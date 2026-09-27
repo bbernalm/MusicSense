@@ -41,6 +41,11 @@ body.liquid-glass {
   --yt-spec-menu-background: var(--lg-glass-strong);
   --ytmusic-menu-item-hover-background-color: var(--lg-glass-hover);
 
+  /* Transparente: el fondo animado (z-index negativo) va por detrás del body */
+  background: transparent !important;
+}
+
+html:has(body.liquid-glass) {
   background: #000 !important;
 }
 
@@ -117,10 +122,16 @@ body.liquid-glass-animated #liquid-glass-backdrop .lg-layer {
 }
 
 /* La app va por encima del fondo */
+/* Sin z-index: crearía un contexto propio y los diálogos de YouTube Music
+   (p. ej. "Guardar en una playlist") quedarían debajo de su fondo oscuro.
+   El fondo animado se pone por detrás con z-index negativo. */
 body.liquid-glass ytmusic-app {
   position: relative;
-  z-index: 1;
   background: transparent !important;
+}
+
+body.liquid-glass #liquid-glass-backdrop {
+  z-index: -1;
 }
 
 body.liquid-glass #layout,
@@ -198,10 +209,21 @@ body.liquid-glass ytmusic-nav-bar .right-content {
  * Solo aparece al hacer scroll (YouTube Music controla su opacidad)
  * y se oculta en la pantalla del reproductor.
  */
+/* Cubre también la franja de la barra de título (32 px), sin línea dura:
+   el borde inferior se desvanece */
 body.liquid-glass #nav-bar-background {
-  background: var(--lg-glass) !important;
+  top: 0 !important;
+  height: calc(var(--ytmusic-nav-bar-height, 90px) + 48px) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 12, 16, 0.55),
+    rgba(12, 12, 16, 0.35) 70%,
+    rgba(12, 12, 16, 0)
+  ) !important;
   backdrop-filter: var(--lg-filter) !important;
-  border-bottom: 1px solid var(--lg-edge) !important;
+  border: 0 !important;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
 }
 
 body.liquid-glass ytmusic-app-layout[player-page-open] #nav-bar-background {
@@ -216,6 +238,23 @@ body.liquid-glass ytmusic-search-box {
   box-shadow: none !important;
 }
 
+/* Al abrirse YouTube Music lo saca del flujo (absolute) y los botones de
+   alrededor se le meten debajo: se mantiene en su sitio */
+body.liquid-glass ytmusic-nav-bar ytmusic-search-box[opened] {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+}
+
+/* Sin la "mini cápsula" vacía mientras llegan las sugerencias */
+body.liquid-glass
+  ytmusic-search-box
+  #suggestion-list:not(
+    :has(ytmusic-search-suggestion, ytmusic-responsive-list-item-renderer)
+  ) {
+  display: none !important;
+}
+
 /* Campo de búsqueda: píldora de vidrio, abierto o cerrado */
 body.liquid-glass ytmusic-search-box .search-box {
   position: relative;
@@ -224,6 +263,9 @@ body.liquid-glass ytmusic-search-box .search-box {
   border-radius: 999px !important;
   box-shadow: var(--lg-shadow) !important;
   backdrop-filter: var(--lg-filter);
+  /* La refracción no respeta las esquinas redondeadas: sin esto se ve un
+     rectángulo alrededor del buscador */
+  clip-path: inset(0 round 999px);
 }
 
 /* Dentro de la barra superior el desenfoque no siempre se aplica: fondo más opaco */
@@ -778,6 +820,127 @@ body.liquid-glass ytmusic-player-bar .right-controls-buttons {
   align-items: center !important;
 }
 
+/* ---------- Tiempos a los lados de la barra de progreso (wave.ts) ---------- */
+.lg-time {
+  position: absolute;
+  top: 50%;
+  width: 44px;
+  transform: translateY(-50%);
+  font-family: var(--lg-font);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+}
+
+.lg-time-remaining {
+  right: 12px;
+  text-align: left;
+}
+
+/* Termina justo antes de la barra: 58 px + su ancho + 6 px de separación */
+.lg-time-elapsed {
+  right: calc(var(--lg-progress-width) - 90px + 64px);
+  text-align: right;
+}
+
+/* ---------- Sin música / cargando (player.ts) ----------
+ * Disco de relleno en lugar de la portada y un texto en lugar del título */
+body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #1b1b20 0 16%, transparent 17%),
+    repeating-radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.07) 0 1px,
+      transparent 1px 4px
+    ),
+    radial-gradient(circle, #2a2a31, #111115);
+}
+
+.lg-bar-status {
+  display: none;
+  font-family: var(--lg-font);
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+body.lg-bar-loading .lg-bar-status,
+body.lg-idle .lg-bar-status {
+  display: block;
+}
+
+body.lg-bar-loading
+  ytmusic-player-bar
+  .content-info-wrapper
+  > :not(.lg-bar-status),
+body.lg-idle ytmusic-player-bar .content-info-wrapper > :not(.lg-bar-status) {
+  display: none !important;
+}
+
+/* Mientras carga: la imagen oculta y un anillo girando sobre el disco */
+body.lg-bar-loading ytmusic-player-bar .image {
+  opacity: 0;
+}
+
+body.lg-bar-loading ytmusic-player-bar .thumbnail-image-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  animation: lg-spin 0.9s linear infinite;
+}
+
+body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
+  position: relative;
+}
+
+body.lg-bar-loading .lg-bar-status::after {
+  content: '';
+  animation: lg-dots 1.2s steps(4) infinite;
+}
+
+@keyframes lg-dots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+}
+
+/* Sin música: la píldora se muestra igual (YouTube Music la oculta), pero
+   sin controles ni barra de progreso */
+body.lg-idle ytmusic-app-layout > [slot='player-bar'],
+body.lg-idle #player-bar-background {
+  visibility: visible !important;
+}
+
+body.lg-idle
+  ytmusic-player-bar
+  :is(
+    .left-controls,
+    .middle-controls-buttons,
+    #progress-bar,
+    .lg-time,
+    .right-controls
+  ) {
+  visibility: hidden !important;
+}
+
+body.lg-idle ytmusic-player-bar .image {
+  opacity: 0;
+}
+
 /* La barra de volumen nativa se sustituye por el panel vertical */
 body.liquid-glass ytmusic-player-bar #volume-slider {
   display: none !important;
@@ -888,8 +1051,8 @@ body.liquid-glass:not(.lg-np) ytmusic-player-page #player {
    parte derecha de la píldora, centrada en altura */
 body.liquid-glass ytmusic-player-bar #progress-bar {
   left: auto !important;
-  right: 18px !important;
-  width: calc(var(--lg-progress-width) - 30px) !important;
+  right: 58px !important;
+  width: calc(var(--lg-progress-width) - 90px) !important;
   top: 32px !important;
   margin: 0 !important;
   transform: translateY(-16px) !important;
@@ -1091,6 +1254,75 @@ body.liquid-glass tp-yt-paper-dialog {
 
 body.liquid-glass tp-yt-iron-dropdown {
   border-radius: 16px;
+}
+
+/* Diálogos (p. ej. "Guardar en una playlist"): vidrio más marcado */
+body.liquid-glass tp-yt-paper-dialog {
+  background: rgba(22, 22, 28, 0.62) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  border-radius: 26px !important;
+  overflow: hidden;
+}
+
+body.liquid-glass
+  tp-yt-paper-dialog
+  :is(
+    ytmusic-add-to-playlist-renderer,
+    ytmusic-playlist-add-to-option-renderer,
+    #header,
+    .header,
+    #playlists,
+    #content
+  ) {
+  background: transparent !important;
+}
+
+body.liquid-glass tp-yt-iron-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(6px);
+}
+
+/* ---------- Avisos (p. ej. "Se guardó en la música que te gustó") ----------
+ * Cápsula de vidrio centrada que sale por encima del reproductor */
+body.liquid-glass tp-yt-paper-toast {
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(var(--lg-bar-bottom) + var(--lg-bar-height) + 14px) !important;
+  max-width: min(560px, calc(100vw - 32px)) !important;
+  min-width: 0 !important;
+  padding: 10px 12px 10px 20px !important;
+  box-sizing: border-box;
+  border-radius: 999px !important;
+  background: rgba(22, 22, 28, 0.6) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid var(--lg-edge) !important;
+  box-shadow: var(--lg-shadow) !important;
+  color: #fff !important;
+  font-family: var(--lg-font) !important;
+  opacity: 0;
+  transform: translate(-50%, 24px) scale(0.92) !important;
+  transition:
+    opacity 0.25s ease,
+    transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) !important;
+}
+
+body.liquid-glass tp-yt-paper-toast.paper-toast-open {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1) !important;
+}
+
+body.liquid-glass tp-yt-paper-toast :is(yt-formatted-string, #text, span) {
+  color: #fff !important;
+}
+
+body.liquid-glass tp-yt-paper-toast :is(a, yt-button-renderer, button) {
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+body.liquid-glass tp-yt-paper-toast :is(yt-icon, svg) {
+  fill: #fff !important;
+  color: #fff !important;
 }
 
 /* ---------- Pestañas y chips ---------- */

@@ -16,6 +16,8 @@ const NP_CLASS = 'lg-np';
 const PAUSED_CLASS = 'lg-paused';
 const SILENT_MENU_CLASS = 'lg-silent-menu';
 const SIDE_HOVER_CLASS = 'lg-side-hover';
+const IDLE_CLASS = 'lg-idle';
+const LOADING_CLASS = 'lg-bar-loading';
 
 const PLUS_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
   <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
@@ -24,13 +26,24 @@ const PLUS_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-type Labels = { addToPlaylist: string };
+const SHARE_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+  <path d="M12 3.5v11M8 7.5l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.5 10.5H7a2 2 0 0 0-2 2V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5.5a2 2 0 0 0-2-2h-1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+</svg>`;
+
+type Labels = {
+  addToPlaylist: string;
+  share: string;
+  loading: string;
+  idle: string;
+};
 
 export class PlayerLayout {
   private api: MusicPlayer | null = null;
   private sideBackground: HTMLDivElement | null = null;
   private addButton: HTMLButtonElement | null = null;
   private npInfo: HTMLDivElement | null = null;
+  private barStatus: HTMLDivElement | null = null;
   private volumePanel: HTMLDivElement | null = null;
   private volumeHideTimer: number | null = null;
   private video: HTMLVideoElement | null = null;
@@ -70,6 +83,7 @@ export class PlayerLayout {
       this.sideBackground,
       this.addButton,
       this.npInfo,
+      this.barStatus,
       this.volumePanel,
     ]) {
       element?.remove();
@@ -77,12 +91,15 @@ export class PlayerLayout {
     this.sideBackground = null;
     this.addButton = null;
     this.npInfo = null;
+    this.barStatus = null;
     this.volumePanel = null;
     document.body.classList.remove(
       NP_CLASS,
       PAUSED_CLASS,
       SILENT_MENU_CLASS,
       SIDE_HOVER_CLASS,
+      IDLE_CLASS,
+      LOADING_CLASS,
     );
   }
 
@@ -97,7 +114,42 @@ export class PlayerLayout {
         .querySelector('ytmusic-app-layout')
         ?.hasAttribute('player-page-open') ?? false;
     document.body.classList.toggle(NP_CLASS, open);
+    this.updateBarStatus();
     this.updateNowPlaying();
+  }
+
+  // Estado de la píldora: sin música (lg-idle) o cargando (lg-bar-loading).
+  // Muestra un disco de relleno y un texto en lugar del título.
+  private updateBarStatus() {
+    const layout = document.querySelector('ytmusic-app-layout');
+    const idle = Boolean(layout && !layout.hasAttribute('player-visible'));
+    const title =
+      document
+        .querySelector('ytmusic-player-bar .content-info-wrapper .title')
+        ?.textContent?.trim() ?? '';
+    const image = document.querySelector<HTMLImageElement>(
+      'ytmusic-player-bar .thumbnail-image-wrapper img.image',
+    );
+    const imageReady = Boolean(
+      image?.getAttribute('src') && image.complete && image.naturalWidth > 0,
+    );
+    const loading = !idle && (!title || !imageReady);
+
+    const body = document.body;
+    body.classList.toggle(IDLE_CLASS, idle);
+    body.classList.toggle(LOADING_CLASS, loading);
+
+    const info = document.querySelector(
+      'ytmusic-player-bar .content-info-wrapper',
+    );
+    if (info && !this.barStatus?.isConnected) {
+      this.barStatus = document.createElement('div');
+      this.barStatus.className = 'lg-bar-status';
+      info.prepend(this.barStatus);
+    }
+    const text = idle ? this.labels.idle : this.labels.loading;
+    if (this.barStatus && this.barStatus.textContent !== text)
+      this.barStatus.textContent = text;
   }
 
   // Fondo de la cápsula: hermano de #player-bar-background
@@ -141,7 +193,7 @@ export class PlayerLayout {
     button.innerHTML = PLUS_ICON;
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      this.addToPlaylist().catch(console.error);
+      this.pressSongMenu('ADD_TO_PLAYLIST').catch(console.error);
     });
     like.after(button);
     this.addButton = button;
@@ -258,7 +310,26 @@ export class PlayerLayout {
       const info = document.createElement('div');
       info.id = 'lg-np-info';
       info.innerHTML =
-        '<div class="lg-np-title"></div><div class="lg-np-artist"></div>';
+        '<div class="lg-np-text"><button type="button" class="lg-np-title"></button><button type="button" class="lg-np-artist"></button></div>';
+      // Título → álbum, artista → página del artista (los enlaces de la barra)
+      info
+        .querySelector('.lg-np-title')
+        ?.addEventListener('click', () => this.openBylineLink('album'));
+      info
+        .querySelector('.lg-np-artist')
+        ?.addEventListener('click', () => this.openBylineLink('artist'));
+
+      const share = document.createElement('button');
+      share.type = 'button';
+      share.className = 'lg-icon-button lg-share-button';
+      share.title = this.labels.share;
+      share.setAttribute('aria-label', this.labels.share);
+      share.innerHTML = SHARE_ICON;
+      share.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.pressSongMenu('SHARE').catch(console.error);
+      });
+      info.append(share);
       main.append(info);
       this.npInfo = info;
     }
@@ -297,8 +368,23 @@ export class PlayerLayout {
     );
   }
 
-  // Abre "Guardar en una playlist" del menú ⋮ sin mostrar el menú
-  private async addToPlaylist() {
+  // Enlaces de la línea "Artista • Álbum • Año" de la barra
+  private openBylineLink(kind: 'artist' | 'album') {
+    const links = [
+      ...document.querySelectorAll<HTMLAnchorElement>(
+        'ytmusic-player-bar .content-info-wrapper .byline a',
+      ),
+    ];
+    const album = links.find((link) =>
+      /browse\/MPRE/.test(link.getAttribute('href') ?? ''),
+    );
+    const target = kind === 'album' ? (album ?? links[0]) : links[0];
+    target?.click();
+  }
+
+  // Opción del menú ⋮ de la canción ("Guardar en una playlist", "Compartir"...)
+  // pulsada sin mostrar el menú
+  private async pressSongMenu(iconType: string) {
     const trigger = document.querySelector<HTMLElement>(
       'ytmusic-player-bar ytmusic-menu-renderer #button-shape button',
     );
@@ -311,9 +397,11 @@ export class PlayerLayout {
         await wait(50);
         const items = document.querySelectorAll<
           HTMLElement & { data?: { icon?: { iconType?: string } } }
-        >('ytmusic-menu-popup-renderer ytmusic-menu-navigation-item-renderer');
+        >(
+          'ytmusic-menu-popup-renderer :is(ytmusic-menu-navigation-item-renderer, ytmusic-menu-service-item-renderer)',
+        );
         const item = [...items].find(
-          (element) => element.data?.icon?.iconType === 'ADD_TO_PLAYLIST',
+          (element) => element.data?.icon?.iconType === iconType,
         );
         if (item) {
           (
