@@ -14,6 +14,7 @@ export const REFRACTION_TARGETS = [
   '#lg-side-background',
   '#lg-expand-background',
   'ytmusic-search-box .search-box',
+  'ytmusic-search-box #suggestion-list',
   '#guide-renderer',
   '.lg-volume-panel',
 ];

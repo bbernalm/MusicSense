@@ -245,6 +245,13 @@ body.liquid-glass ytmusic-app-layout[player-page-open] #nav-bar-background {
 }
 
 /* ---------- Buscador ---------- */
+/* YouTube Music le pone view-transition-name a la barra superior y eso
+   anula el desenfoque (backdrop-filter) de todo lo que contiene: el buscador
+   y su lista de sugerencias se veían sin vidrio */
+body.liquid-glass ytmusic-nav-bar {
+  view-transition-name: none !important;
+}
+
 /* El contenedor exterior dibuja una caja al abrirse: se elimina */
 body.liquid-glass ytmusic-search-box {
   border: 0 !important;
@@ -282,25 +289,24 @@ body.liquid-glass ytmusic-search-box .search-box {
   clip-path: inset(0 round 999px);
 }
 
-/* Dentro de la barra superior el desenfoque no siempre se aplica: fondo más opaco */
+/* Abierto: el mismo tinte oscuro que la píldora del reproductor */
 body.liquid-glass ytmusic-search-box[opened] .search-box {
-  background: rgba(34, 34, 40, 0.8) !important;
+  background: var(--lg-glass-tint) !important;
 }
 
-/* Lista de sugerencias: panel de vidrio flotante separado del campo */
+/* Lista de sugerencias: panel de vidrio flotante separado del campo, con
+   el lente de refraction.ts como la píldora (algo más oscuro para leerla) */
 body.liquid-glass ytmusic-search-box #suggestion-list {
   margin-top: 8px !important;
   padding: 6px !important;
-  background: linear-gradient(
-    180deg,
-    rgba(40, 40, 46, 0.86),
-    rgba(22, 22, 26, 0.9)
-  ) !important;
+  background: rgba(14, 14, 18, 0.55) !important;
   backdrop-filter: var(--lg-filter) !important;
   border: 1px solid var(--lg-edge) !important;
-  border-radius: 20px !important;
+  border-radius: 24px !important;
   box-shadow: var(--lg-shadow) !important;
   overflow: hidden;
+  /* la refracción no respeta las esquinas redondeadas */
+  clip-path: inset(0 round 24px);
 }
 
 body.liquid-glass ytmusic-search-suggestions-section,
@@ -365,6 +371,18 @@ body.liquid-glass #guide-wrapper {
    desplazar la página ese vidrio tapa la parte de arriba del menú */
 body.liquid-glass tp-yt-app-drawer#guide {
   z-index: 6 !important;
+}
+
+/* Su contenedor es transparente y tapa el botón de abrir/cerrar el menú:
+   solo la tarjeta recibe clics */
+body.liquid-glass tp-yt-app-drawer#guide,
+body.liquid-glass tp-yt-app-drawer#guide #contentContainer,
+body.liquid-glass #guide-wrapper {
+  pointer-events: none !important;
+}
+
+body.liquid-glass ytmusic-app:not([guide-collapsed]) #guide-renderer {
+  pointer-events: auto !important;
 }
 
 /* Imagen grande de la página de artista: YouTube Music la desplaza según

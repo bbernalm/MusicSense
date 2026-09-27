@@ -77,6 +77,18 @@ body.liquid-glass ytmusic-nav-bar .center-content {
   animation: lg-capsule-in 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
 }
 
+/* Mientras se busca, la lista de sugerencias (en la barra superior, nivel 5)
+   quedaría debajo de la cápsula: se oculta */
+body:has(
+    ytmusic-search-box[opened]
+      #suggestion-list
+      :is(ytmusic-search-suggestion, ytmusic-responsive-list-item-renderer)
+  )
+  .lg-profile-tabs {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .lg-profile-tab {
   padding: 8px 18px;
   border: 0;
