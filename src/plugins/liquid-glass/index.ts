@@ -196,6 +196,7 @@ export default createPlugin({
             t('plugins.liquid-glass.profile.minutes', { count }),
           discord: 'Discord',
           scrobbler: t('plugins.liquid-glass.profile.scrobbler'),
+          share: t('plugins.liquid-glass.profile.share'),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
       );

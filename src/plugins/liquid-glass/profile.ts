@@ -33,6 +33,7 @@ export type ProfileLabels = {
   minutes: (count: number) => string;
   discord: string;
   scrobbler: string;
+  share: string;
 };
 
 const STATS_KEY = 'lg-stats';
@@ -138,11 +139,19 @@ export class ProfilePage {
       this.cards = null;
       return;
     }
-    const header = document.querySelector('ytmusic-browse-response #header');
-    if (!header) return;
+    // Dentro del bloque que se desplaza al abrir el menú lateral (la cabecera
+    // original, que se oculta, queda fuera de él)
+    const wrapper = document.querySelector(
+      'ytmusic-browse-response #content-wrapper',
+    );
+    const header = document.querySelector(
+      'ytmusic-browse-response #header ytmusic-visual-header-renderer',
+    );
+    // Esperar a que la cabecera tenga datos (antes solo hay un esqueleto gris)
+    if (!wrapper || !header?.querySelector('img')?.getAttribute('src')) return;
     if (!this.cards?.isConnected) {
       this.cards = el('div', 'lg-profile-cards');
-      header.after(this.cards);
+      wrapper.prepend(this.cards);
       this.render().catch(console.error);
     } else if (Date.now() - this.lastRender > 15000) {
       this.render().catch(console.error);
@@ -153,7 +162,46 @@ export class ProfilePage {
     if (!this.cards) return;
     this.lastRender = Date.now();
     const integrations = await this.renderIntegrations();
-    this.cards?.replaceChildren(integrations, this.renderStats());
+    this.cards?.replaceChildren(
+      integrations,
+      this.renderIdentity(),
+      this.renderStats(),
+    );
+  }
+
+  // ---------- Centro: foto, nombre, suscriptores y compartir ----------
+  private renderIdentity() {
+    const header = document.querySelector(
+      'ytmusic-browse-response #header ytmusic-visual-header-renderer',
+    );
+    const card = el('section', 'lg-card lg-identity');
+    const src = header?.querySelector('img')?.src;
+    if (src) {
+      const image = el('img', 'lg-identity-avatar');
+      image.src = src;
+      image.alt = '';
+      card.append(image);
+    }
+    const name = header?.querySelector('.title')?.textContent?.trim() ?? '';
+    card.append(el('h2', 'lg-identity-name', name));
+    const subscribers =
+      header
+        ?.querySelector('ytmusic-subscribe-button-renderer')
+        ?.textContent?.trim() ?? '';
+    if (subscribers) card.append(el('div', 'lg-identity-sub', subscribers));
+
+    // "Compartir" de YouTube Music (el último botón de la cabecera; "Editar"
+    // no se muestra)
+    const share = el('button', 'lg-identity-share', this.labels.share);
+    share.type = 'button';
+    share.addEventListener('click', () => {
+      const buttons = header?.querySelectorAll<HTMLElement>(
+        'yt-button-renderer button',
+      );
+      buttons?.[buttons.length - 1]?.click();
+    });
+    card.append(share);
+    return card;
   }
 
   // ---------- Integraciones ----------

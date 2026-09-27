@@ -403,6 +403,22 @@ export class TopBar {
       this.profileTabs = null;
       return;
     }
+    // Justo debajo del buscador, centrada con él
+    const search = document
+      .querySelector('ytmusic-nav-bar ytmusic-search-box')
+      ?.getBoundingClientRect();
+    if (search) {
+      const half = search.width / 2;
+      const center = search.left + half;
+      document.body.style.setProperty(
+        '--lg-tabs-top',
+        `${Math.round(search.bottom + 10)}px`,
+      );
+      document.body.style.setProperty(
+        '--lg-tabs-left',
+        `${Math.round(center)}px`,
+      );
+    }
     if (this.profileTabs?.isConnected) return;
 
     const tabs = el('div', 'lg-profile-tabs');

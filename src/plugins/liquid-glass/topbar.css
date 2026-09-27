@@ -31,13 +31,13 @@ body.liquid-glass ytmusic-nav-bar .center-content {
 }
 
 /* ---------- Página de tu perfil: cápsula de pestañas bajo el buscador ---------- */
+/* Por delante de la barra superior (que antes se quedaba con los clics) y
+   justo debajo del buscador (topbar.ts calcula --lg-tabs-top) */
 .lg-profile-tabs {
   position: fixed;
-  z-index: 4;
-  top: calc(
-    var(--menu-bar-height, 32px) + var(--ytmusic-nav-bar-height, 64px) - 4px
-  );
-  left: 50%;
+  z-index: 2100;
+  top: var(--lg-tabs-top, 110px);
+  left: var(--lg-tabs-left, 50%);
   transform: translateX(-50%);
   display: flex;
   gap: 4px;
@@ -78,7 +78,11 @@ body.liquid-glass ytmusic-nav-bar .center-content {
 /* ---------- Tarjetas del perfil (profile.ts) ---------- */
 .lg-profile-cards {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr);
+  /* Integraciones | foto y nombre | Estadísticas */
+  grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr) minmax(
+      320px,
+      1.4fr
+    );
   gap: 16px;
   /* mismo ancho que el contenido de la página */
   width: var(--ytmusic-content-width, calc(100% - 200px));
@@ -195,9 +199,61 @@ body.liquid-glass ytmusic-nav-bar .center-content {
   font-variant-numeric: tabular-nums;
 }
 
-/* Deja sitio a la cápsula en la página del perfil */
+/* Perfil: la cabecera original se oculta (foto, nombre y compartir van en
+   la tarjeta central de profile.ts) y se deja sitio a la barra y la cápsula */
+body.lg-profile-page ytmusic-browse-response #header {
+  display: none !important;
+}
+
 body.lg-profile-page ytmusic-browse-response #content-wrapper {
-  padding-top: 44px;
+  padding-top: calc(var(--menu-bar-height, 32px) + 128px);
+}
+
+.lg-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.lg-identity-avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.lg-identity-name {
+  margin: 10px 0 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lg-identity-sub {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.lg-identity-share {
+  margin-top: 12px;
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.6, 0.64, 1);
+}
+
+.lg-identity-share:hover {
+  transform: scale(1.05);
 }
 
 /* Ajustes de YouTube con vidrio: sin los fondos grises de YouTube Music.

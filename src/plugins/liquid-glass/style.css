@@ -78,7 +78,19 @@ body.liquid-glass h2 {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #0b0b0f;
+  /* Sin canción cargada: degradado suave en lugar de negro puro */
+  background:
+    radial-gradient(
+      ellipse at 20% 10%,
+      rgba(250, 45, 72, 0.22),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 85% 90%,
+      rgba(100, 90, 255, 0.2),
+      transparent 60%
+    ),
+    #0b0b0f;
 }
 
 #liquid-glass-backdrop .lg-layer {
