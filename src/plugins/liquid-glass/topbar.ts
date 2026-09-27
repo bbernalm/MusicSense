@@ -1,10 +1,12 @@
 /*
- * Barra superior y menú lateral:
- * - dos cápsulas (atrás / adelante) a la izquierda del buscador;
- * - botón de perfil a la derecha del buscador con un menú de vidrio:
- *   cuenta (si hay sesión), "Acceder" (si no) y los ajustes de MusicSense;
- * - las opciones del menú ⋮ de YouTube Music (Configuración, Condiciones,
- *   Ayuda, Enviar comentarios) pasan al final del menú lateral;
+ * Barra superior:
+ * - [inicio][biblioteca] [‹][›] a la izquierda del buscador;
+ * - [historial][perfil] a su derecha (historial solo con sesión iniciada);
+ * - menú del perfil: foto y nombre, "Tu perfil", cambiar de cuenta y
+ *   "Cerrar sesión" (con sesión) o "Acceder" y "Ajustes" (sin sesión);
+ * - en la página de tu perfil, una cápsula bajo el buscador con las
+ *   pestañas Perfil / Complementos (panel de ajustes) / YouTube (ajustes de
+ *   YouTube Music, solo los apartados elegidos);
  * - sin menciones a YouTube Music Premium.
  *
  * Los menús de YouTube Music se leen y se pulsan "por dentro": se abren con
@@ -12,7 +14,10 @@
  * pulsa, así que hacen exactamente lo mismo que el original.
  */
 
+import type { MusicPlayerAppElement } from '@/types/music-player-app-element';
+
 const SILENT_MENU_CLASS = 'lg-silent-menu';
+const PROFILE_PAGE_CLASS = 'lg-profile-page';
 
 // Íconos de YouTube Music que se consideran publicidad de Premium
 const PREMIUM_ICONS = new Set([
@@ -21,24 +26,52 @@ const PREMIUM_ICONS = new Set([
   'PREMIUM',
 ]);
 
-// Opciones generales del menú de la cuenta / ⋮ que van al menú lateral
-const GENERAL_ICONS = new Set(['SETTINGS', 'PRIVACY_INFO', 'HELP', 'FEEDBACK']);
+// Apartados de los ajustes de YouTube que no se muestran
+const HIDDEN_SETTINGS = new Set([
+  'SETTING_CAT_MUSIC_DOWNLOADS',
+  'SETTING_CAT_MUSIC_CHANNEL_SETTINGS',
+  'SETTING_CAT_MUSIC_RECOMMENDATIONS',
+  'SETTING_CAT_ABOUT',
+]);
 
-const BACK_ICON =
-  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const FORWARD_ICON =
-  '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const PERSON_ICON =
-  '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="8.5" r="4" fill="currentColor"/><path d="M4.5 20c.8-3.8 4-6 7.5-6s6.7 2.2 7.5 6" fill="currentColor"/></svg>';
-const GEAR_ICON =
-  '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M10.3 3.2h3.4l.5 2.4c.6.2 1.1.5 1.6.9l2.3-.8 1.7 2.9-1.8 1.6c.1.6.1 1.2 0 1.8l1.8 1.6-1.7 2.9-2.3-.8c-.5.4-1 .7-1.6.9l-.5 2.4h-3.4l-.5-2.4c-.6-.2-1.1-.5-1.6-.9l-2.3.8-1.7-2.9 1.8-1.6a6 6 0 0 1 0-1.8L4.2 8.6l1.7-2.9 2.3.8c.5-.4 1-.7 1.6-.9Z"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
-const SIGN_IN_ICON =
-  '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// Opciones del menú de la cuenta que se muestran en el menú del perfil
+const PROFILE_ICONS = ['ACCOUNT_BOX', 'SWITCH_ACCOUNTS', 'EXIT_TO_APP'];
+
+const svg = (body: string, size = 22) =>
+  `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">${body}</svg>`;
+const stroke =
+  'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+
+const BACK_ICON = svg(`<path d="M15 5l-7 7 7 7" ${stroke}/>`);
+const FORWARD_ICON = svg(`<path d="M9 5l7 7-7 7" ${stroke}/>`);
+const HOME_ICON = svg(
+  `<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1Z" ${stroke}/>`,
+);
+// Biblioteca: libros en una estantería (como en Apple Music)
+export const LIBRARY_ICON = svg(
+  `<path d="M5 4.5v15M9 4.5v15M13.2 5.2l4.6 13.6" ${stroke} stroke-width="2"/><path d="M3.5 20h17" ${stroke}/>`,
+);
+const HISTORY_ICON = svg(
+  `<path d="M4 12a8 8 0 1 0 2.4-5.7M4 4.5v3.8h3.8" ${stroke}/><path d="M12 8v4.3l3 1.8" ${stroke}/>`,
+);
+const PERSON_ICON = svg(
+  '<circle cx="12" cy="8.5" r="4" fill="currentColor"/><path d="M4.5 20c.8-3.8 4-6 7.5-6s6.7 2.2 7.5 6" fill="currentColor"/>',
+  24,
+);
+const GEAR_ICON = svg(
+  `<path ${stroke} stroke-width="1.6" d="M10.3 3.2h3.4l.5 2.4c.6.2 1.1.5 1.6.9l2.3-.8 1.7 2.9-1.8 1.6c.1.6.1 1.2 0 1.8l1.8 1.6-1.7 2.9-2.3-.8c-.5.4-1 .7-1.6.9l-.5 2.4h-3.4l-.5-2.4c-.6-.2-1.1-.5-1.6-.9l-2.3.8-1.7-2.9 1.8-1.6a6 6 0 0 1 0-1.8L4.2 8.6l1.7-2.9 2.3.8c.5-.4 1-.7 1.6-.9Z"/><circle cx="12" cy="12" r="2.8" ${stroke} stroke-width="1.6"/>`,
+  20,
+);
+const SIGN_IN_ICON = svg(
+  `<path d="M10 17l5-5-5-5M15 12H3M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" ${stroke}/>`,
+  20,
+);
 
 type MenuEntry = {
   label: string;
   icon: string;
   svg: string;
+  browseId: string;
 };
 
 type PolymerElement = HTMLElement & {
@@ -52,9 +85,17 @@ type PolymerElement = HTMLElement & {
 export type TopBarLabels = {
   back: string;
   forward: string;
+  home: string;
+  library: string;
+  history: string;
   profile: string;
+  yourProfile: string;
   signIn: string;
+  signOut: string;
   settings: string;
+  tabProfile: string;
+  tabPlugins: string;
+  tabYouTube: string;
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -70,8 +111,31 @@ const el = <K extends keyof HTMLElementTagNameMap>(
   return element;
 };
 
+const iconButton = (
+  className: string,
+  icon: string,
+  label: string,
+  action: () => void,
+) => {
+  const button = el('button', className);
+  button.type = 'button';
+  button.title = label;
+  button.setAttribute('aria-label', label);
+  button.innerHTML = icon;
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    action();
+  });
+  return button;
+};
+
 const isSignedIn = () =>
   Boolean(document.querySelector('ytmusic-nav-bar ytmusic-settings-button'));
+
+const navigate = (browseId: string) =>
+  document
+    .querySelector<MusicPlayerAppElement>('ytmusic-app')
+    ?.navigate(browseId);
 
 // Botón que abre el menú de YouTube Music: el avatar con sesión, ⋮ sin ella
 const menuTrigger = () =>
@@ -97,12 +161,16 @@ const menuItems = (dropdown: HTMLElement) => [
 ];
 
 export class TopBar {
-  private arrows: HTMLDivElement | null = null;
+  private leftGroup: HTMLDivElement | null = null;
+  private rightGroup: HTMLDivElement | null = null;
+  private history: HTMLButtonElement | null = null;
   private profile: HTMLButtonElement | null = null;
   private profileMenu: HTMLDivElement | null = null;
-  private guideExtra: HTMLDivElement | null = null;
+  private profileTabs: HTMLDivElement | null = null;
   private entries: MenuEntry[] = [];
   private entriesSignedIn: boolean | null = null;
+  private accountName = '';
+  private accountHandle = '';
   private reading = false;
   private timer: number | null = null;
   private readonly onOutside = () => this.closeProfileMenu();
@@ -123,69 +191,92 @@ export class TopBar {
     this.timer = null;
     document.removeEventListener('click', this.onOutside);
     for (const element of [
-      this.arrows,
-      this.profile,
+      this.leftGroup,
+      this.rightGroup,
       this.profileMenu,
-      this.guideExtra,
+      this.profileTabs,
     ]) {
       element?.remove();
     }
-    this.arrows = null;
+    this.leftGroup = null;
+    this.rightGroup = null;
+    this.history = null;
     this.profile = null;
     this.profileMenu = null;
-    this.guideExtra = null;
+    this.profileTabs = null;
+    document.body.classList.remove(PROFILE_PAGE_CLASS);
+  }
+
+  // Id del canal propio (de "Tu canal" en el menú de la cuenta)
+  get channelId() {
+    return (
+      this.entries.find((entry) => entry.icon === 'ACCOUNT_BOX')?.browseId ?? ''
+    );
+  }
+
+  get name() {
+    return this.accountName;
   }
 
   private tick() {
     this.ensureNavControls();
     this.updateAvatar();
-    this.hidePremium();
+    this.markEntries();
 
     // Lee las opciones del menú de YouTube Music al empezar y al cambiar la sesión
     if (this.entriesSignedIn !== isSignedIn() && !this.reading) {
       this.readEntries().catch(console.error);
     }
-    this.ensureGuideExtra();
+    this.updateProfilePage();
   }
 
-  // ---------- Cápsulas atrás/adelante y botón de perfil ----------
+  // ---------- Botones junto al buscador ----------
   private ensureNavControls() {
     const search = document.querySelector<HTMLElement>(
       'ytmusic-nav-bar .center-content ytmusic-search-box',
     );
     if (!search) return;
 
-    if (!this.arrows?.isConnected) {
-      const arrows = el('div', 'lg-nav-arrows');
-      for (const [icon, label, action] of [
-        [BACK_ICON, this.labels.back, () => history.back()],
-        [FORWARD_ICON, this.labels.forward, () => history.forward()],
-      ] as const) {
-        const button = el('button', 'lg-nav-capsule');
-        button.type = 'button';
-        button.title = label;
-        button.setAttribute('aria-label', label);
-        button.innerHTML = icon;
-        button.addEventListener('click', action);
-        arrows.append(button);
-      }
-      search.before(arrows);
-      this.arrows = arrows;
+    if (!this.leftGroup?.isConnected) {
+      const group = el('div', 'lg-nav-arrows');
+      group.append(
+        iconButton('lg-nav-capsule', HOME_ICON, this.labels.home, () =>
+          navigate('FEmusic_home'),
+        ),
+        iconButton('lg-nav-capsule', LIBRARY_ICON, this.labels.library, () =>
+          navigate('FEmusic_library_landing'),
+        ),
+        el('span', 'lg-nav-separator'),
+        iconButton('lg-nav-capsule', BACK_ICON, this.labels.back, () =>
+          history.back(),
+        ),
+        iconButton('lg-nav-capsule', FORWARD_ICON, this.labels.forward, () =>
+          history.forward(),
+        ),
+      );
+      search.before(group);
+      this.leftGroup = group;
     }
 
-    if (!this.profile?.isConnected) {
-      const profile = el('button', 'lg-profile-button');
-      profile.type = 'button';
-      profile.title = this.labels.profile;
-      profile.setAttribute('aria-label', this.labels.profile);
-      profile.innerHTML = PERSON_ICON;
-      profile.addEventListener('click', (event) => {
-        event.stopPropagation();
-        this.toggleProfileMenu();
-      });
-      search.after(profile);
-      this.profile = profile;
+    if (!this.rightGroup?.isConnected) {
+      const group = el('div', 'lg-nav-arrows');
+      this.history = iconButton(
+        'lg-nav-capsule lg-history-button',
+        HISTORY_ICON,
+        this.labels.history,
+        () => navigate('FEmusic_history'),
+      );
+      this.profile = iconButton(
+        'lg-profile-button',
+        PERSON_ICON,
+        this.labels.profile,
+        () => this.toggleProfileMenu(),
+      );
+      group.append(this.history, this.profile);
+      search.after(group);
+      this.rightGroup = group;
     }
+    this.history?.classList.toggle('hidden', !isSignedIn());
   }
 
   // Muestra la foto de la cuenta si hay sesión
@@ -235,7 +326,6 @@ export class TopBar {
 
   private renderProfileMenu() {
     if (!this.profileMenu) return;
-    const menu = this.profileMenu;
     const rows: HTMLElement[] = [];
     const signedIn = isSignedIn();
 
@@ -245,14 +335,16 @@ export class TopBar {
     if (image) avatar.append(image.cloneNode());
     else avatar.innerHTML = PERSON_ICON;
     header.append(avatar);
+    if (signedIn && this.accountName)
+      header.append(el('div', 'lg-profile-name', this.accountName));
     rows.push(header);
 
-    const addRow = (svg: string, label: string, action: () => void) => {
+    const addRow = (icon: string, label: string, action: () => void) => {
       const row = el('button', 'lg-profile-row');
       row.type = 'button';
-      const icon = el('span', 'lg-profile-icon');
-      icon.innerHTML = svg;
-      row.append(icon, el('span', '', label));
+      const iconElement = el('span', 'lg-profile-icon');
+      iconElement.innerHTML = icon;
+      row.append(iconElement, el('span', '', label));
       row.addEventListener('click', () => {
         this.closeProfileMenu();
         action();
@@ -260,27 +352,82 @@ export class TopBar {
       rows.push(row);
     };
 
-    if (!signedIn) {
+    if (signedIn) {
+      // "Tu perfil", "Cambiar de cuenta" y "Cerrar sesión"; los ajustes están
+      // en la cápsula de la página del perfil
+      for (const icon of PROFILE_ICONS) {
+        const entry = this.entries.find((item) => item.icon === icon);
+        if (!entry) continue;
+        const label =
+          icon === 'ACCOUNT_BOX'
+            ? this.labels.yourProfile
+            : icon === 'EXIT_TO_APP'
+              ? this.labels.signOut
+              : entry.label;
+        addRow(entry.svg, label, () => {
+          if (icon === 'ACCOUNT_BOX' && entry.browseId)
+            navigate(entry.browseId);
+          else this.pressEntry(entry).catch(console.error);
+        });
+      }
+    } else {
       addRow(SIGN_IN_ICON, this.labels.signIn, () => {
         document
           .querySelector<HTMLElement>('ytmusic-nav-bar .sign-in-link')
           ?.click();
       });
-    } else {
-      // Opciones de la cuenta de YouTube Music (las generales están en el menú lateral)
-      for (const entry of this.entries.filter(
-        (item) => !GENERAL_ICONS.has(item.icon),
-      )) {
-        addRow(entry.svg, entry.label, () => {
-          this.pressEntry(entry).catch(console.error);
-        });
-      }
+      addRow(GEAR_ICON, this.labels.settings, () => {
+        if (this.profile)
+          this.openSettings(this.profile.getBoundingClientRect());
+      });
     }
+    this.profileMenu.replaceChildren(...rows);
+  }
 
-    addRow(GEAR_ICON, this.labels.settings, () => {
-      if (this.profile) this.openSettings(this.profile.getBoundingClientRect());
+  // ---------- Página del perfil: cápsula de pestañas ----------
+  private updateProfilePage() {
+    // La dirección puede ser /channel/<id> o /@<usuario>
+    const id = this.channelId;
+    const path = decodeURIComponent(location.pathname);
+    const onProfile =
+      isSignedIn() &&
+      ((Boolean(id) && path.includes(id)) ||
+        (Boolean(this.accountHandle) && path === `/${this.accountHandle}`));
+    document.body.classList.toggle(PROFILE_PAGE_CLASS, onProfile);
+
+    if (!onProfile) {
+      this.profileTabs?.remove();
+      this.profileTabs = null;
+      return;
+    }
+    if (this.profileTabs?.isConnected) return;
+
+    const tabs = el('div', 'lg-profile-tabs');
+    const addTab = (label: string, active: boolean, action: () => void) => {
+      const tab = el('button', 'lg-profile-tab', label);
+      tab.type = 'button';
+      tab.classList.toggle('active', active);
+      tab.addEventListener('click', (event) => {
+        event.stopPropagation();
+        action();
+      });
+      tabs.append(tab);
+      return tab;
+    };
+    addTab(this.labels.tabProfile, true, () =>
+      document
+        .querySelector('ytmusic-app-layout')
+        ?.scrollTo({ top: 0, behavior: 'smooth' }),
+    );
+    const plugins = addTab(this.labels.tabPlugins, false, () =>
+      this.openSettings(plugins.getBoundingClientRect()),
+    );
+    addTab(this.labels.tabYouTube, false, () => {
+      const entry = this.entries.find((item) => item.icon === 'SETTINGS');
+      if (entry) this.pressEntry(entry).catch(console.error);
     });
-    menu.replaceChildren(...rows);
+    document.body.append(tabs);
+    this.profileTabs = tabs;
   }
 
   // ---------- Opciones del menú ⋮ / cuenta ----------
@@ -312,12 +459,16 @@ export class TopBar {
           label: item.textContent?.trim().replace(/\s+/g, ' ') ?? '',
           icon: item.data?.icon?.iconType ?? '',
           svg: item.querySelector('yt-icon svg')?.outerHTML ?? '',
+          browseId:
+            item.data?.navigationEndpoint?.browseEndpoint?.browseId ?? '',
         }))
         .filter((entry) => entry.label && !PREMIUM_ICONS.has(entry.icon));
+      this.accountName =
+        dropdown.querySelector('#account-name')?.textContent?.trim() ?? '';
+      this.accountHandle =
+        dropdown.querySelector('#channel-handle')?.textContent?.trim() ?? '';
       this.entriesSignedIn = signedIn;
       dropdown.close?.();
-      this.guideExtra?.remove();
-      this.guideExtra = null;
     } finally {
       await wait(250);
       document.body.classList.remove(SILENT_MENU_CLASS);
@@ -337,9 +488,7 @@ export class TopBar {
         const dropdown = openDropdown();
         if (!dropdown) continue;
         const item = menuItems(dropdown).find(
-          (candidate) =>
-            (candidate.data?.icon?.iconType ?? '') === entry.icon &&
-            candidate.textContent?.trim().replace(/\s+/g, ' ') === entry.label,
+          (candidate) => (candidate.data?.icon?.iconType ?? '') === entry.icon,
         );
         if (item) {
           (
@@ -355,34 +504,33 @@ export class TopBar {
     }
   }
 
-  // Opciones generales al final del menú lateral
-  private ensureGuideExtra() {
-    if (this.guideExtra?.isConnected) return;
-    // Dentro de la lista de secciones, empujadas al fondo de la tarjeta
-    const guide = document.querySelector('#guide-renderer #sections');
-    const general = this.entries.filter((entry) =>
-      GENERAL_ICONS.has(entry.icon),
+  // ---------- Marcas en elementos de YouTube Music ----------
+  // Ajustes de YouTube: solo General, Reproducción, Privacidad y datos, e
+  // Idioma y ubicación (la configuración del canal va en la página del perfil)
+  private markSettingsCategories() {
+    const page = document.querySelector<
+      HTMLElement & {
+        data?: {
+          items?: {
+            settingCategoryCollectionRenderer?: { categoryId?: string };
+          }[];
+        };
+      }
+    >('ytmusic-settings-page');
+    const categories = page?.data?.items ?? [];
+    const items = page?.querySelectorAll(
+      'tp-yt-paper-listbox tp-yt-paper-item',
     );
-    if (!guide || general.length === 0) return;
-
-    const extra = el('div', 'lg-guide-extra');
-    for (const entry of general) {
-      const row = el('button', 'lg-guide-extra-row');
-      row.type = 'button';
-      const icon = el('span', 'lg-guide-extra-icon');
-      icon.innerHTML = entry.svg;
-      row.append(icon, el('span', 'lg-guide-extra-label', entry.label));
-      row.addEventListener('click', () => {
-        this.pressEntry(entry).catch(console.error);
-      });
-      extra.append(row);
-    }
-    guide.append(extra);
-    this.guideExtra = extra;
+    items?.forEach((item, index) => {
+      const id =
+        categories[index]?.settingCategoryCollectionRenderer?.categoryId ?? '';
+      item.classList.toggle('lg-setting-hidden', HIDDEN_SETTINGS.has(id));
+    });
   }
 
-  // ---------- Sin publicidad de Premium ----------
-  private hidePremium() {
+  // Premium oculto y la "Biblioteca" del menú lateral con el ícono de libros
+  private markEntries() {
+    this.markSettingsCategories();
     const selectors = [
       'ytmusic-guide-entry-renderer',
       'ytd-compact-link-renderer',
@@ -399,6 +547,10 @@ export class TopBar {
       element.classList.toggle(
         'lg-premium-hidden',
         PREMIUM_ICONS.has(icon) || browseId === 'SPunlimited',
+      );
+      element.classList.toggle(
+        'lg-library-entry',
+        browseId === 'FEmusic_library_landing',
       );
     }
   }

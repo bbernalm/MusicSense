@@ -11,11 +11,29 @@ body.liquid-glass ytmusic-app-layout > [slot='player-page'] {
   width: 100vw !important;
 }
 
+/* ---------- Columnas alineadas con el reproductor de abajo ----------
+ * La portada empieza donde empieza la píldora y el panel derecho termina
+ * donde termina el grupo (círculo de abrir/cerrar incluido). */
+body.liquid-glass ytmusic-player-page > .content {
+  padding-left: var(--lg-bar-left) !important;
+  padding-right: var(--lg-bar-left) !important;
+  box-sizing: border-box !important;
+}
+
+/* La barra de desplazamiento de la página no sirve en esta pantalla */
+body.liquid-glass.lg-np ytmusic-app-layout {
+  scrollbar-width: none !important;
+}
+
+body.liquid-glass.lg-np ytmusic-app-layout::-webkit-scrollbar {
+  width: 0 !important;
+}
+
 /* ---------- Portada y título ---------- */
 body.liquid-glass ytmusic-player-page #main-panel {
   flex-direction: column !important;
   justify-content: center !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   row-gap: 18px;
   padding: 0 !important;
   box-sizing: border-box !important;
@@ -245,6 +263,97 @@ body.liquid-glass
   ytmusic-player-page
   #tabsContent
   > .tab-header:nth-of-type(3):not(:last-of-type) {
+  display: none !important;
+}
+
+/* ---------- Pestañas como botones en una cápsula ----------
+ * Arriba del todo, a la altura de la parte superior de la portada
+ * (player.ts calcula --np-side-offset) */
+body.liquid-glass.lg-np ytmusic-player-page #side-panel {
+  padding-top: var(--np-side-offset, 0px) !important;
+}
+
+body.liquid-glass ytmusic-player-page #side-panel > .tab-header-container {
+  height: 46px !important;
+  box-sizing: border-box !important;
+  flex: none !important;
+  margin: 0 0 12px !important;
+  padding: 4px !important;
+  border: 1px solid var(--lg-edge) !important;
+  border-radius: 999px !important;
+  background: var(--lg-glass) !important;
+  box-shadow: var(--lg-shadow);
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #side-panel
+  :is(#tabsContainer, #tabsContent) {
+  height: 100% !important;
+}
+
+body.liquid-glass ytmusic-player-page #tabsContent {
+  display: flex !important;
+  gap: 4px;
+  width: 100% !important;
+}
+
+body.liquid-glass ytmusic-player-page #tabsContent > .tab-header {
+  flex: 1 1 0 !important;
+  height: 36px !important;
+  border-radius: 999px !important;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+body.liquid-glass ytmusic-player-page #tabsContent > .tab-header .tab-content {
+  font-family: var(--lg-font) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tabsContent
+  > .tab-header[aria-selected='true'] {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #111 !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tabsContent
+  > .tab-header[aria-selected='true']
+  * {
+  color: #111 !important;
+}
+
+/* Sin la línea de pestaña activa ni las flechas de desplazamiento */
+body.liquid-glass ytmusic-player-page #side-panel #selectionBar,
+body.liquid-glass ytmusic-player-page #side-panel tp-yt-paper-icon-button {
+  display: none !important;
+}
+
+/* "Reproduciendo desde … [Guardar]": otra cápsula de vidrio */
+body.liquid-glass ytmusic-player-page ytmusic-queue-header-renderer {
+  margin: 0 0 12px !important;
+  padding: 8px 8px 8px 18px !important;
+  border: 1px solid var(--lg-edge) !important;
+  border-radius: 999px !important;
+  background: var(--lg-glass) !important;
+  box-sizing: border-box;
+  align-items: center !important;
+}
+
+body.liquid-glass ytmusic-player-page #side-panel #tab-renderer {
+  scrollbar-width: none !important;
+}
+
+/* Sin los filtros "Todo, Canciones conocidas, Popular…" de la cola */
+body.liquid-glass ytmusic-player-page #side-panel ytmusic-chip-cloud-renderer {
   display: none !important;
 }
 

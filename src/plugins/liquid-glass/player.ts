@@ -41,6 +41,7 @@ type Labels = {
 export class PlayerLayout {
   private api: MusicPlayer | null = null;
   private sideBackground: HTMLDivElement | null = null;
+  private expandBackground: HTMLDivElement | null = null;
   private addButton: HTMLButtonElement | null = null;
   private npInfo: HTMLDivElement | null = null;
   private barStatus: HTMLDivElement | null = null;
@@ -62,8 +63,12 @@ export class PlayerLayout {
 
   constructor(private readonly labels: Labels) {}
 
-  start(api: MusicPlayer) {
+  // La API llega más tarde (onPlayerApiReady); solo la usa el volumen
+  setApi(api: MusicPlayer) {
     this.api = api;
+  }
+
+  start() {
     this.timer = window.setInterval(() => this.tick(), 250);
     window.addEventListener('resize', this.onResize);
     this.tick();
@@ -81,6 +86,7 @@ export class PlayerLayout {
     this.sideControls = null;
     for (const element of [
       this.sideBackground,
+      this.expandBackground,
       this.addButton,
       this.npInfo,
       this.barStatus,
@@ -89,6 +95,7 @@ export class PlayerLayout {
       element?.remove();
     }
     this.sideBackground = null;
+    this.expandBackground = null;
     this.addButton = null;
     this.npInfo = null;
     this.barStatus = null;
@@ -163,6 +170,26 @@ export class PlayerLayout {
         this.sideBackground = side;
       }
     }
+    // Círculo aparte del botón de abrir/cerrar el reproductor
+    if (!this.expandBackground?.isConnected && this.sideBackground) {
+      const expand = document.createElement('div');
+      expand.id = 'lg-expand-background';
+      this.sideBackground.after(expand);
+      this.expandBackground = expand;
+    }
+
+    // Aleatorio antes de "anterior" y repetir después de "siguiente"
+    const left = document.querySelector(
+      'ytmusic-player-bar .left-controls-buttons',
+    );
+    const previous = left?.querySelector('.previous-button');
+    const next = left?.querySelector('.next-button');
+    const shuffle = document.querySelector('ytmusic-player-bar .shuffle');
+    const repeat = document.querySelector('ytmusic-player-bar .repeat');
+    if (left && previous && shuffle && shuffle.parentElement !== left)
+      left.insertBefore(shuffle, previous);
+    if (left && next && repeat && repeat.parentElement !== left)
+      next.after(repeat);
 
     // Efecto al pasar el ratón: los controles y su fondo se mueven juntos
     const controls = document.querySelector<HTMLElement>(
@@ -366,6 +393,18 @@ export class PlayerLayout {
       '--np-art',
       `${Math.max(160, Math.floor(size))}px`,
     );
+
+    // Las pestañas del panel derecho empiezan a la altura de la portada
+    const art = document.querySelector('ytmusic-player-page #player');
+    const side = document.querySelector('ytmusic-player-page #side-panel');
+    if (art && side) {
+      const offset =
+        art.getBoundingClientRect().top - side.getBoundingClientRect().top;
+      document.body.style.setProperty(
+        '--np-side-offset',
+        `${Math.max(0, Math.round(offset))}px`,
+      );
+    }
   }
 
   // Enlaces de la línea "Artista • Álbum • Año" de la barra

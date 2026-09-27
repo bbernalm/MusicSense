@@ -617,7 +617,8 @@
             "30": "Normal",
             "50": "Intense"
           }
-        }
+        },
+        "visualizer": "Visualizer above the player"
       },
       "player": {
         "idle": "Nothing playing yet",
@@ -638,7 +639,15 @@
         "forward": "Forward",
         "profile": "Profile",
         "settings": "Settings",
-        "sign-in": "Sign in"
+        "sign-in": "Sign in",
+        "home": "Home",
+        "library": "Library",
+        "history": "History",
+        "your-profile": "Your profile",
+        "sign-out": "Sign out",
+        "tab-profile": "Profile",
+        "tab-plugins": "Plugins",
+        "tab-youtube": "YouTube"
       }
     },
     "lumiastream": {

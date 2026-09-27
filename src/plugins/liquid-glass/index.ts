@@ -14,6 +14,7 @@ import settingsStyle from './settings.css?inline';
 import style from './style.css?inline';
 import { TopBar } from './topbar';
 import topBarStyle from './topbar.css?inline';
+import { Visualizer } from './visualizer';
 import { WaveProgress } from './wave';
 
 import type { MusicPlayer } from '@/types/music-player';
@@ -24,6 +25,7 @@ type LiquidGlassConfig = {
   aberration: boolean;
   animatedArtwork: boolean;
   preferMusic: boolean;
+  visualizer: boolean;
   blur: number;
 };
 
@@ -33,6 +35,7 @@ const defaultConfig: LiquidGlassConfig = {
   aberration: true,
   animatedArtwork: true,
   preferMusic: false,
+  visualizer: true,
   blur: 30,
 };
 
@@ -75,6 +78,14 @@ export default createPlugin({
         checked: config.preferMusic,
         click(item) {
           setConfig({ preferMusic: item.checked });
+        },
+      },
+      {
+        label: t('plugins.liquid-glass.menu.visualizer'),
+        type: 'checkbox',
+        checked: config.visualizer,
+        click(item) {
+          setConfig({ visualizer: item.checked });
         },
       },
       {
@@ -131,6 +142,7 @@ export default createPlugin({
     animatedArtEnabled: true,
     preferMusic: null as PreferMusic | null,
     preferMusicEnabled: false,
+    visualizer: null as Visualizer | null,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
@@ -152,9 +164,17 @@ export default createPlugin({
         {
           back: t('plugins.liquid-glass.topbar.back'),
           forward: t('plugins.liquid-glass.topbar.forward'),
+          home: t('plugins.liquid-glass.topbar.home'),
+          library: t('plugins.liquid-glass.topbar.library'),
+          history: t('plugins.liquid-glass.topbar.history'),
           profile: t('plugins.liquid-glass.topbar.profile'),
+          yourProfile: t('plugins.liquid-glass.topbar.your-profile'),
           signIn: t('plugins.liquid-glass.topbar.sign-in'),
+          signOut: t('plugins.liquid-glass.topbar.sign-out'),
           settings: t('plugins.liquid-glass.topbar.settings'),
+          tabProfile: t('plugins.liquid-glass.topbar.tab-profile'),
+          tabPlugins: t('plugins.liquid-glass.topbar.tab-plugins'),
+          tabYouTube: t('plugins.liquid-glass.topbar.tab-youtube'),
         },
         (anchor) => {
           this.settings?.toggle(anchor).catch(console.error);
@@ -162,17 +182,6 @@ export default createPlugin({
       );
       this.topBar.start();
 
-      const backdrop = document.createElement('div');
-      backdrop.id = BACKDROP_ID;
-      backdrop.innerHTML =
-        '<div class="lg-layer"></div><div class="lg-layer"></div><div class="lg-shade"></div>';
-      document.body.prepend(backdrop);
-      this.backdrop = backdrop;
-
-      this.applyConfig(await getConfig());
-    },
-
-    onPlayerApiReady(playerApi) {
       this.wave = new WaveProgress();
       this.wave.start();
       this.lyrics = new LyricsMode(
@@ -186,7 +195,22 @@ export default createPlugin({
         loading: t('plugins.liquid-glass.player.loading'),
         idle: t('plugins.liquid-glass.player.idle'),
       });
-      this.player.start(playerApi);
+      this.player.start();
+
+      const backdrop = document.createElement('div');
+      backdrop.id = BACKDROP_ID;
+      backdrop.innerHTML =
+        '<div class="lg-layer"></div><div class="lg-layer"></div><div class="lg-shade"></div>';
+      document.body.prepend(backdrop);
+      this.backdrop = backdrop;
+
+      this.applyConfig(await getConfig());
+    },
+
+    // Solo lo que necesita la API del reproductor; el resto arranca en start()
+    // (sin ninguna canción cargada YouTube Music tarda en crear el reproductor)
+    onPlayerApiReady(playerApi) {
+      this.player?.setApi(playerApi);
       this.playerApi = playerApi;
       this.updateAnimatedArt();
       this.updatePreferMusic();
@@ -235,6 +259,8 @@ export default createPlugin({
       this.animatedArt = null;
       this.preferMusic?.stop();
       this.preferMusic = null;
+      this.visualizer?.stop();
+      this.visualizer = null;
       this.playerApi = null;
       this.lastArtwork = '';
     },
@@ -276,6 +302,7 @@ export default createPlugin({
     applyConfig(
       this: {
         refraction: LiquidRefraction | null;
+        visualizer: Visualizer | null;
         animatedArtEnabled: boolean;
         preferMusicEnabled: boolean;
         updateAnimatedArt: () => void;
@@ -283,6 +310,13 @@ export default createPlugin({
       },
       config: LiquidGlassConfig,
     ) {
+      if (config.visualizer && !this.visualizer) {
+        this.visualizer = new Visualizer();
+        this.visualizer.start();
+      } else if (!config.visualizer && this.visualizer) {
+        this.visualizer.stop();
+        this.visualizer = null;
+      }
       this.animatedArtEnabled = config.animatedArtwork;
       this.updateAnimatedArt();
       this.preferMusicEnabled = config.preferMusic;

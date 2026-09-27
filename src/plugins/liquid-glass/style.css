@@ -510,11 +510,14 @@ body.liquid-glass ytmusic-nav-bar #guide-icon::before {
  * Los fondos de vidrio son #player-bar-background y #lg-side-background.
  */
 body.liquid-glass {
-  --lg-side-width: 232px;
+  --lg-side-width: 150px;
   --lg-gap: 10px;
+  /* círculo aparte con el botón de abrir/cerrar el reproductor */
+  --lg-expand-size: 66px;
   --lg-group-width: min(1120px, calc(100vw - 32px));
   --lg-bar-width: calc(
-    var(--lg-group-width) - var(--lg-side-width) - var(--lg-gap)
+    var(--lg-group-width) - var(--lg-side-width) - var(--lg-expand-size) -
+      var(--lg-gap) - var(--lg-gap)
   );
   --lg-bar-left: calc((100vw - var(--lg-group-width)) / 2);
   --lg-bar-height: 66px;
@@ -545,7 +548,8 @@ body.liquid-glass ytmusic-player-bar {
 
 /* Vidrio de la píldora y de la cápsula */
 body.liquid-glass #player-bar-background,
-body.liquid-glass #lg-side-background {
+body.liquid-glass #lg-side-background,
+body.liquid-glass #lg-expand-background {
   background: var(--lg-glass-tint) !important;
   backdrop-filter: var(--lg-filter) !important;
   border: 1px solid var(--lg-edge) !important;
@@ -567,6 +571,23 @@ body.liquid-glass #lg-side-background {
   height: var(--lg-bar-height);
   box-sizing: border-box;
   pointer-events: none;
+}
+
+/* Círculo aparte (a la derecha de la cápsula) para abrir/cerrar el reproductor */
+body.liquid-glass #lg-expand-background {
+  position: fixed;
+  z-index: var(--lg-bar-z, 3);
+  left: calc(
+    var(--lg-bar-left) + var(--lg-bar-width) + var(--lg-side-width) +
+      var(--lg-gap) + var(--lg-gap)
+  );
+  bottom: var(--lg-bar-bottom);
+  width: var(--lg-expand-size);
+  height: var(--lg-bar-height);
+  box-sizing: border-box;
+  border-radius: 50% !important;
+  pointer-events: none;
+  animation: lg-capsule-in 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) 0.08s backwards;
 }
 
 /* Cápsula: entra con un rebote. Al pasar el ratón se ilumina por dentro
@@ -656,9 +677,33 @@ body.liquid-glass ytmusic-player-bar .left-controls-buttons {
   align-items: center !important;
 }
 
-body.liquid-glass ytmusic-player-bar .right-controls-buttons,
-body.liquid-glass ytmusic-player-bar .toggle-player-page-button {
+body.liquid-glass ytmusic-player-bar .right-controls-buttons {
   zoom: 0.85;
+}
+
+/* Aleatorio y repetir, movidos a la píldora (player.ts): algo más discretos */
+body.liquid-glass
+  ytmusic-player-bar
+  .left-controls-buttons
+  :is(.shuffle, .repeat) {
+  margin: 0 10px !important;
+  opacity: 0.85;
+}
+
+/* Botón de abrir/cerrar el reproductor dentro de su círculo aparte */
+body.liquid-glass ytmusic-player-bar .toggle-player-page-button {
+  position: absolute !important;
+  left: calc(var(--lg-side-width) + var(--lg-gap)) !important;
+  top: 0 !important;
+  width: var(--lg-expand-size) !important;
+  height: var(--lg-bar-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  animation: lg-capsule-in 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) 0.08s backwards;
 }
 
 body.liquid-glass ytmusic-player-bar .time-info {
@@ -820,6 +865,41 @@ body.liquid-glass ytmusic-player-bar .right-controls-buttons {
   align-items: center !important;
 }
 
+/* ---------- Visualizador (visualizer.ts) ----------
+ * Píldora que sale de detrás de la principal mientras suena música */
+#lg-visualizer {
+  position: fixed;
+  z-index: 2;
+  /* sobre la zona de la barra de progreso (derecha de la píldora) */
+  left: calc(var(--lg-bar-left) + var(--lg-bar-width) - 330px);
+  bottom: calc(var(--lg-bar-bottom) + var(--lg-bar-height) - 20px);
+  width: 300px;
+  height: 34px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 1px solid var(--lg-edge);
+  border-radius: 999px;
+  background: var(--lg-glass-tint);
+  backdrop-filter: var(--lg-filter);
+  box-shadow: var(--lg-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+#lg-visualizer.visible {
+  opacity: 1;
+  transform: translateY(-28px);
+}
+
+#lg-visualizer canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 /* ---------- Tiempos a los lados de la barra de progreso (wave.ts) ---------- */
 .lg-time {
   position: absolute;
@@ -932,9 +1012,13 @@ body.lg-idle
     .middle-controls-buttons,
     #progress-bar,
     .lg-time,
-    .right-controls
+    .toggle-player-page-button
   ) {
   visibility: hidden !important;
+}
+
+body.lg-idle #lg-expand-background {
+  display: none;
 }
 
 body.lg-idle ytmusic-player-bar .image {

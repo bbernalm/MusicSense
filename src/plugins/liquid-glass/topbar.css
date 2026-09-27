@@ -14,8 +14,110 @@ body.liquid-glass ytmusic-nav-bar .center-content {
 
 .lg-nav-arrows {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex: none;
+}
+
+.lg-nav-separator {
+  width: 1px;
+  height: 22px;
+  margin: 0 2px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.lg-history-button.hidden {
+  display: none;
+}
+
+/* ---------- Página de tu perfil: cápsula de pestañas bajo el buscador ---------- */
+.lg-profile-tabs {
+  position: fixed;
+  z-index: 4;
+  top: calc(
+    var(--menu-bar-height, 32px) + var(--ytmusic-nav-bar-height, 64px) - 4px
+  );
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 999px;
+  background: rgba(22, 22, 28, 0.55);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: var(--lg-shadow);
+  animation: lg-capsule-in 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+}
+
+.lg-profile-tab {
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--lg-font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.lg-profile-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lg-profile-tab.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+/* Deja sitio a la cápsula en la página del perfil */
+body.lg-profile-page ytmusic-browse-response #content-wrapper {
+  padding-top: 44px;
+}
+
+/* Ajustes de YouTube con vidrio: sin los fondos grises de YouTube Music.
+   La ventana es un ytmusic-dialog (no un tp-yt-paper-dialog) */
+body.liquid-glass ytmusic-dialog {
+  background: rgba(22, 22, 28, 0.62) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid var(--lg-edge) !important;
+  border-radius: 26px !important;
+  box-shadow: var(--lg-shadow) !important;
+  overflow: hidden;
+}
+
+body.liquid-glass ytmusic-settings-page,
+body.liquid-glass
+  ytmusic-settings-page
+  :is(#content, tp-yt-paper-listbox, .content, #settings-content) {
+  background: transparent !important;
+}
+
+body.liquid-glass ytmusic-settings-page tp-yt-paper-listbox {
+  padding: 8px !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.liquid-glass ytmusic-settings-page tp-yt-paper-listbox tp-yt-paper-item {
+  border-radius: 12px !important;
+  margin-bottom: 2px;
+}
+
+body.liquid-glass
+  ytmusic-settings-page
+  tp-yt-paper-listbox
+  tp-yt-paper-item.iron-selected {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Ajustes de YouTube: apartados ocultos (topbar.ts los marca por su id) */
+body.liquid-glass ytmusic-settings-page tp-yt-paper-item.lg-setting-hidden {
+  display: none !important;
 }
 
 .lg-nav-capsule,
@@ -87,9 +189,17 @@ body.liquid-glass ytmusic-nav-bar .center-content {
   transform: none;
 }
 
+.lg-profile-name {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .lg-profile-header {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding: 10px 0 12px;
   margin-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -154,6 +264,78 @@ body.liquid-glass ytmusic-nav-bar .center-content {
 .lg-guide-extra-icon svg {
   width: 100%;
   height: 100%;
+}
+
+/* ---------- Menú lateral ----------
+ * "Biblioteca" con el ícono de libros; las playlists ocupan el espacio que
+ * sobra y "Nueva playlist" va abajo del todo */
+body.liquid-glass ytmusic-guide-entry-renderer.lg-library-entry .guide-icon {
+  position: relative;
+}
+
+body.liquid-glass
+  ytmusic-guide-entry-renderer.lg-library-entry
+  .guide-icon
+  > * {
+  opacity: 0;
+}
+
+body.liquid-glass
+  ytmusic-guide-entry-renderer.lg-library-entry
+  .guide-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 4.5v15M9 4.5v15M13.2 5.2l4.6 13.6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3.5 20h17' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+body.liquid-glass #guide-renderer {
+  display: flex !important;
+  flex-direction: column;
+  /* YouTube Music reserva abajo el alto de su reproductor: aquí no hace falta */
+  padding-bottom: 4px !important;
+}
+
+body.liquid-glass #guide-renderer #sections {
+  flex: 1;
+  min-height: 0;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column;
+}
+
+body.liquid-glass
+  #guide-renderer
+  #sections
+  > ytmusic-guide-section-renderer:last-of-type {
+  flex: 1;
+  min-height: 0;
+  display: flex !important;
+  flex-direction: column;
+}
+
+body.liquid-glass
+  #guide-renderer
+  #sections
+  > ytmusic-guide-section-renderer:last-of-type
+  #items {
+  flex: 1;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto !important;
+  scrollbar-width: none;
+}
+
+body.liquid-glass
+  #guide-renderer
+  #sections
+  > ytmusic-guide-section-renderer:last-of-type
+  #buttons {
+  order: 99;
+  padding: 10px 0 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ---------- Opciones del menú ⋮ al final del menú lateral ---------- */

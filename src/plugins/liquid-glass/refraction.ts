@@ -12,6 +12,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export const REFRACTION_TARGETS = [
   '#player-bar-background',
   '#lg-side-background',
+  '#lg-expand-background',
   'ytmusic-search-box .search-box',
   '#guide-renderer',
   '.lg-volume-panel',

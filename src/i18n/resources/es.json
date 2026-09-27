@@ -617,7 +617,8 @@
             "30": "Normal",
             "50": "Intenso"
           }
-        }
+        },
+        "visualizer": "Visualizador sobre el reproductor"
       },
       "player": {
         "idle": "No hay nada sonando todavía",
@@ -638,7 +639,15 @@
         "forward": "Adelante",
         "profile": "Perfil",
         "settings": "Ajustes",
-        "sign-in": "Acceder"
+        "sign-in": "Acceder",
+        "home": "Principal",
+        "library": "Biblioteca",
+        "history": "Historial",
+        "your-profile": "Tu perfil",
+        "sign-out": "Cerrar sesión",
+        "tab-profile": "Perfil",
+        "tab-plugins": "Complementos",
+        "tab-youtube": "YouTube"
       }
     },
     "lumiastream": {
