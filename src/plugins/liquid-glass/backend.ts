@@ -7,11 +7,14 @@ import {
 
 import { createBackend } from '@/utils';
 
+import { findAppleMotion, type MotionQuery } from './apple-motion';
+
 /*
  * Proceso principal: da al panel de configuración (settings.ts) acceso al
  * menú de la aplicación (Plugins, Options, View, Navigation, About).
  * - liquid-glass:get-menu    → el menú como datos (para dibujarlo con interruptores)
  * - liquid-glass:menu-click  → pulsa una opción por su commandId
+ * - liquid-glass:apple-motion → portada animada directa de Apple Music
  */
 
 // Quita las referencias internas de Electron que no se pueden enviar al renderer
@@ -39,6 +42,11 @@ export const backend = createBackend({
       serializeMenu(Menu.getApplicationMenu()),
     );
 
+    // Portada animada directa de Apple Music (alternativa, ver apple-motion.ts)
+    ipc.handle('liquid-glass:apple-motion', (query: MotionQuery) =>
+      findAppleMotion(query),
+    );
+
     // Igual que "In-App Menu": el click de Electron ya alterna casillas y radios
     ipc.handle('liquid-glass:menu-click', (commandId: number) => {
       const item = findMenuItem(commandId);
@@ -56,5 +64,6 @@ export const backend = createBackend({
   stop({ ipc }) {
     ipc.removeHandler('liquid-glass:get-menu');
     ipc.removeHandler('liquid-glass:menu-click');
+    ipc.removeHandler('liquid-glass:apple-motion');
   },
 });

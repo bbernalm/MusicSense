@@ -7,6 +7,9 @@
  * en bucle de Apple Music, que se pinta encima de la portada de la pantalla
  * del reproductor.
  *
+ * Si ese servicio no la tiene, se busca directamente en Apple Music desde el
+ * proceso principal (apple-motion.ts).
+ *
  * - Una sola petición por canción; el resultado se guarda en localStorage
  *   (también los "no encontrado", que se reintentan pasados unos días).
  * - El video solo se descarga con la pantalla del reproductor abierta y se
@@ -52,7 +55,15 @@ const writeCache = (key: string, url: string | null) => {
   }
 };
 
+type AppleMotion = (query: {
+  artist: string;
+  album: string;
+  title: string;
+}) => Promise<unknown>;
+
 export class AnimatedArtwork {
+  constructor(private readonly appleMotion: AppleMotion) {}
+
   private api: MusicPlayer | null = null;
   private timer: number | null = null;
   private song: SongKey | null = null;
@@ -162,7 +173,16 @@ export class AnimatedArtwork {
       });
       if (!response.ok) return;
       const data = (await response.json()) as { videoUrl?: string | null };
-      const url = data.videoUrl ?? null;
+      let url = data.videoUrl ?? null;
+      // Alternativa: directamente de Apple Music (apple-motion.ts)
+      if (!url && !request.signal.aborted) {
+        url = ((await this.appleMotion({
+          artist: song.artist,
+          album: song.album,
+          title: song.title,
+        })) ?? null) as string | null;
+      }
+      if (request.signal.aborted) return;
       writeCache(cacheKey, url);
       if (this.song?.videoId === song.videoId) this.videoUrl = url;
     } catch (error) {

@@ -36,6 +36,8 @@ const defaultConfig: LiquidGlassConfig = {
   blur: 30,
 };
 
+type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
+
 const BODY_CLASS = 'liquid-glass';
 const ANIMATED_CLASS = 'liquid-glass-animated';
 const BACKDROP_ID = 'liquid-glass-backdrop';
@@ -123,6 +125,7 @@ export default createPlugin({
     onDataChange: null as ((event: Event) => void) | null,
     settings: null as SettingsPanel | null,
     topBar: null as TopBar | null,
+    invoke: null as Invoke | null,
     playerApi: null as MusicPlayer | null,
     animatedArt: null as AnimatedArtwork | null,
     animatedArtEnabled: true,
@@ -131,6 +134,7 @@ export default createPlugin({
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
+      this.invoke = (channel, ...args) => ipc.invoke(channel, ...args);
       this.settings = new SettingsPanel(
         {
           title: t('plugins.liquid-glass.settings'),
@@ -237,9 +241,13 @@ export default createPlugin({
       playerApi: MusicPlayer | null;
       animatedArt: AnimatedArtwork | null;
       animatedArtEnabled: boolean;
+      invoke: Invoke | null;
     }) {
       if (this.animatedArtEnabled && this.playerApi && !this.animatedArt) {
-        this.animatedArt = new AnimatedArtwork();
+        const invoke = this.invoke;
+        this.animatedArt = new AnimatedArtwork(async (query) =>
+          invoke ? invoke('liquid-glass:apple-motion', query) : null,
+        );
         this.animatedArt.start(this.playerApi);
       } else if (!this.animatedArtEnabled && this.animatedArt) {
         this.animatedArt.stop();
