@@ -14,6 +14,8 @@
  * pulsa, así que hacen exactamente lo mismo que el original.
  */
 
+import APP_ICON_SVG from '@assets/icon.svg?raw';
+
 import type { MusicPlayerAppElement } from '@/types/music-player-app-element';
 
 const SILENT_MENU_CLASS = 'lg-silent-menu';
@@ -161,6 +163,7 @@ const menuItems = (dropdown: HTMLElement) => [
 ];
 
 export class TopBar {
+  private appIcon: HTMLDivElement | null = null;
   private leftGroup: HTMLDivElement | null = null;
   private rightGroup: HTMLDivElement | null = null;
   private history: HTMLButtonElement | null = null;
@@ -194,6 +197,7 @@ export class TopBar {
     this.timer = null;
     document.removeEventListener('click', this.onOutside);
     for (const element of [
+      this.appIcon,
       this.leftGroup,
       this.rightGroup,
       this.profileMenu,
@@ -234,7 +238,19 @@ export class TopBar {
   }
 
   // ---------- Botones junto al buscador ----------
+  // Icono de MusicSense en la franja superior izquierda (sobre el botón del
+  // menú lateral)
+  private ensureAppIcon() {
+    if (this.appIcon?.isConnected) return;
+    const icon = el('div', 'lg-app-icon');
+    icon.innerHTML = APP_ICON_SVG;
+    icon.setAttribute('aria-hidden', 'true');
+    document.body.append(icon);
+    this.appIcon = icon;
+  }
+
   private ensureNavControls() {
+    this.ensureAppIcon();
     const search = document.querySelector<HTMLElement>(
       'ytmusic-nav-bar .center-content ytmusic-search-box',
     );

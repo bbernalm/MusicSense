@@ -63,6 +63,8 @@ export const backend = createBackend({
     if (width < MIN_WIDTH || height < MIN_HEIGHT)
       window.setSize(Math.max(width, MIN_WIDTH), Math.max(height, MIN_HEIGHT));
 
+    ipc.handle('liquid-glass:min-size', () => window.getMinimumSize());
+
     const title = t('plugins.liquid-glass.topbar.sign-in');
     onWillNavigate = (event, url) => {
       if (!isLoginUrl(url)) return;
@@ -119,5 +121,6 @@ export const backend = createBackend({
     ipc.removeHandler('liquid-glass:menu-click');
     ipc.removeHandler('liquid-glass:apple-motion');
     ipc.removeHandler('liquid-glass:check-collection');
+    ipc.removeHandler('liquid-glass:min-size');
   },
 });

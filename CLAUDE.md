@@ -75,6 +75,16 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
 - Menú lateral: sin Configuración/Condiciones/Ayuda/Comentarios; las playlists ocupan el espacio y "Nueva playlist" va abajo; Biblioteca con icono de libros (`.lg-library-entry`).
 - Los módulos de la píldora arrancan en `start()`, no en `onPlayerApiReady` (sin canción cargada YouTube Music tarda en crear el reproductor).
 
+- **Ronda 2 del 27/09/2026:**
+  - Portadas animadas por álbum exacto (`mode: 'album'`) o sencillo (`mode: 'single'`: sencillos, y videoclips con "Preferir música", título limpio de "(Official Video)"). Lo del servicio de Better Lyrics se valida con `liquid-glass:check-collection` (iTunes lookup del `albumId` ≠ nombre buscado → se descarta). Caché `lg-animated-art2:`.
+  - Liquid Glass siempre activo: `ALWAYS_ENABLED` en `src/config/plugins.ts` (fuerza `enabled` en `getPlugins`/`isEnabled`, ignora `disable`) y `src/menu.ts` muestra solo sus opciones. `pluginToggle` de settings.ts/profile.ts solo reconoce "Enabled" si va seguida de separador.
+  - Visualizador apagado por defecto. Ventana mínima 1100×680 (`setMinimumSize` en backend.ts).
+  - Menú lateral: `#guide-wrapper` z-index 6 y `#nav-bar-background` sin clics (tapaba "Principal"); portadas de playlists pedidas con `ytmusic-app.networkManager.fetch('/browse', {browseId: 'FEmusic_liked_playlists'})` (clase `lg-playlist-entry`, `img.lg-guide-thumb`).
+  - Panel derecho: `.lg-queue-top` (arriba del `#side-panel`) con la cabecera "Reproduciendo desde" movida allí y un botón ∞ que pulsa `#automix` (fila `.autoplay` oculta).
+  - Píldora y cápsula con `border-radius: 999px`.
+  - Perfil: `#header` oculto; tarjeta central `.lg-identity` (foto, nombre, suscriptores, "Compartir perfil" = último botón de la cabecera) entre Integraciones y Estadísticas, todo dentro de `#content-wrapper` (se mueve con el menú lateral). Cápsula de pestañas `position: fixed`, z-index 2100, bajo el buscador (`--lg-tabs-top/left`).
+  - Icono nuevo: `assets/icon.svg` (vector). `pnpm exec electron scripts/generate-icons.mjs` regenera `assets/icon.png`, `assets/generated/icons/png/*`, `win/icon.ico` y el SVG de mac. El icono se muestra arriba a la izquierda (`.lg-app-icon`, importado con `@assets/icon.svg?raw`). Faltaría regenerar `tray*.png` si se quiere el icono nuevo en la bandeja.
+
 ### Pendiente o por verificar
 
 - Ideas pendientes: "Audio espacial" (requiere meter un nodo de efectos en la cadena de audio de Pear, afecta a otros complementos), probar que los avisos en cápsula se ven bien al dar "Me gusta", más estadísticas.
