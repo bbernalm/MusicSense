@@ -61,10 +61,21 @@ const isVisible = (node: MenuNode) => node.visible !== false;
 
 // Un complemento sin opciones es una casilla; con opciones, un submenú cuya
 // primera casilla es "Enabled"
-const pluginToggle = (node: MenuNode) =>
-  node.type === 'checkbox'
-    ? node
-    : node.submenu?.items.find((item) => item.type === 'checkbox');
+// El interruptor es la casilla del complemento o la "Enabled" de su submenú
+// (primera casilla seguida de un separador). Los complementos siempre activos
+// de MusicSense no tienen: solo opciones.
+const pluginToggle = (node: MenuNode) => {
+  if (node.type === 'checkbox') return node;
+  const [first, second] = node.submenu?.items ?? [];
+  return first?.type === 'checkbox' && second?.type === 'separator'
+    ? first
+    : undefined;
+};
+
+const isPluginOn = (node: MenuNode) => {
+  const toggle = pluginToggle(node);
+  return toggle ? Boolean(toggle.checked) : node.type === 'submenu';
+};
 
 const pluginOptions = (node: MenuNode) => {
   if (node.type !== 'submenu') return [];
@@ -259,8 +270,8 @@ export class SettingsPanel {
           item.label.toLowerCase().includes(this.query) ||
           (item.toolTip ?? '').toLowerCase().includes(this.query)),
     );
-    const enabled = plugins.filter((item) => pluginToggle(item)?.checked);
-    const available = plugins.filter((item) => !pluginToggle(item)?.checked);
+    const enabled = plugins.filter((item) => isPluginOn(item));
+    const available = plugins.filter((item) => !isPluginOn(item));
 
     for (const [title, group] of [
       [this.labels.enabled, enabled],

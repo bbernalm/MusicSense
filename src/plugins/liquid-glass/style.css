@@ -212,6 +212,8 @@ body.liquid-glass ytmusic-nav-bar .right-content {
 /* Cubre también la franja de la barra de título (32 px), sin línea dura:
    el borde inferior se desvanece */
 body.liquid-glass #nav-bar-background {
+  /* solo decorativo: no debe tapar ni recibir clics del menú lateral */
+  pointer-events: none !important;
   top: 0 !important;
   height: calc(var(--ytmusic-nav-bar-height, 90px) + 48px) !important;
   background: linear-gradient(
@@ -336,7 +338,8 @@ body.liquid-glass ytmusic-app-layout > [slot='guide'] {
 
 body.liquid-glass #guide-wrapper {
   left: 0 !important;
-  z-index: 5 !important;
+  /* por encima del vidrio de la barra superior (z-index 5) */
+  z-index: 6 !important;
   transform: none !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -553,7 +556,7 @@ body.liquid-glass #lg-expand-background {
   background: var(--lg-glass-tint) !important;
   backdrop-filter: var(--lg-filter) !important;
   border: 1px solid var(--lg-edge) !important;
-  border-radius: 24px !important;
+  border-radius: 999px !important;
   box-shadow: var(--lg-shadow) !important;
   opacity: 1 !important;
   transition:
@@ -601,7 +604,7 @@ body.liquid-glass ytmusic-player-bar .right-controls::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 24px;
+  border-radius: 999px;
   background: radial-gradient(
     120% 140% at 50% 0%,
     rgba(255, 255, 255, 0.12),

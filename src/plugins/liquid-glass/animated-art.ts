@@ -10,17 +10,24 @@
  * Si ese servicio no la tiene, se busca directamente en Apple Music desde el
  * proceso principal (apple-motion.ts).
  *
+ * Qué portada se busca (mode):
+ * - canción de un álbum → la del ÁLBUM, con el nombre exacto (antes una
+ *   canción de "Radical Optimism" recibía la del sencillo "Training Season");
+ * - sencillo, o videoclip con "Preferir música" → la del SENCILLO.
+ * Lo que devuelve el servicio de Better Lyrics se comprueba con el id de
+ * álbum de Apple (check-collection) y se descarta si no coincide.
+ *
  * - Una sola petición por canción; el resultado se guarda en localStorage
  *   (también los "no encontrado", que se reintentan pasados unos días).
  * - El video solo se descarga con la pantalla del reproductor abierta y se
  *   pausa junto con la música.
- * - Los videos musicales (modo video) no tienen portada animada.
  */
 
 import type { MusicPlayer } from '@/types/music-player';
 
 const ARTWORK_API = 'https://artwork.boidu.dev/';
-const CACHE_PREFIX = 'lg-animated-art:';
+// v2: la caché anterior mezclaba portadas de sencillos con las de su álbum
+const CACHE_PREFIX = 'lg-animated-art2:';
 const NOT_FOUND_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 const VIDEO_CLASS = 'lg-animated-art';
 
@@ -32,7 +39,20 @@ type SongKey = {
   artist: string;
   album: string;
   duration: number;
+  mode: 'album' | 'single';
 };
+
+// "Houdini (Official Music Video)" → "Houdini"
+const cleanTitle = (title: string) =>
+  title
+    .replaceAll(
+      /\s*[([][^)\]]*(video|audio|lyric|visuali[sz]er|official)[^)\]]*[)\]]/gi,
+      '',
+    )
+    .trim();
+
+const same = (a: string, b: string) =>
+  a.trim().toLowerCase() === b.trim().toLowerCase();
 
 const readCache = (key: string): string | null | undefined => {
   try {
@@ -55,14 +75,10 @@ const writeCache = (key: string, url: string | null) => {
   }
 };
 
-type AppleMotion = (query: {
-  artist: string;
-  album: string;
-  title: string;
-}) => Promise<unknown>;
+type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
 
 export class AnimatedArtwork {
-  constructor(private readonly appleMotion: AppleMotion) {}
+  constructor(private readonly invoke: Invoke) {}
 
   private api: MusicPlayer | null = null;
   private timer: number | null = null;
@@ -109,7 +125,8 @@ export class AnimatedArtwork {
     this.syncVideo();
   }
 
-  // Datos de la canción actual; null en videos musicales o sin canción
+  // Datos de la canción actual; null sin canción, o en videoclips cuando se
+  // muestra el video (sin "Preferir música")
   private readSong(): SongKey | null {
     const details = this.api?.getPlayerResponse()?.videoDetails as
       | {
@@ -121,10 +138,11 @@ export class AnimatedArtwork {
         }
       | undefined;
     if (!details?.videoId || !details.title) return null;
-    if (
+    const isVideo = Boolean(
       details.musicVideoType &&
-      details.musicVideoType !== 'MUSIC_VIDEO_TYPE_ATV'
-    )
+      details.musicVideoType !== 'MUSIC_VIDEO_TYPE_ATV',
+    );
+    if (isVideo && !document.body.classList.contains('lg-prefer-music'))
       return null;
 
     // La línea de la barra es "Artista • Álbum • Año" en las canciones
@@ -134,23 +152,26 @@ export class AnimatedArtwork {
         ?.textContent?.split('•')
         .map((part) => part.trim()) ?? [];
     const album =
-      byline.length >= 3 && /^\d{4}$/.test(byline.at(-1) ?? '')
+      !isVideo && byline.length >= 3 && /^\d{4}$/.test(byline.at(-1) ?? '')
         ? byline[1]
         : '';
+    const title = isVideo ? cleanTitle(details.title) : details.title;
+    // Un sencillo aparece como "álbum" con el mismo nombre que la canción
+    const mode = album && !same(album, title) ? 'album' : 'single';
 
     return {
       videoId: details.videoId,
-      title: details.title,
+      title,
       artist: byline[0] || details.author || '',
       album,
       duration: Number(details.lengthSeconds) || 0,
+      mode,
     };
   }
 
   private async lookup(song: SongKey) {
-    const cacheKey = [song.artist, song.album || song.title]
-      .join('|')
-      .toLowerCase();
+    const target = song.mode === 'album' ? song.album : song.title;
+    const cacheKey = [song.mode, song.artist, target].join('|').toLowerCase();
     const cached = readCache(cacheKey);
     if (cached !== undefined) {
       this.videoUrl = cached;
@@ -164,22 +185,37 @@ export class AnimatedArtwork {
       s: song.title,
       a: song.artist,
       d: String(Math.round(song.duration)),
-      al: song.album,
+      al: target,
     });
 
     try {
+      let url: string | null = null;
       const response = await fetch(`${ARTWORK_API}?${params.toString()}`, {
         signal: request.signal,
       });
-      if (!response.ok) return;
-      const data = (await response.json()) as { videoUrl?: string | null };
-      let url = data.videoUrl ?? null;
+      if (response.ok) {
+        const data = (await response.json()) as {
+          videoUrl?: string | null;
+          albumId?: string;
+        };
+        // Solo si el álbum/sencillo de Apple es exactamente el buscado
+        const matches =
+          data.videoUrl && data.albumId
+            ? await this.invoke(
+                'liquid-glass:check-collection',
+                data.albumId,
+                target,
+              )
+            : false;
+        if (matches === true) url = data.videoUrl ?? null;
+      }
       // Alternativa: directamente de Apple Music (apple-motion.ts)
       if (!url && !request.signal.aborted) {
-        url = ((await this.appleMotion({
+        url = ((await this.invoke('liquid-glass:apple-motion', {
           artist: song.artist,
           album: song.album,
           title: song.title,
+          mode: song.mode,
         })) ?? null) as string | null;
       }
       if (request.signal.aborted) return;

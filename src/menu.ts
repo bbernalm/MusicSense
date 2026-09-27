@@ -31,10 +31,10 @@ const inAppMenuActive = await config.plugins.isEnabled('in-app-menu');
 const pluginEnabledMenu = async (
   plugin: string,
   label = '',
-  description?: string ,
+  description?: string,
   isNew = false,
   hasSubmenu = false,
-  refreshMenu?: (() => void) ,
+  refreshMenu?: () => void,
 ): Promise<Electron.MenuItemConstructorOptions> => ({
   label: label || plugin,
   sublabel: isNew ? t('main.menu.plugins.new') : undefined,
@@ -90,6 +90,18 @@ export const mainMenuTemplate = async (
             true,
             innerRefreshMenu,
           ),
+        ] as const;
+      }
+
+      // Complementos de MusicSense siempre activos: solo sus opciones
+      if (config.plugins.ALWAYS_ENABLED.has(id)) {
+        return [
+          id,
+          {
+            label: pluginLabel,
+            toolTip: pluginDescription,
+            submenu: template,
+          } satisfies Electron.MenuItemConstructorOptions,
         ] as const;
       }
 

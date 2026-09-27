@@ -171,6 +171,9 @@ export class TopBar {
   private entriesSignedIn: boolean | null = null;
   private accountName = '';
   private accountHandle = '';
+  private playlistThumbnails = new Map<string, string>();
+  private thumbnailsLoadedAt = 0;
+  private loadingThumbnails = false;
   private reading = false;
   private timer: number | null = null;
   private readonly onOutside = () => this.closeProfileMenu();
@@ -528,9 +531,71 @@ export class TopBar {
     });
   }
 
+  // ---------- Portadas de las playlists en el menú lateral ----------
+  // Se piden a YouTube Music (la misma consulta que su página "Playlists"),
+  // con la sesión de la app; se renuevan cada 10 minutos
+  private async loadPlaylistThumbnails() {
+    if (this.loadingThumbnails || !isSignedIn()) return;
+    if (Date.now() - this.thumbnailsLoadedAt < 10 * 60 * 1000) return;
+    this.loadingThumbnails = true;
+    try {
+      const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
+      const response = await app?.networkManager.fetch<
+        unknown,
+        { browseId: string }
+      >('/browse?prettyPrint=false', { browseId: 'FEmusic_liked_playlists' });
+      const thumbnails = new Map<string, string>();
+      const walk = (node: unknown) => {
+        if (!node || typeof node !== 'object') return;
+        const item = (node as Record<string, unknown>)
+          .musicTwoRowItemRenderer as
+          | {
+              navigationEndpoint?: { browseEndpoint?: { browseId?: string } };
+              thumbnailRenderer?: {
+                musicThumbnailRenderer?: {
+                  thumbnail?: { thumbnails?: { url: string }[] };
+                };
+              };
+            }
+          | undefined;
+        if (item) {
+          const id = item.navigationEndpoint?.browseEndpoint?.browseId;
+          const url =
+            item.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail
+              ?.thumbnails?.[0]?.url;
+          if (id && url) thumbnails.set(id, url);
+          return;
+        }
+        for (const value of Object.values(node)) walk(value);
+      };
+      walk(response);
+      this.playlistThumbnails = thumbnails;
+      this.thumbnailsLoadedAt = Date.now();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      this.loadingThumbnails = false;
+    }
+  }
+
+  private addPlaylistThumbnail(element: PolymerElement, browseId: string) {
+    const url = this.playlistThumbnails.get(browseId);
+    const item = element.querySelector('tp-yt-paper-item');
+    if (!url || !item) return;
+    let image = item.querySelector<HTMLImageElement>('img.lg-guide-thumb');
+    if (!image) {
+      image = el('img', 'lg-guide-thumb');
+      image.alt = '';
+      item.prepend(image);
+    }
+    if (image.src !== url) image.src = url;
+    element.classList.add('lg-playlist-entry');
+  }
+
   // Premium oculto y la "Biblioteca" del menú lateral con el ícono de libros
   private markEntries() {
     this.markSettingsCategories();
+    this.loadPlaylistThumbnails().catch(console.error);
     const selectors = [
       'ytmusic-guide-entry-renderer',
       'ytd-compact-link-renderer',
@@ -552,6 +617,11 @@ export class TopBar {
         'lg-library-entry',
         browseId === 'FEmusic_library_landing',
       );
+      if (
+        element.tagName === 'YTMUSIC-GUIDE-ENTRY-RENDERER' &&
+        browseId.startsWith('VL')
+      )
+        this.addPlaylistThumbnail(element, browseId);
     }
   }
 }

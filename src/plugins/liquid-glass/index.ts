@@ -30,13 +30,15 @@ type LiquidGlassConfig = {
   blur: number;
 };
 
+// Activado de fábrica y sin opción de desactivarlo (ALWAYS_ENABLED en
+// src/config/plugins.ts): es el diseño de MusicSense
 const defaultConfig: LiquidGlassConfig = {
-  enabled: false,
+  enabled: true,
   animatedBackground: true,
   aberration: true,
   animatedArtwork: true,
   preferMusic: false,
-  visualizer: true,
+  visualizer: false,
   blur: 30,
 };
 
@@ -293,8 +295,8 @@ export default createPlugin({
     }) {
       if (this.animatedArtEnabled && this.playerApi && !this.animatedArt) {
         const invoke = this.invoke;
-        this.animatedArt = new AnimatedArtwork(async (query) =>
-          invoke ? invoke('liquid-glass:apple-motion', query) : null,
+        this.animatedArt = new AnimatedArtwork(async (channel, ...args) =>
+          invoke ? invoke(channel, ...args) : null,
         );
         this.animatedArt.start(this.playerApi);
       } else if (!this.animatedArtEnabled && this.animatedArt) {

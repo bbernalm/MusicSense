@@ -411,6 +411,24 @@ body.liquid-glass
     center / contain no-repeat;
 }
 
+/* Playlists con su portada */
+body.liquid-glass
+  ytmusic-guide-entry-renderer.lg-playlist-entry
+  tp-yt-paper-item {
+  height: 52px !important;
+  min-height: 52px !important;
+  gap: 12px;
+}
+
+.lg-guide-thumb {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
 body.liquid-glass #guide-renderer {
   display: flex !important;
   flex-direction: column;

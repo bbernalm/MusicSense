@@ -7,11 +7,20 @@ import { store } from './store';
 
 import type { PluginConfig } from '@/types/plugins';
 
+// MusicSense: complementos que forman parte de la app y no se pueden
+// desactivar (solo ajustar sus opciones)
+export const ALWAYS_ENABLED = new Set(['liquid-glass']);
+
 export function getPlugins() {
-  return store.get('plugins') as Record<string, PluginConfig>;
+  const plugins = store.get('plugins') as Record<string, PluginConfig>;
+  const forced = Object.fromEntries(
+    [...ALWAYS_ENABLED].map((id) => [id, { ...plugins?.[id], enabled: true }]),
+  );
+  return { ...plugins, ...forced } as Record<string, PluginConfig>;
 }
 
 export async function isEnabled(plugin: string) {
+  if (ALWAYS_ENABLED.has(plugin)) return true;
   const pluginConfig = deepmerge(
     (await allPlugins())[plugin]?.config ?? { enabled: false },
     (store.get('plugins') as Record<string, PluginConfig>)[plugin] ?? {},
@@ -66,5 +75,6 @@ export function enable(plugin: string) {
 }
 
 export function disable(plugin: string) {
+  if (ALWAYS_ENABLED.has(plugin)) return;
   setMenuOptions(plugin, { enabled: false }, []);
 }

@@ -81,10 +81,13 @@ const saveStats = (stats: Stats) => {
   }
 };
 
-const pluginToggle = (node: MenuNode) =>
-  node.type === 'checkbox'
-    ? node
-    : node.submenu?.items.find((item) => item.type === 'checkbox');
+const pluginToggle = (node: MenuNode) => {
+  if (node.type === 'checkbox') return node;
+  const [first, second] = node.submenu?.items ?? [];
+  return first?.type === 'checkbox' && second?.type === 'separator'
+    ? first
+    : undefined;
+};
 
 export class ProfilePage {
   private cards: HTMLDivElement | null = null;

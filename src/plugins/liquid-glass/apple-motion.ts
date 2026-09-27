@@ -12,7 +12,14 @@ import { net } from 'electron';
  *    .mp4 fragmentado que se puede reproducir directamente).
  */
 
-export type MotionQuery = { artist: string; album: string; title: string };
+// album: la portada del álbum de la canción (nombre exacto)
+// single: la del sencillo con el nombre de la canción (videos y sencillos)
+export type MotionQuery = {
+  artist: string;
+  album: string;
+  title: string;
+  mode: 'album' | 'single';
+};
 
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36';
@@ -48,8 +55,10 @@ const sameArtist = (a: string, b: string) => {
   return Boolean(x && y) && (x.includes(y) || y.includes(x));
 };
 
-// Busca en iTunes y devuelve las páginas de álbum candidatas, mejores primero
-const findAlbumPages = async ({ artist, album, title }: MotionQuery) => {
+// Busca en iTunes las páginas del álbum (o sencillo) cuyo nombre coincide
+// exactamente con el buscado: así una canción de un álbum nunca recibe la
+// portada del sencillo, ni al revés
+const findAlbumPages = async ({ artist, album, title, mode }: MotionQuery) => {
   const pages: string[] = [];
   const add = (url?: string) => {
     const clean = url?.split('?')[0];
@@ -68,19 +77,21 @@ const findAlbumPages = async ({ artist, album, title }: MotionQuery) => {
     );
   };
 
-  if (album) {
-    const albums = await search(`${artist} ${album}`, 'album');
-    const wanted = normalize(album);
-    for (const result of albums) {
-      if (normalize(result.collectionName ?? '') === wanted)
-        add(result.collectionViewUrl);
-    }
+  const name = mode === 'album' ? album : title;
+  const wanted = normalize(name);
+  if (!wanted) return pages;
+
+  const matches = (result: ItunesResult) =>
+    normalize(result.collectionName ?? '') === wanted;
+
+  for (const result of await search(`${artist} ${name}`, 'album')) {
+    if (matches(result)) add(result.collectionViewUrl);
   }
-  // El álbum que contiene la canción (p. ej. un sencillo que también está en
-  // un álbum con portada animada)
-  if (title) {
-    const songs = await search(`${artist} ${title}`, 'song');
-    for (const result of songs.slice(0, 3)) add(result.collectionViewUrl);
+  // Sencillos que la búsqueda de álbumes no encuentra: por la canción
+  if (mode === 'single') {
+    for (const result of await search(`${artist} ${title}`, 'song')) {
+      if (matches(result)) add(result.collectionViewUrl);
+    }
   }
   return pages.slice(0, 3);
 };
@@ -121,6 +132,23 @@ const resolveMp4 = async (masterUrl: string) => {
   const map = /#EXT-X-MAP:URI="([^"]+)"/.exec(variant)?.[1];
   return map ? new URL(map, best.url).toString() : null;
 };
+
+// Nombre del álbum/sencillo de Apple Music con ese id (para comprobar lo que
+// devuelve el servicio de Better Lyrics)
+export const lookupCollectionName = async (id: string) => {
+  try {
+    const data = JSON.parse(
+      await get(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}`),
+    ) as { results?: ItunesResult[] };
+    return data.results?.[0]?.collectionName ?? '';
+  } catch {
+    return '';
+  }
+};
+
+// ¿Coincide el nombre del álbum/sencillo con el buscado?
+export const sameCollection = (a: string, b: string) =>
+  Boolean(normalize(a)) && normalize(a) === normalize(b);
 
 export const findAppleMotion = async (
   query: MotionQuery,

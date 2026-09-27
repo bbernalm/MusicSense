@@ -8,7 +8,12 @@ import {
 import { t } from '@/i18n';
 import { createBackend } from '@/utils';
 
-import { findAppleMotion, type MotionQuery } from './apple-motion';
+import {
+  findAppleMotion,
+  lookupCollectionName,
+  type MotionQuery,
+  sameCollection,
+} from './apple-motion';
 import { isLoginUrl, openLoginWindow } from './login-window';
 
 /*
@@ -19,6 +24,9 @@ import { isLoginUrl, openLoginWindow } from './login-window';
  * - liquid-glass:apple-motion → portada animada directa de Apple Music
  * Además abre el inicio de sesión en una ventana emergente (login-window.ts).
  */
+
+const MIN_WIDTH = 1100;
+const MIN_HEIGHT = 680;
 
 // Quita las referencias internas de Electron que no se pueden enviar al renderer
 const serializeMenu = (menu: Menu | null) =>
@@ -48,6 +56,13 @@ let onDidNavigate: ((event: Electron.Event, url: string) => void) | null = null;
 
 export const backend = createBackend({
   start({ ipc, window }) {
+    // Por debajo de este tamaño el diseño (buscador centrado, píldora y
+    // cápsulas, panel del reproductor) ya no cabe
+    window.setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    const [width, height] = window.getSize();
+    if (width < MIN_WIDTH || height < MIN_HEIGHT)
+      window.setSize(Math.max(width, MIN_WIDTH), Math.max(height, MIN_HEIGHT));
+
     const title = t('plugins.liquid-glass.topbar.sign-in');
     onWillNavigate = (event, url) => {
       if (!isLoginUrl(url)) return;
@@ -71,6 +86,12 @@ export const backend = createBackend({
     // Portada animada directa de Apple Music (alternativa, ver apple-motion.ts)
     ipc.handle('liquid-glass:apple-motion', (query: MotionQuery) =>
       findAppleMotion(query),
+    );
+    // Comprueba que un id de álbum de Apple corresponde al nombre esperado
+    ipc.handle(
+      'liquid-glass:check-collection',
+      async (id: string, expected: string) =>
+        sameCollection(await lookupCollectionName(id), expected),
     );
 
     // Igual que "In-App Menu": el click de Electron ya alterna casillas y radios
@@ -97,5 +118,6 @@ export const backend = createBackend({
     ipc.removeHandler('liquid-glass:get-menu');
     ipc.removeHandler('liquid-glass:menu-click');
     ipc.removeHandler('liquid-glass:apple-motion');
+    ipc.removeHandler('liquid-glass:check-collection');
   },
 });
