@@ -131,10 +131,13 @@ body.liquid-glass ytmusic-player-page #song-image {
 
 .lg-animated-art {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   z-index: 1;
-  width: 100%;
-  height: 100%;
+  /* Del tamaño de la portada cuadrada: en los videoclips el contenedor es
+     más alto que ancho y el video quedaba recortado por los lados */
+  width: var(--np-art, 100%);
+  height: var(--np-art, 100%);
   object-fit: cover;
   border-radius: 16px;
   opacity: 0;

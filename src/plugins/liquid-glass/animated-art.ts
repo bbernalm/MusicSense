@@ -264,8 +264,8 @@ export class AnimatedArtwork {
 
     // Resolución del lienzo = tamaño en pantalla (sin la escala de la pausa)
     const ratio = window.devicePixelRatio || 1;
-    const width = Math.round(container.offsetWidth * ratio);
-    const height = Math.round(container.offsetHeight * ratio);
+    const width = Math.round(this.canvas.offsetWidth * ratio);
+    const height = Math.round(this.canvas.offsetHeight * ratio);
     if (width > 0 && this.canvas.width !== width) this.canvas.width = width;
     if (height > 0 && this.canvas.height !== height)
       this.canvas.height = height;
