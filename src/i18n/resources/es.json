@@ -621,6 +621,8 @@
         "visualizer": "Visualizador sobre el reproductor"
       },
       "player": {
+        "show-video": "Ver video",
+        "show-artwork": "Ver portada",
         "idle": "No hay nada sonando todavía",
         "loading": "Cargando",
         "share": "Compartir",

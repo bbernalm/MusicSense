@@ -621,6 +621,8 @@
         "visualizer": "Visualizer above the player"
       },
       "player": {
+        "show-video": "Show video",
+        "show-artwork": "Show artwork",
         "idle": "Nothing playing yet",
         "loading": "Loading",
         "share": "Share",

@@ -53,9 +53,12 @@ body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #player {
 
 /* Video (sin "Preferir música"): el cuadro con la proporción del video,
    calculada en player.ts */
+/* (selector reforzado: otra regla de YouTube Music le ponía margen
+   automático y separaba el título del video) */
 body.liquid-glass.lg-np:not(.lg-prefer-music)
   ytmusic-player-page[video-mode]
-  #player {
+  #main-panel
+  > ytmusic-player#player#player {
   width: var(--np-video-w, 100%) !important;
   height: var(--np-video-h, auto) !important;
   max-width: none !important;
@@ -173,8 +176,7 @@ body.liquid-glass ytmusic-player-page #song-image {
   font-family: var(--lg-font);
 }
 
-body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info,
-body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #lg-np-info {
+body.liquid-glass.lg-np #lg-np-info {
   display: block;
   animation: lg-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   transition:
@@ -198,12 +200,19 @@ body.liquid-glass.lg-np.lg-paused.lg-prefer-music
   );
 }
 
-/* Fila: textos a la izquierda, botón de compartir a la derecha */
-body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info,
-body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #lg-np-info {
+/* Fila: textos a la izquierda, botones (portada/video y compartir) a la
+   derecha */
+body.liquid-glass.lg-np #lg-np-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+
+/* Con el video, del ancho del video */
+body.liquid-glass.lg-np:not(.lg-prefer-music)
+  ytmusic-player-page[video-mode]
+  #lg-np-info {
+  width: var(--np-video-w, 100%);
 }
 
 .lg-np-text {
@@ -214,8 +223,9 @@ body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #lg-np-info {
   align-items: flex-start;
 }
 
-/* Título y artista pulsables (álbum / artista) */
+/* Título, álbum y artista pulsables (álbum / álbum / artista) */
 .lg-np-title,
+.lg-np-album,
 .lg-np-artist {
   max-width: 100%;
   padding: 0;
@@ -228,19 +238,26 @@ body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #lg-np-info {
 }
 
 .lg-np-title:hover,
+.lg-np-album:hover,
 .lg-np-artist:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.lg-share-button {
+.lg-np-round {
   width: 38px;
   height: 38px;
   background: var(--lg-glass);
   border: 1px solid var(--lg-edge);
 }
 
+.lg-np-album.hidden,
+.lg-media-toggle.hidden {
+  display: none;
+}
+
 .lg-np-title,
+.lg-np-album,
 .lg-np-artist {
   white-space: nowrap;
   overflow: hidden;
@@ -251,6 +268,14 @@ body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #lg-np-info {
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+/* Álbum entre el título y el artista (como en la píldora) */
+.lg-np-album {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.85;
 }
 
 .lg-np-artist {

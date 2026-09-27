@@ -18,6 +18,8 @@ const SILENT_MENU_CLASS = 'lg-silent-menu';
 const SIDE_HOVER_CLASS = 'lg-side-hover';
 const IDLE_CLASS = 'lg-idle';
 const LOADING_CLASS = 'lg-bar-loading';
+// Portada en vez de video (prefer-music.ts; aquí se cambia por canción)
+const PREFER_MUSIC_CLASS = 'lg-prefer-music';
 
 const PLUS_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
   <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
@@ -52,7 +54,22 @@ const playerBar = () =>
 const INTERACTIVE =
   'button, a, input, [role="button"], [role="slider"], tp-yt-paper-slider, #progress-bar, .lg-wave, .image, .content-info-wrapper';
 
+const VIDEO_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+  <rect x="3" y="5.5" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  <path d="M10.2 9.4v5.2l4.4-2.6Z" fill="currentColor"/>
+</svg>`;
+
+const ARTWORK_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+  <rect x="4" y="4" width="16" height="16" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  <circle cx="9.3" cy="9.3" r="1.6" fill="currentColor"/>
+  <path d="m5 17 4.4-4.4 3.1 3.1 2.4-2.4L19.4 17.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+</svg>`;
+
+type VideoDetails = { videoId?: string; musicVideoType?: string };
+
 type Labels = {
+  showVideo: string;
+  showArtwork: string;
   autoplay: string;
   addToPlaylist: string;
   share: string;
@@ -73,6 +90,9 @@ export class PlayerLayout {
   private video: HTMLVideoElement | null = null;
   private sideControls: HTMLElement | null = null;
   private timer: number | null = null;
+  // Portada/video cambiado a mano en esta canción (se deshace al cambiar)
+  private coverOverride: { videoId: string; preferMusic: boolean } | null =
+    null;
 
   private readonly onResize = () => this.tick();
   private readonly onPlay = () => document.body.classList.remove(PAUSED_CLASS);
@@ -549,18 +569,30 @@ export class PlayerLayout {
       const info = document.createElement('div');
       info.id = 'lg-np-info';
       info.innerHTML =
-        '<div class="lg-np-text"><button type="button" class="lg-np-title"></button><button type="button" class="lg-np-artist"></button></div>';
+        '<div class="lg-np-text"><button type="button" class="lg-np-title"></button><button type="button" class="lg-np-album"></button><button type="button" class="lg-np-artist"></button></div>';
       // Título → álbum, artista → página del artista (los enlaces de la barra)
       info
         .querySelector('.lg-np-title')
         ?.addEventListener('click', () => this.openBylineLink('album'));
       info
+        .querySelector('.lg-np-album')
+        ?.addEventListener('click', () => this.openBylineLink('album'));
+      info
         .querySelector('.lg-np-artist')
         ?.addEventListener('click', () => this.openBylineLink('artist'));
 
+      // Videoclips: alterna entre la portada y el video
+      const media = document.createElement('button');
+      media.type = 'button';
+      media.className = 'lg-icon-button lg-np-round lg-media-toggle';
+      media.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.toggleVideo();
+      });
+
       const share = document.createElement('button');
       share.type = 'button';
-      share.className = 'lg-icon-button lg-share-button';
+      share.className = 'lg-icon-button lg-np-round lg-share-button';
       share.title = this.labels.share;
       share.setAttribute('aria-label', this.labels.share);
       share.innerHTML = SHARE_ICON;
@@ -568,7 +600,7 @@ export class PlayerLayout {
         event.stopPropagation();
         this.pressSongMenu('SHARE').catch(console.error);
       });
-      info.append(share);
+      info.append(media, share);
       main.append(info);
       this.npInfo = info;
     }
@@ -583,12 +615,19 @@ export class PlayerLayout {
         .querySelector('ytmusic-player-bar .content-info-wrapper .byline')
         ?.textContent?.trim() ?? '';
     const artist = byline.split('•')[0]?.trim() ?? '';
+    // Álbum: el enlace de la línea de la barra (los videoclips no tienen)
+    const album = this.albumLink()?.textContent?.trim() ?? '';
     const titleElement = this.npInfo.querySelector('.lg-np-title');
+    const albumElement = this.npInfo.querySelector<HTMLElement>('.lg-np-album');
     const artistElement = this.npInfo.querySelector('.lg-np-artist');
     if (titleElement && titleElement.textContent !== title)
       titleElement.textContent = title;
+    if (albumElement && albumElement.textContent !== album)
+      albumElement.textContent = album;
+    albumElement?.classList.toggle('hidden', !album);
     if (artistElement && artistElement.textContent !== artist)
       artistElement.textContent = artist;
+    this.updateMediaToggle();
 
     if (!document.body.classList.contains(NP_CLASS)) return;
 
@@ -613,7 +652,7 @@ export class PlayerLayout {
     if (video && video.videoWidth > 0 && video.videoHeight > 0) {
       const ratio = video.videoWidth / video.videoHeight;
       const width = Math.floor(
-        Math.min(main.clientWidth, main.clientHeight * ratio),
+        Math.min(main.clientWidth, (main.clientHeight - reserved) * ratio),
       );
       const height = Math.floor(width / ratio);
       const style = document.body.style;
@@ -640,17 +679,81 @@ export class PlayerLayout {
   }
 
   // Enlaces de la línea "Artista • Álbum • Año" de la barra
-  private openBylineLink(kind: 'artist' | 'album') {
-    const links = [
+  private bylineLinks() {
+    return [
       ...document.querySelectorAll<HTMLAnchorElement>(
         'ytmusic-player-bar .content-info-wrapper .byline a',
       ),
     ];
-    const album = links.find((link) =>
+  }
+
+  private albumLink() {
+    return this.bylineLinks().find((link) =>
       /browse\/MPRE/.test(link.getAttribute('href') ?? ''),
     );
-    const target = kind === 'album' ? (album ?? links[0]) : links[0];
+  }
+
+  private openBylineLink(kind: 'artist' | 'album') {
+    const first = this.bylineLinks()[0];
+    const target = kind === 'album' ? (this.albumLink() ?? first) : first;
     target?.click();
+  }
+
+  private videoDetails() {
+    return this.api?.getPlayerResponse()?.videoDetails as
+      | VideoDetails
+      | undefined;
+  }
+
+  // Botón portada/video: solo en videoclips (no en canciones de álbum)
+  private updateMediaToggle() {
+    const details = this.videoDetails();
+    const id = details?.videoId ?? '';
+    // Al cambiar de canción se vuelve a lo que diga "Preferir música"
+    if (this.coverOverride && this.coverOverride.videoId !== id) {
+      document.body.classList.toggle(
+        PREFER_MUSIC_CLASS,
+        this.coverOverride.preferMusic,
+      );
+      this.coverOverride = null;
+    }
+
+    const button = this.npInfo?.querySelector<HTMLElement>('.lg-media-toggle');
+    if (!button) return;
+    const isVideo =
+      Boolean(id) && details?.musicVideoType !== 'MUSIC_VIDEO_TYPE_ATV';
+    button.classList.toggle('hidden', !isVideo);
+    const showingCover = document.body.classList.contains(PREFER_MUSIC_CLASS);
+    const label = showingCover
+      ? this.labels.showVideo
+      : this.labels.showArtwork;
+    if (button.title !== label) {
+      button.title = label;
+      button.setAttribute('aria-label', label);
+      button.innerHTML = showingCover ? VIDEO_ICON : ARTWORK_ICON;
+    }
+  }
+
+  // Cambia entre la portada y el video: la clase lg-prefer-music muestra la
+  // portada y el selector Canción/Video de YouTube Music cambia lo que suena
+  private toggleVideo() {
+    const id = this.videoDetails()?.videoId;
+    if (!id) return;
+    const body = document.body;
+    const showingCover = body.classList.contains(PREFER_MUSIC_CLASS);
+    this.coverOverride ??= { videoId: id, preferMusic: showingCover };
+    body.classList.toggle(PREFER_MUSIC_CLASS, !showingCover);
+    if (
+      body.classList.contains(PREFER_MUSIC_CLASS) ===
+      this.coverOverride.preferMusic
+    )
+      this.coverOverride = null;
+
+    const button = document.querySelector<HTMLElement>(
+      `ytmusic-av-toggle ${showingCover ? '.video-button' : '.song-button'}`,
+    );
+    if (button?.getAttribute('aria-pressed') === 'false') button.click();
+    this.updateMediaToggle();
   }
 
   // Opción del menú ⋮ de la canción ("Guardar en una playlist", "Compartir"...)
