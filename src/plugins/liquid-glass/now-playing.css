@@ -131,6 +131,19 @@ body.liquid-glass.lg-np.lg-paused
   }
 }
 
+/* ---------- Pestañas: sin "Letra" ni "Comentarios" ----------
+ * Letra se abre con el botón de la cápsula (la pestaña sigue existiendo
+ * oculta porque es la que usa). Orden: A continuación, Letra,
+ * [Comentarios], Similares; Comentarios es la 3.ª cuando hay cuatro.
+ */
+body.liquid-glass ytmusic-player-page #tabsContent > .tab-header:nth-of-type(2),
+body.liquid-glass
+  ytmusic-player-page
+  #tabsContent
+  > .tab-header:nth-of-type(3):not(:last-of-type) {
+  display: none !important;
+}
+
 /* ---------- Panel lateral con márgenes interiores ---------- */
 body.liquid-glass ytmusic-player-page #side-panel {
   padding: 4px 14px 12px !important;

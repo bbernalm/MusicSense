@@ -13,6 +13,8 @@ export const REFRACTION_TARGETS = [
   '#player-bar-background',
   '#lg-side-background',
   'ytmusic-search-box .search-box',
+  '#guide-renderer',
+  '.lg-volume-panel',
 ];
 
 type Target = {
@@ -168,9 +170,9 @@ export class LiquidRefraction {
 
   private update(target: Target) {
     if (!this.svg) return;
-    const rect = target.element.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
+    // Tamaño sin transformaciones (algunos paneles se animan con scale)
+    const width = Math.round(target.element.offsetWidth);
+    const height = Math.round(target.element.offsetHeight);
     if (width < 8 || height < 8) return;
     if (width === target.width && height === target.height) return;
     target.width = width;
