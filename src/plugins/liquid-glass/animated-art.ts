@@ -35,6 +35,8 @@ type CacheEntry = { url: string } | { notFoundAt: number };
 
 type SongKey = {
   videoId: string;
+  // título tal como lo muestra YouTube Music / limpio para buscar
+  rawTitle: string;
   title: string;
   artist: string;
   album: string;
@@ -50,6 +52,16 @@ const cleanTitle = (title: string) =>
       '',
     )
     .trim();
+
+// "Kiss Me More (con SZA)" → "Kiss Me More" (YouTube Music añade los
+// invitados según el idioma y así no coincide con Apple Music)
+const stripFeaturing = (title: string) =>
+  title
+    .replaceAll(
+      /\s*[([](?:con|feat\.?|ft\.?|featuring|with|avec|mit|com)\s[^)\]]*[)\]]/gi,
+      '',
+    )
+    .trim() || title;
 
 const same = (a: string, b: string) =>
   a.trim().toLowerCase() === b.trim().toLowerCase();
@@ -114,7 +126,7 @@ export class AnimatedArtwork {
     const barTitle = document
       .querySelector('ytmusic-player-bar .content-info-wrapper .title')
       ?.textContent?.trim();
-    if (song && barTitle !== song.title.trim()) return;
+    if (song && barTitle !== song.rawTitle.trim()) return;
 
     if (song?.videoId !== this.song?.videoId) {
       this.song = song;
@@ -155,12 +167,15 @@ export class AnimatedArtwork {
       !isVideo && byline.length >= 3 && /^\d{4}$/.test(byline.at(-1) ?? '')
         ? byline[1]
         : '';
-    const title = isVideo ? cleanTitle(details.title) : details.title;
+    const title = stripFeaturing(
+      isVideo ? cleanTitle(details.title) : details.title,
+    );
     // Un sencillo aparece como "álbum" con el mismo nombre que la canción
     const mode = album && !same(album, title) ? 'album' : 'single';
 
     return {
       videoId: details.videoId,
+      rawTitle: details.title,
       title,
       artist: byline[0] || details.author || '',
       album,

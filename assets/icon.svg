@@ -1,39 +1,27 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- MusicSense: disco magenta con una onda de sonido sobre un cuadro rosa claro -->
+  <!-- MusicSense: disco magenta con una onda de sonido -->
   <defs>
-    <linearGradient id="tile" x1="512" y1="64" x2="512" y2="960" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFF1F5"/>
-      <stop offset="1" stop-color="#F8C8D8"/>
-    </linearGradient>
-    <linearGradient id="disc" x1="300" y1="190" x2="724" y2="834" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FF5C8A"/>
+    <linearGradient id="disc" x1="220" y1="60" x2="804" y2="964" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6A93"/>
       <stop offset="0.55" stop-color="#E91E63"/>
-      <stop offset="1" stop-color="#B8114A"/>
+      <stop offset="1" stop-color="#B0104A"/>
     </linearGradient>
-    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(420 300) rotate(55) scale(420 360)">
-      <stop stop-color="#FFFFFF" stop-opacity="0.35"/>
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(370 250) rotate(55) scale(560 480)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.38"/>
       <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
-    <filter id="discShadow" x="130" y="150" width="764" height="780" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#9B0F3F" flood-opacity="0.35"/>
-    </filter>
   </defs>
 
-  <!-- Cuadro con esquinas continuas -->
-  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#tile)"/>
-  <rect x="66" y="66" width="892" height="892" rx="206" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="4"/>
+  <circle cx="512" cy="512" r="480" fill="url(#disc)"/>
+  <circle cx="512" cy="512" r="480" fill="url(#shine)"/>
+  <circle cx="512" cy="512" r="472" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="14"/>
 
-  <!-- Disco -->
-  <g filter="url(#discShadow)">
-    <circle cx="512" cy="512" r="300" fill="url(#disc)"/>
+  <g transform="translate(512 512) scale(1.5) translate(-512 -512)">
+    <!-- Onda de fondo, más suave -->
+    <path d="M300 512 C 340 512, 360 470, 392 470 S 432 560, 462 560 S 500 440, 532 440 S 574 572, 604 572 S 646 486, 676 486 S 704 512, 724 512"
+          stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Onda principal -->
+    <path d="M294 512 H 352 C 372 512, 380 452, 400 452 C 424 452, 428 598, 452 598 C 478 598, 482 360, 512 360 C 542 360, 546 664, 572 664 C 598 664, 600 452, 624 452 C 644 452, 652 512, 672 512 H 730"
+          stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <circle cx="512" cy="512" r="300" fill="url(#shine)"/>
-  <circle cx="512" cy="512" r="296" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="8"/>
-
-  <!-- Onda de fondo, más suave -->
-  <path d="M300 512 C 340 512, 360 470, 392 470 S 432 560, 462 560 S 500 440, 532 440 S 574 572, 604 572 S 646 486, 676 486 S 704 512, 724 512"
-        stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Onda principal -->
-  <path d="M294 512 H 352 C 372 512, 380 452, 400 452 C 424 452, 428 598, 452 598 C 478 598, 482 360, 512 360 C 542 360, 546 664, 572 664 C 598 664, 600 452, 624 452 C 644 452, 652 512, 672 512 H 730"
-        stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

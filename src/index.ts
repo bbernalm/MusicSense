@@ -322,7 +322,8 @@ function initTheme(win: BrowserWindow) {
   }
 
   win.webContents.once('did-finish-load', () => {
-    if (is.dev()) {
+    // MusicSense: solo si se pide expresamente (PEAR_DEVTOOLS=1 pnpm dev)
+    if (is.dev() && process.env.PEAR_DEVTOOLS === '1') {
       console.debug(LoggerPrefix, t('main.console.did-finish-load.dev-tools'));
       win.webContents.openDevTools();
     }
