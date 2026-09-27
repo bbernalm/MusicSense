@@ -51,6 +51,21 @@ body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #player {
   margin: 0 !important;
 }
 
+/* Video (sin "Preferir música"): el cuadro con la proporción del video,
+   calculada en player.ts */
+body.liquid-glass.lg-np:not(.lg-prefer-music)
+  ytmusic-player-page[video-mode]
+  #player {
+  width: var(--np-video-w, 100%) !important;
+  height: var(--np-video-h, auto) !important;
+  max-width: none !important;
+  max-height: none !important;
+  flex: none !important;
+  margin: 0 !important;
+  border-radius: 16px;
+  overflow: hidden !important;
+}
+
 /* Preferir música (prefer-music.ts): sin video, se muestra la portada */
 body.liquid-glass.lg-prefer-music ytmusic-player-page #song-video {
   display: none !important;

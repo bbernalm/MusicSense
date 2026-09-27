@@ -543,6 +543,26 @@ export class PlayerLayout {
       `${Math.max(160, Math.floor(size))}px`,
     );
 
+    // Videos (sin "Preferir música"): el cuadro toma la proporción del video
+    // (antes era casi cuadrado y quedaba el video pequeño entre franjas
+    // negras). Se avisa al reproductor para que recoloque el video.
+    const video = this.video;
+    if (video && video.videoWidth > 0 && video.videoHeight > 0) {
+      const ratio = video.videoWidth / video.videoHeight;
+      const width = Math.floor(
+        Math.min(main.clientWidth, main.clientHeight * ratio),
+      );
+      const height = Math.floor(width / ratio);
+      const style = document.body.style;
+      if (style.getPropertyValue('--np-video-w') !== `${width}px`) {
+        style.setProperty('--np-video-w', `${width}px`);
+        style.setProperty('--np-video-h', `${height}px`);
+        window.requestAnimationFrame(() =>
+          window.dispatchEvent(new Event('resize')),
+        );
+      }
+    }
+
     // Las pestañas del panel derecho empiezan a la altura de la portada
     const art = document.querySelector('ytmusic-player-page #player');
     const side = document.querySelector('ytmusic-player-page #side-panel');
