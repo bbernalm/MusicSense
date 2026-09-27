@@ -626,3 +626,142 @@ body.liquid-glass ytmusic-statement-banner-renderer,
 body.liquid-glass yt-mealbar-promo-renderer {
   display: none !important;
 }
+
+/* ---------- Menú lateral: solo la biblioteca (sidebar.ts) ----------
+ * Con sesión iniciada solo queda la sección de las playlists (Principal,
+ * Explorar y Biblioteca están en la barra superior) y arriba unos filtros:
+ * Playlists / Álbumes / Artistas. */
+body.lg-guide-library
+  #guide-renderer
+  #sections
+  > ytmusic-guide-section-renderer:not(:has(#buttons > *)) {
+  display: none !important;
+}
+
+.lg-guide-filters {
+  display: none;
+}
+
+/* Cápsula segmentada, como la de "A continuación / Similares" */
+body.lg-guide-library .lg-guide-filters {
+  flex: none;
+  display: flex;
+  gap: 2px;
+  margin: 2px 10px 10px;
+  padding: 3px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.lg-guide-filter {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--lg-font);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.lg-guide-filter:hover {
+  color: #fff;
+}
+
+.lg-guide-filter.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+/* Álbumes y artistas en lugar de las playlists */
+body.lg-guide-filtered #guide-renderer #sections {
+  display: none !important;
+}
+
+.lg-guide-list {
+  display: none;
+}
+
+body.lg-guide-filtered .lg-guide-list {
+  flex: 1;
+  min-height: 0;
+  display: block;
+  padding: 0 4px 8px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.lg-guide-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 52px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #fff;
+  font-family: var(--lg-font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lg-guide-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.lg-guide-item img {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.lg-guide-list.artists .lg-guide-item img {
+  border-radius: 50%;
+}
+
+.lg-guide-item-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lg-guide-item-title,
+.lg-guide-item-subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lg-guide-item-title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.lg-guide-item-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lg-guide-empty {
+  margin: 16px 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--lg-font);
+  font-size: 13px;
+}

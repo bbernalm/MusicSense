@@ -637,12 +637,19 @@
         "enabled": "Activados",
         "search": "Buscar complementos"
       },
+      "sidebar": {
+        "playlists": "Playlists",
+        "albums": "Álbumes",
+        "artists": "Artistas",
+        "empty": "Nada por aquí todavía"
+      },
       "topbar": {
         "back": "Atrás",
         "forward": "Adelante",
         "profile": "Perfil",
         "settings": "Ajustes",
         "sign-in": "Acceder",
+        "explore": "Explorar",
         "home": "Principal",
         "library": "Biblioteca",
         "history": "Historial",

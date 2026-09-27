@@ -12,6 +12,7 @@ import { ProfilePage } from './profile';
 import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
+import { LibrarySidebar } from './sidebar';
 import style from './style.css?inline';
 import { TopBar } from './topbar';
 import topBarStyle from './topbar.css?inline';
@@ -185,6 +186,7 @@ export default createPlugin({
     onDataChange: null as ((event: Event) => void) | null,
     settings: null as SettingsPanel | null,
     topBar: null as TopBar | null,
+    sidebar: null as LibrarySidebar | null,
     profile: null as ProfilePage | null,
     invoke: null as Invoke | null,
     playerApi: null as MusicPlayer | null,
@@ -215,6 +217,7 @@ export default createPlugin({
           back: t('plugins.liquid-glass.topbar.back'),
           forward: t('plugins.liquid-glass.topbar.forward'),
           home: t('plugins.liquid-glass.topbar.home'),
+          explore: t('plugins.liquid-glass.topbar.explore'),
           library: t('plugins.liquid-glass.topbar.library'),
           history: t('plugins.liquid-glass.topbar.history'),
           profile: t('plugins.liquid-glass.topbar.profile'),
@@ -231,6 +234,14 @@ export default createPlugin({
         },
       );
       this.topBar.start();
+
+      this.sidebar = new LibrarySidebar({
+        playlists: t('plugins.liquid-glass.sidebar.playlists'),
+        albums: t('plugins.liquid-glass.sidebar.albums'),
+        artists: t('plugins.liquid-glass.sidebar.artists'),
+        empty: t('plugins.liquid-glass.sidebar.empty'),
+      });
+      this.sidebar.start();
       this.profile = new ProfilePage(
         {
           integrations: t('plugins.liquid-glass.profile.integrations'),
@@ -332,6 +343,8 @@ export default createPlugin({
       this.settings = null;
       this.topBar?.stop();
       this.topBar = null;
+      this.sidebar?.stop();
+      this.sidebar = null;
       this.profile?.stop();
       this.profile = null;
       this.animatedArt?.stop();

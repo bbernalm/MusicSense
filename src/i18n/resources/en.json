@@ -637,12 +637,19 @@
         "enabled": "Enabled",
         "search": "Search plugins"
       },
+      "sidebar": {
+        "playlists": "Playlists",
+        "albums": "Albums",
+        "artists": "Artists",
+        "empty": "Nothing here yet"
+      },
       "topbar": {
         "back": "Back",
         "forward": "Forward",
         "profile": "Profile",
         "settings": "Settings",
         "sign-in": "Sign in",
+        "explore": "Explore",
         "home": "Home",
         "library": "Library",
         "history": "History",

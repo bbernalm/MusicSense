@@ -1,6 +1,6 @@
 /*
  * Barra superior:
- * - [inicio][biblioteca] [‹][›] a la izquierda del buscador;
+ * - [inicio][explorar][biblioteca] [‹][›] a la izquierda del buscador;
  * - [historial][perfil] a su derecha (historial solo con sesión iniciada);
  * - menú del perfil: foto y nombre, "Tu perfil", cambiar de cuenta y
  *   "Cerrar sesión" (con sesión) o "Acceder" y "Ajustes" (sin sesión);
@@ -49,6 +49,10 @@ const FORWARD_ICON = svg(`<path d="M9 5l7 7-7 7" ${stroke}/>`);
 const HOME_ICON = svg(
   `<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1Z" ${stroke}/>`,
 );
+// Explorar: brújula
+const EXPLORE_ICON = svg(
+  `<circle cx="12" cy="12" r="8.5" ${stroke}/><path d="m15.2 8.8-2 4.4-4.4 2 2-4.4Z" ${stroke} stroke-width="1.6"/>`,
+);
 // Biblioteca: libros en una estantería (como en Apple Music)
 export const LIBRARY_ICON = svg(
   `<path d="M5 4.5v15M9 4.5v15M13.2 5.2l4.6 13.6" ${stroke} stroke-width="2"/><path d="M3.5 20h17" ${stroke}/>`,
@@ -88,6 +92,7 @@ export type TopBarLabels = {
   back: string;
   forward: string;
   home: string;
+  explore: string;
   library: string;
   history: string;
   profile: string;
@@ -301,6 +306,9 @@ export class TopBar {
       group.append(
         iconButton('lg-nav-capsule', HOME_ICON, this.labels.home, () =>
           navigate('FEmusic_home'),
+        ),
+        iconButton('lg-nav-capsule', EXPLORE_ICON, this.labels.explore, () =>
+          navigate('FEmusic_explore'),
         ),
         iconButton('lg-nav-capsule', LIBRARY_ICON, this.labels.library, () =>
           navigate('FEmusic_library_landing'),
