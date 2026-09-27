@@ -1621,3 +1621,22 @@ body.liquid-glass ::-webkit-scrollbar-thumb {
 body.liquid-glass ::-webkit-scrollbar-track {
   background: transparent !important;
 }
+
+/* Páginas de álbum y playlist (dos columnas): YouTube Music le da a la lista
+   de canciones el ancho de todo el contenido y se cortaba por la derecha
+   (reproducciones, duración y ⋮ fuera de la vista) */
+body.liquid-glass
+  ytmusic-two-column-browse-results-renderer
+  :is(#primary, #secondary)
+  ytmusic-section-list-renderer
+  > #contents
+  > * {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Sin "No me gusta" en ninguna parte (también en las filas de las listas,
+   donde aparecía al pasar el ratón) */
+body.liquid-glass ytmusic-like-button-renderer #button-shape-dislike {
+  display: none !important;
+}
