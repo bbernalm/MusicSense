@@ -25,8 +25,13 @@ import { isLoginUrl, openLoginWindow } from './login-window';
  * Además abre el inicio de sesión en una ventana emergente (login-window.ts).
  */
 
-const MIN_WIDTH = 1100;
-const MIN_HEIGHT = 680;
+// Más pequeño que esto la cápsula y el panel del reproductor ya no caben
+// (incluso con el escalado)
+const MIN_WIDTH = 1200;
+const MIN_HEIGHT = 740;
+// Tamaño para el que está pensado el diseño (zoom 1)
+const REFERENCE_WIDTH = 1700;
+const REFERENCE_HEIGHT = 940;
 
 // Quita las referencias internas de Electron que no se pueden enviar al renderer
 const serializeMenu = (menu: Menu | null) =>
@@ -53,6 +58,7 @@ let onWillNavigate: ((event: Electron.Event, url: string) => void) | null =
 // Si aun así llega (p. ej. al reabrir la app en esa página), vuelve a YouTube
 // Music y el inicio de sesión sigue en la ventana emergente
 let onDidNavigate: ((event: Electron.Event, url: string) => void) | null = null;
+let onScale: (() => void) | null = null;
 
 export const backend = createBackend({
   start({ ipc, window }) {
@@ -64,6 +70,35 @@ export const backend = createBackend({
       window.setSize(Math.max(width, MIN_WIDTH), Math.max(height, MIN_HEIGHT));
 
     ipc.handle('liquid-glass:min-size', () => window.getMinimumSize());
+
+    // Toda la interfaz se escala con el tamaño de la ventana (zoom de la
+    // página): maximizada se ve más grande y al achicarla no se amontona en
+    // las esquinas. El diseño está pensado para unos 1700×940.
+    const applyScale = () => {
+      if (window.isDestroyed()) return;
+      const [innerWidth, innerHeight] = window.getContentSize();
+      const factor = Math.min(
+        innerWidth / REFERENCE_WIDTH,
+        innerHeight / REFERENCE_HEIGHT,
+      );
+      const zoom = Math.round(Math.min(1.5, Math.max(0.8, factor)) * 100) / 100;
+      if (Math.abs(window.webContents.getZoomFactor() - zoom) < 0.01) return;
+      window.webContents.setZoomFactor(zoom);
+      // La barra de título de Windows (botones de ventana) sigue al zoom
+      try {
+        window.setTitleBarOverlay({
+          color: '#00000000',
+          symbolColor: '#ffffff',
+          height: Math.floor(32 * zoom),
+        });
+      } catch {
+        // Sin barra de título superpuesta (macOS/Linux)
+      }
+    };
+    onScale = () => applyScale();
+    window.on('resize', onScale);
+    window.webContents.on('did-finish-load', onScale);
+    applyScale();
 
     const title = t('plugins.liquid-glass.topbar.sign-in');
     onWillNavigate = (event, url) => {
@@ -111,6 +146,12 @@ export const backend = createBackend({
     });
   },
   stop({ ipc, window }) {
+    if (onScale) {
+      window.removeListener('resize', onScale);
+      window.webContents.removeListener('did-finish-load', onScale);
+      window.webContents.setZoomFactor(1);
+    }
+    onScale = null;
     if (onWillNavigate)
       window.webContents.removeListener('will-navigate', onWillNavigate);
     onWillNavigate = null;

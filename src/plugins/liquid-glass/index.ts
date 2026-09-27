@@ -48,6 +48,52 @@ const BODY_CLASS = 'liquid-glass';
 const ANIMATED_CLASS = 'liquid-glass-animated';
 const BACKDROP_ID = 'liquid-glass-backdrop';
 
+// Color de acento tomado de la portada: el color más vivo (saturado y no
+// demasiado oscuro), aclarado para leerse sobre el vidrio oscuro. Se usa en
+// el elemento activo del menú lateral, corazón, etc. (--lg-accent).
+// Imagen aparte con crossOrigin: si la portada no permite leerla, se queda
+// el acento anterior sin afectar al fondo.
+const updateAccent = (url: string) => {
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+  image.onload = () => {
+    try {
+      const size = 24;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      context.drawImage(image, 0, 0, size, size);
+      const pixels = context.getImageData(0, 0, size, size).data;
+      let best = { score: -1, r: 250, g: 45, b: 72 };
+      for (let i = 0; i < pixels.length; i += 4) {
+        const [r, g, b] = [pixels[i], pixels[i + 1], pixels[i + 2]];
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const saturation = max === 0 ? 0 : (max - min) / max;
+        const brightness = max / 255;
+        const vivid = saturation * 0.7;
+        const light = brightness * 0.3;
+        const score = vivid + light;
+        if (brightness > 0.25 && score > best.score) best = { score, r, g, b };
+      }
+      // Mezcla con blanco para que tenga buen contraste sobre fondo oscuro
+      const lift = (value: number) => {
+        const extra = (255 - value) * 0.25;
+        return Math.round(value + extra);
+      };
+      document.body.style.setProperty(
+        '--lg-accent',
+        `rgb(${lift(best.r)}, ${lift(best.g)}, ${lift(best.b)})`,
+      );
+    } catch {
+      // Portada sin permiso de lectura: se mantiene el acento anterior
+    }
+  };
+  image.src = url;
+};
+
 // Pide la portada en alta resolución (las URLs de Google permiten cambiar el tamaño)
 const toHighResArtwork = (url: string) =>
   url
@@ -385,6 +431,7 @@ export default createPlugin({
         this.activeLayer = next;
       };
       image.src = url;
+      updateAccent(url);
     },
   },
 });

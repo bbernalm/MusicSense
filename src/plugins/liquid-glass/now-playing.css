@@ -357,17 +357,22 @@ body.liquid-glass ytmusic-player-page #side-panel #tab-renderer {
   display: none;
   align-items: center;
   gap: 10px;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
 }
 
 body.lg-np .lg-queue-top.has-header {
   display: flex;
 }
 
+/* Misma altura que el botón ∞ para que queden alineados */
 .lg-queue-top ytmusic-queue-header-renderer {
   flex: 1;
   min-width: 0;
+  height: 54px !important;
   margin: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .lg-autoplay-button {

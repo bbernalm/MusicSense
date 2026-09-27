@@ -85,6 +85,14 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
   - Perfil: `#header` oculto; tarjeta central `.lg-identity` (foto, nombre, suscriptores, "Compartir perfil" = último botón de la cabecera) entre Integraciones y Estadísticas, todo dentro de `#content-wrapper` (se mueve con el menú lateral). Cápsula de pestañas `position: fixed`, z-index 2100, bajo el buscador (`--lg-tabs-top/left`).
   - Icono nuevo: `assets/icon.svg` (vector). `pnpm exec electron scripts/generate-icons.mjs` regenera `assets/icon.png`, `assets/generated/icons/png/*`, `win/icon.ico` y el SVG de mac. El icono se muestra arriba a la izquierda (`.lg-app-icon`, importado con `@assets/icon.svg?raw`). Faltaría regenerar `tray*.png` si se quiere el icono nuevo en la bandeja.
 
+- **Ronda 3 del 27/09/2026:**
+  - Escalado: `backend.ts` pone `webContents.setZoomFactor` según el tamaño de la ventana (referencia 1700×940, zoom entre 0,8 y 1,5) y ajusta la barra de título de Windows (`setTitleBarOverlay` altura 32×zoom). Ventana mínima 1200×740. El zoom manual del menú Ver se sobrescribe al redimensionar.
+  - Acento adaptativo: `updateAccent` en index.ts saca el color más vivo de la portada (imagen aparte con `crossOrigin`) y pone `--lg-accent` en `body` (menú lateral activo, corazón, etc.).
+  - Títulos con invitados ("(con X)", "(feat. X)"...): se limpian en el scrobbler (`src/plugins/scrobbler/services/clean-title.ts`, Last.fm y ListenBrainz) y en `animated-art.ts` (`stripFeaturing`; `rawTitle` se usa para detectar el cambio de canción en la barra).
+  - Panel de ajustes (settings.ts/css): ventana centrada con fondo oscurecido (ya no anclada al botón). Perfil: columnas iguales, foto real (`https`, `=s240`).
+  - `closeStrayAccountMenu` en topbar.ts cierra el menú de cuenta de YouTube si queda visible (p. ej. al volver atrás desde "Cambiar de cuenta"); el listener de clic va en captura.
+  - DevTools solo con `PEAR_DEVTOOLS=1` (src/index.ts). Icono: solo el círculo magenta.
+
 ### Pendiente o por verificar
 
 - Ideas pendientes: "Audio espacial" (requiere meter un nodo de efectos en la cadena de audio de Pear, afecta a otros complementos), probar que los avisos en cápsula se ven bien al dar "Me gusta", más estadísticas.

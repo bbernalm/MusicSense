@@ -421,7 +421,7 @@ body.liquid-glass #guide-renderer {
     100vh - 106px - var(--lg-bar-height) - var(--lg-bar-bottom) - 10px
   ) !important;
   margin: 8px 6px 0 12px;
-  padding-top: 6px;
+  padding-top: 12px;
   overflow-y: auto;
   scrollbar-width: none;
   background: linear-gradient(
@@ -447,7 +447,9 @@ body.liquid-glass tp-yt-paper-item.ytmusic-guide-entry-renderer {
   min-height: 40px !important;
   height: 40px !important;
   padding: 0 12px !important;
-  border-radius: 12px !important;
+  /* separada de los bordes de la tarjeta (radio 26 px) */
+  margin: 0 4px !important;
+  border-radius: 14px !important;
   transition: background 0.2s ease;
 }
 
@@ -474,8 +476,14 @@ body.liquid-glass ytmusic-guide-entry-renderer .title {
 
 /* Elemento activo: pastilla clara con ícono y texto en el color de acento */
 body.liquid-glass ytmusic-guide-entry-renderer[active] tp-yt-paper-item {
-  background: rgba(255, 255, 255, 0.13) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  background: color-mix(
+    in srgb,
+    var(--lg-accent) 18%,
+    rgba(255, 255, 255, 0.06)
+  ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 1px color-mix(in srgb, var(--lg-accent) 25%, transparent);
 }
 
 body.liquid-glass ytmusic-guide-entry-renderer[active] .guide-icon,
@@ -929,13 +937,13 @@ body.liquid-glass ytmusic-player-bar .right-controls-buttons {
 }
 
 .lg-time-remaining {
-  right: 12px;
+  right: 18px;
   text-align: left;
 }
 
 /* Termina justo antes de la barra: 58 px + su ancho + 6 px de separación */
 .lg-time-elapsed {
-  right: calc(var(--lg-progress-width) - 90px + 64px);
+  right: calc(var(--lg-progress-width) - 104px + 68px + 12px);
   text-align: right;
 }
 
@@ -1150,8 +1158,8 @@ body.liquid-glass:not(.lg-np) ytmusic-player-page #player {
    parte derecha de la píldora, centrada en altura */
 body.liquid-glass ytmusic-player-bar #progress-bar {
   left: auto !important;
-  right: 58px !important;
-  width: calc(var(--lg-progress-width) - 90px) !important;
+  right: 68px !important;
+  width: calc(var(--lg-progress-width) - 104px) !important;
   top: 32px !important;
   margin: 0 !important;
   transform: translateY(-16px) !important;

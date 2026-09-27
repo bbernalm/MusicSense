@@ -64,6 +64,15 @@ const el = <K extends keyof HTMLElementTagNameMap>(
   return element;
 };
 
+// Foto real del canal (YouTube pone antes una imagen de relleno), pedida a
+// 240 px para que se vea nítida en la tarjeta
+const avatarUrl = (header: Element | null) => {
+  const image = [...(header?.querySelectorAll('img') ?? [])].find((img) =>
+    img.src.startsWith('https://'),
+  );
+  return image?.src.replace(/=s\d+/, '=s240') ?? '';
+};
+
 const loadStats = (): Stats => {
   try {
     const raw = localStorage.getItem(STATS_KEY);
@@ -148,7 +157,7 @@ export class ProfilePage {
       'ytmusic-browse-response #header ytmusic-visual-header-renderer',
     );
     // Esperar a que la cabecera tenga datos (antes solo hay un esqueleto gris)
-    if (!wrapper || !header?.querySelector('img')?.getAttribute('src')) return;
+    if (!wrapper || !avatarUrl(header)) return;
     if (!this.cards?.isConnected) {
       this.cards = el('div', 'lg-profile-cards');
       wrapper.prepend(this.cards);
@@ -175,7 +184,7 @@ export class ProfilePage {
       'ytmusic-browse-response #header ytmusic-visual-header-renderer',
     );
     const card = el('section', 'lg-card lg-identity');
-    const src = header?.querySelector('img')?.src;
+    const src = avatarUrl(header);
     if (src) {
       const image = el('img', 'lg-identity-avatar');
       image.src = src;

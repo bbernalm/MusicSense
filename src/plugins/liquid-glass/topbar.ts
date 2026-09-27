@@ -179,7 +179,35 @@ export class TopBar {
   private loadingThumbnails = false;
   private reading = false;
   private timer: number | null = null;
-  private readonly onOutside = () => this.closeProfileMenu();
+  private readonly onOutside = (event: MouseEvent) => {
+    const target = event.target as Node;
+    if (!this.profileMenu?.contains(target) && !this.profile?.contains(target))
+      this.closeProfileMenu();
+    // Tras cualquier clic (p. ej. "atrás" en el selector de cuentas) se
+    // comprueba si quedó a la vista el menú de cuenta de YouTube
+    window.setTimeout(() => this.closeStrayAccountMenu(), 80);
+    window.setTimeout(() => this.closeStrayAccountMenu(), 350);
+  };
+
+  /*
+   * "Cambiar de cuenta" abre el selector de cuentas de YouTube (se deja ver a
+   * propósito). Su botón "atrás" vuelve al menú de la cuenta de YouTube, que
+   * en MusicSense no debe aparecer: si está a la vista sin que lo estemos
+   * usando por dentro, se cierra.
+   */
+  private closeStrayAccountMenu() {
+    if (document.body.classList.contains(SILENT_MENU_CLASS)) return;
+    const dropdown = openDropdown();
+    if (!dropdown) return;
+    const mainPageVisible = menuItems(dropdown).some(
+      (item) =>
+        item.getClientRects().length > 0 &&
+        ['EXIT_TO_APP', 'SETTINGS', 'ACCOUNT_BOX'].includes(
+          item.data?.icon?.iconType ?? '',
+        ),
+    );
+    if (mainPageVisible) dropdown.close?.();
+  }
 
   constructor(
     private readonly labels: TopBarLabels,
@@ -188,14 +216,15 @@ export class TopBar {
 
   start() {
     this.timer = window.setInterval(() => this.tick(), 500);
-    document.addEventListener('click', this.onOutside);
+    // En captura: el botón "atrás" de YouTube detiene la propagación del clic
+    document.addEventListener('click', this.onOutside, true);
     this.tick();
   }
 
   stop() {
     if (this.timer !== null) window.clearInterval(this.timer);
     this.timer = null;
-    document.removeEventListener('click', this.onOutside);
+    document.removeEventListener('click', this.onOutside, true);
     for (const element of [
       this.appIcon,
       this.leftGroup,

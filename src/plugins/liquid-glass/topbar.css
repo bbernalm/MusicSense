@@ -96,10 +96,8 @@ body.liquid-glass ytmusic-nav-bar .center-content {
 .lg-profile-cards {
   display: grid;
   /* Integraciones | foto y nombre | Estadísticas */
-  grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr) minmax(
-      320px,
-      1.4fr
-    );
+  /* columnas iguales: la tarjeta del perfil queda centrada en la página */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   /* mismo ancho que el contenido de la página */
   width: var(--ytmusic-content-width, calc(100% - 200px));

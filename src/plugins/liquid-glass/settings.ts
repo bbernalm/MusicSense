@@ -154,18 +154,14 @@ export class SettingsPanel {
   }
 
   // Abre el panel bajo el botón que lo llamó (o lo cierra si ya está abierto)
-  async toggle(anchor: DOMRect) {
+  // Ventana centrada con fondo oscurecido, como los ajustes de YouTube (antes
+  // iba anclada al botón y se descolocaba al cambiar el tamaño de la ventana)
+  async toggle(_anchor?: DOMRect) {
     if (!this.overlay || !this.panel) return;
     if (this.isOpen()) {
       this.close();
       return;
     }
-    const right = Math.max(12, window.innerWidth - anchor.right - 8);
-    const top = anchor.bottom + 10;
-    this.panel.style.top = `${Math.round(top)}px`;
-    this.panel.style.right = `${Math.round(right)}px`;
-    // Termina por encima del reproductor flotante (unos 100 px de alto)
-    this.panel.style.maxHeight = `${Math.max(240, Math.round(window.innerHeight - top - 100))}px`;
     await this.refresh();
     this.overlay.classList.add('open');
   }
