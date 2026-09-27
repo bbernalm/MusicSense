@@ -31,7 +31,12 @@ const SHARE_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden=
   <path d="M8.5 10.5H7a2 2 0 0 0-2 2V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5.5a2 2 0 0 0-2-2h-1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
 </svg>`;
 
+const INFINITY_ICON = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+  <path d="M12 12c-1.8-2.4-3.3-3.6-5-3.6a3.6 3.6 0 0 0 0 7.2c1.7 0 3.2-1.2 5-3.6Zm0 0c1.8 2.4 3.3 3.6 5 3.6a3.6 3.6 0 0 0 0-7.2c-1.7 0-3.2 1.2-5 3.6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
 type Labels = {
+  autoplay: string;
   addToPlaylist: string;
   share: string;
   loading: string;
@@ -45,6 +50,7 @@ export class PlayerLayout {
   private addButton: HTMLButtonElement | null = null;
   private npInfo: HTMLDivElement | null = null;
   private barStatus: HTMLDivElement | null = null;
+  private queueTop: HTMLDivElement | null = null;
   private volumePanel: HTMLDivElement | null = null;
   private volumeHideTimer: number | null = null;
   private video: HTMLVideoElement | null = null;
@@ -90,6 +96,7 @@ export class PlayerLayout {
       this.addButton,
       this.npInfo,
       this.barStatus,
+      this.queueTop,
       this.volumePanel,
     ]) {
       element?.remove();
@@ -99,6 +106,7 @@ export class PlayerLayout {
     this.addButton = null;
     this.npInfo = null;
     this.barStatus = null;
+    this.queueTop = null;
     this.volumePanel = null;
     document.body.classList.remove(
       NP_CLASS,
@@ -121,8 +129,57 @@ export class PlayerLayout {
         .querySelector('ytmusic-app-layout')
         ?.hasAttribute('player-page-open') ?? false;
     document.body.classList.toggle(NP_CLASS, open);
+    this.updateQueueTop();
     this.updateBarStatus();
     this.updateNowPlaying();
+  }
+
+  // Panel derecho: arriba "Reproduciendo desde … [Guardar]" y a su lado un
+  // botón ∞ para la reproducción automática (el interruptor original de la
+  // cola se oculta y se pulsa por dentro)
+  private updateQueueTop() {
+    const side = document.querySelector('ytmusic-player-page #side-panel');
+    if (!side) return;
+
+    if (!this.queueTop?.isConnected) {
+      this.queueTop = document.createElement('div');
+      this.queueTop.className = 'lg-queue-top';
+      const autoplay = document.createElement('button');
+      autoplay.type = 'button';
+      autoplay.className = 'lg-autoplay-button';
+      autoplay.title = this.labels.autoplay;
+      autoplay.setAttribute('aria-label', this.labels.autoplay);
+      autoplay.innerHTML = INFINITY_ICON;
+      autoplay.addEventListener('click', () => {
+        document
+          .querySelector<HTMLElement>('ytmusic-player-page #automix')
+          ?.click();
+        window.setTimeout(() => this.updateQueueTop(), 100);
+      });
+      this.queueTop.append(autoplay);
+      side.prepend(this.queueTop);
+    }
+
+    // YouTube Music vuelve a crear la cabecera al cambiar de cola: se trae la
+    // nueva y se quita la anterior
+    const header = side.querySelector<HTMLElement>(
+      '#tab-renderer ytmusic-queue-header-renderer',
+    );
+    if (header) {
+      this.queueTop.querySelector('ytmusic-queue-header-renderer')?.remove();
+      this.queueTop.prepend(header);
+    }
+    this.queueTop.classList.toggle(
+      'has-header',
+      Boolean(this.queueTop.querySelector('ytmusic-queue-header-renderer')),
+    );
+
+    const automix = document.querySelector<HTMLElement & { checked?: boolean }>(
+      'ytmusic-player-page #automix',
+    );
+    const button = this.queueTop.querySelector('.lg-autoplay-button');
+    button?.classList.toggle('hidden', !automix);
+    button?.setAttribute('aria-pressed', String(Boolean(automix?.checked)));
   }
 
   // Estado de la píldora: sin música (lg-idle) o cargando (lg-bar-loading).

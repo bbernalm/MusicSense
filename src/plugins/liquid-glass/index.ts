@@ -209,6 +209,7 @@ export default createPlugin({
       );
       this.lyrics.start();
       this.player = new PlayerLayout({
+        autoplay: t('plugins.liquid-glass.player.autoplay'),
         addToPlaylist: t('plugins.liquid-glass.add-to-playlist'),
         share: t('plugins.liquid-glass.player.share'),
         loading: t('plugins.liquid-glass.player.loading'),

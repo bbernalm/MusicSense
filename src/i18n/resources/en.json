@@ -623,7 +623,8 @@
       "player": {
         "idle": "Nothing playing yet",
         "loading": "Loading",
-        "share": "Share"
+        "share": "Share",
+        "autoplay": "Autoplay: add similar content to the end of the queue"
       },
       "name": "Liquid Glass",
       "settings": "Settings",
@@ -655,7 +656,8 @@
         "stats-empty": "No data yet. Listen to music and your top artists will show up here.",
         "stats-since": "Listening time on this PC since {{date}}",
         "minutes": "{{count}} min",
-        "scrobbler": "Scrobbler (Last.fm / ListenBrainz)"
+        "scrobbler": "Scrobbler (Last.fm / ListenBrainz)",
+        "share": "Share profile"
       }
     },
     "lumiastream": {
