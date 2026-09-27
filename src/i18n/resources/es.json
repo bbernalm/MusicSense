@@ -602,6 +602,7 @@
     },
     "liquid-glass": {
       "description": "Diseño de vidrio líquido al estilo Apple Music, con fondo animado a partir de la portada y tipografía de Apple",
+      "lyrics-button": "Letra",
       "menu": {
         "aberration": "Aberración cromática",
         "animated-background": "Fondo animado",

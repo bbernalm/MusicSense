@@ -1,0 +1,145 @@
+/*
+ * Letras estilo Apple Music (sobre el complemento Synced Lyrics)
+ * y modo letras: pantalla del reproductor con portada + letras grandes.
+ */
+
+/* ---------- Botón de letras en la píldora ---------- */
+.lg-lyrics-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ytmusic-text-primary, #fff);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.lg-lyrics-button:hover {
+  background: var(--lg-glass-hover);
+}
+
+.lg-lyrics-button:active {
+  transform: scale(0.92);
+}
+
+.lg-lyrics-button.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+/* ---------- Tipografía y comportamiento de las líneas ----------
+ * Las variables se definen en body para ganarle a las que Synced Lyrics
+ * pone en :root según el efecto elegido en su menú.
+ */
+body.liquid-glass {
+  --lyrics-font-family: var(--lg-font);
+  --lyrics-font-size: clamp(1.5rem, 2vw, 2.5rem);
+  --lyrics-line-height: 1.22;
+  --lyrics-width: 100%;
+  --lyrics-padding: 0.35rem;
+  --global-margin: 0.55rem;
+
+  --lyrics-inactive-font-weight: 700;
+  --lyrics-inactive-opacity: 0.3;
+  --lyrics-inactive-scale: 0.97;
+  --lyrics-inactive-offset: 0;
+
+  --lyrics-active-font-weight: 700;
+  --lyrics-active-opacity: 1;
+  --lyrics-active-scale: 1;
+  --lyrics-active-offset: 0;
+
+  --lyrics-scale-duration: 0.5s;
+  --lyrics-opacity-transition: 0.5s;
+  --lyrics-animations: lyrics-glow var(--lyrics-glow-duration) forwards;
+  --glow-color: rgba(255, 255, 255, 0.35);
+}
+
+body.liquid-glass .synced-line .text-lyrics {
+  letter-spacing: -0.02em;
+  transition:
+    scale var(--lyrics-scale-duration) cubic-bezier(0.25, 0.8, 0.25, 1),
+    filter 0.6s ease;
+}
+
+/* Líneas que no suenan: atenuadas y ligeramente desenfocadas */
+body.liquid-glass .synced-line:not(.current) .text-lyrics {
+  filter: blur(1.2px);
+}
+
+body.liquid-glass .synced-line:hover .text-lyrics {
+  filter: none;
+}
+
+body.liquid-glass .synced-line:hover .text-lyrics > span > span {
+  opacity: 0.75;
+}
+
+body.liquid-glass .synced-line .text-lyrics > .romaji {
+  font-weight: 500 !important;
+  font-style: normal !important;
+  opacity: 0.8;
+}
+
+/* Letras sin sincronizar */
+body.liquid-glass #synced-lyrics-container .synced-lyrics,
+body.liquid-glass #synced-lyrics-container .description {
+  font-family: var(--lg-font) !important;
+  font-weight: 700 !important;
+}
+
+/* Desvanece la parte de abajo de la lista, como en Apple Music */
+body.liquid-glass .synced-lyrics-vlist {
+  mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+}
+
+/* Selector de proveedor: pastilla de vidrio discreta */
+body.liquid-glass div:has(> .lyrics-picker) > .lyrics-picker {
+  margin: 0 8px;
+  border-radius: 18px;
+  background: rgba(20, 20, 24, 0.45);
+  backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid var(--lg-edge);
+  height: 3.6em;
+  padding-block: 0.5em;
+}
+
+/* ---------- Modo letras ---------- */
+/* El panel lateral pierde su caja: las letras flotan sobre el fondo */
+body.liquid-glass.lg-lyrics-open ytmusic-player-page #side-panel {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  flex: 1.25 1 0% !important;
+  max-width: none !important;
+}
+
+body.liquid-glass.lg-lyrics-open ytmusic-player-page #side-panel::after {
+  display: none;
+}
+
+/* Sin pestañas: solo letras (el botón de la píldora vuelve a la cola) */
+body.liquid-glass.lg-lyrics-open
+  ytmusic-player-page
+  #side-panel
+  > .tab-header-container {
+  display: none !important;
+}
+
+body.liquid-glass.lg-lyrics-open ytmusic-player-page #main-panel {
+  flex: 1 1 0% !important;
+}
+
+body.liquid-glass.lg-lyrics-open {
+  --lyrics-font-size: clamp(1.7rem, 2.5vw, 3rem);
+}

@@ -27,6 +27,7 @@ Se activa en el menú **Plugins → Liquid Glass**. Conviene desactivar *Album C
 | `index.ts` | Definición del complemento, menú (fondo animado, aberración cromática, nivel de desenfoque 15/30/50), fondo con la portada y arranque de los demás módulos |
 | `style.css` | Todo el diseño: variables `--lg-*`, fondos transparentes, vidrio, tipografía, buscador, reproductor, onda, borde de luz |
 | `refraction.ts` | Refracción con aberración cromática: genera un mapa de desplazamiento por panel (canvas) y lo aplica con `backdrop-filter: url(#filtro SVG)` (solo Chromium). Solo en `#player-bar-background` y `ytmusic-search-box .search-box` |
+| `lyrics.ts` / `lyrics.css` | Botón de letras (burbuja) en la píldora y modo letras: abre la pantalla del reproductor en la pestaña "Letra", oculta las pestañas y la caja del panel. Estilo Apple Music para las letras de *Synced Lyrics* (sobrescribe sus variables `--lyrics-*` en `body`) |
 | `wave.ts` | Barra de progreso ondulada estilo Android dibujada encima del slider nativo `#progress-bar` (el nativo sigue gestionando clics y arrastre) |
 
 Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liquid-glass`.
@@ -36,7 +37,9 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
 - Fondo: portada de la canción actual en alta resolución, muy desenfocada, con fundido entre canciones y movimiento lento (`#liquid-glass-backdrop`).
 - Tipografía: SF Pro si está instalada en el PC (su licencia no permite incluirla); si no, Segoe UI Variable.
 - Barra superior: vidrio que solo aparece al hacer scroll y se oculta en la pantalla del reproductor.
-- Menú lateral de vidrio, sin panel en la pantalla del reproductor.
+- Menú lateral estilo iPad: tarjeta de vidrio flotante (`#guide-renderer`) que termina encima del reproductor; elemento activo en rojo de acento; al cerrarlo con el botón superior (ícono de barra lateral) desaparece del todo (sin la columna de íconos `#mini-guide`).
+- Letras: se usa el complemento *Synced Lyrics* de Pear Desktop (debe estar activado), no el código de Better Lyrics (licencia GPLv3). Pendiente de Better Lyrics: sincronización por palabra/sílaba, traducciones y pantalla completa.
+- `.background-gradient` envuelve todo el contenido de las páginas: nunca ocultarlo (antes el inicio salía vacío por eso).
 - Reproductor: píldora flotante (66 px de alto) + cápsula aparte a la derecha (`.right-controls`: volumen siempre visible, repetir, aleatorio, abrir reproductor); ambas centradas como grupo (máx. 1100 px). Sin botón "No me gusta". Botones escalados por grupo con `zoom`, onda de progreso dentro de la píldora, indicador en forma de píldora vertical. El usuario aprobó el aspecto de la barra y el buscador.
 - La etiqueta de tiempo al pasar el ratón (`#hover-time-info`) la recalcula `wave.ts`, porque YouTube Music la calcula como si la barra empezara en el borde de la ventana.
 - Buscador: píldora de vidrio; sugerencias en un panel aparte con fondo más opaco (dentro de la barra superior el `backdrop-filter` no se aplica).

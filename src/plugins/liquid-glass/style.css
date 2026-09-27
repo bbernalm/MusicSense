@@ -132,9 +132,13 @@ body.liquid-glass #mini-guide-background {
 
 body.liquid-glass #nav-bar-divider,
 body.liquid-glass #browse-page #background,
-body.liquid-glass ytmusic-browse-response > #background,
-body.liquid-glass .background-gradient {
+body.liquid-glass ytmusic-browse-response > #background {
   display: none !important;
+}
+
+/* Envuelve todo el contenido de la página: solo se le quita el degradado */
+body.liquid-glass .background-gradient {
+  background: none !important;
 }
 
 /* ---------- Barra de título (menú de la app) ---------- */
@@ -225,32 +229,121 @@ body.liquid-glass
   padding-top: 4px;
 }
 
-/* ---------- Menú lateral ---------- */
-body.liquid-glass #guide-wrapper,
-body.liquid-glass #mini-guide-background {
-  background: var(--lg-glass) !important;
-  backdrop-filter: var(--lg-filter) !important;
-  border-right: 1px solid var(--lg-edge) !important;
-}
-
-body.liquid-glass ytmusic-app-layout[player-page-open] #guide-wrapper,
-body.liquid-glass ytmusic-app-layout[player-page-open] #mini-guide-background {
+/* ---------- Menú lateral estilo iPad ----------
+ * Abierto: tarjeta de vidrio flotante con esquinas muy redondeadas.
+ * Cerrado (botón superior): desaparece del todo, sin la columna de íconos.
+ */
+body.liquid-glass #guide-wrapper {
   background: transparent !important;
-  backdrop-filter: none !important;
   border: 0 !important;
 }
 
+body.liquid-glass #guide-renderer {
+  position: relative;
+  box-sizing: border-box;
+  width: calc(100% - 18px) !important;
+  /* termina por encima del reproductor flotante */
+  height: calc(
+    100vh - 106px - var(--lg-bar-height) - var(--lg-bar-bottom) - 10px
+  ) !important;
+  margin: 8px 6px 0 12px;
+  padding-top: 6px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.11),
+    rgba(255, 255, 255, 0.04)
+  ) !important;
+  backdrop-filter: var(--lg-filter) !important;
+  border: 1px solid var(--lg-edge);
+  border-radius: 26px;
+  box-shadow: var(--lg-shadow);
+}
+
+/* Columna de íconos del menú cerrado: oculta */
+body.liquid-glass #mini-guide,
+body.liquid-glass #mini-guide-background,
+body.liquid-glass #mini-guide-spacer {
+  display: none !important;
+}
+
+body.liquid-glass ytmusic-app-layout:not([guide-persistent-and-visible]) {
+  --ytmusic-mini-guide-width: 0px;
+}
+
+/* Filas: más compactas, ícono + texto, esquinas redondeadas */
 body.liquid-glass tp-yt-paper-item.ytmusic-guide-entry-renderer {
-  border-radius: var(--lg-radius-sm) !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 0 12px !important;
+  border-radius: 12px !important;
+  transition: background 0.2s ease;
 }
 
 body.liquid-glass tp-yt-paper-item.ytmusic-guide-entry-renderer::before {
-  border-radius: var(--lg-radius-sm) !important;
+  border-radius: 12px !important;
 }
 
+body.liquid-glass tp-yt-paper-item.ytmusic-guide-entry-renderer:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+body.liquid-glass ytmusic-guide-entry-renderer .guide-icon {
+  width: 21px !important;
+  height: 21px !important;
+  margin-right: 14px !important;
+  opacity: 0.9;
+}
+
+body.liquid-glass ytmusic-guide-entry-renderer .title {
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em;
+}
+
+/* Elemento activo: pastilla clara con ícono y texto en el color de acento */
 body.liquid-glass ytmusic-guide-entry-renderer[active] tp-yt-paper-item {
-  background: var(--lg-glass-hover) !important;
-  box-shadow: inset 0 1px 0 var(--lg-highlight);
+  background: rgba(255, 255, 255, 0.13) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+body.liquid-glass ytmusic-guide-entry-renderer[active] .guide-icon,
+body.liquid-glass ytmusic-guide-entry-renderer[active] .title {
+  color: var(--lg-accent) !important;
+  opacity: 1;
+}
+
+/* Títulos de sección ("Biblioteca", "Listas") pequeños y grises */
+body.liquid-glass ytmusic-guide-section-renderer h3,
+body.liquid-glass ytmusic-guide-section-renderer #title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  opacity: 0.55;
+  text-transform: none !important;
+}
+
+body.liquid-glass ytmusic-guide-section-renderer #divider {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Botón superior: ícono de barra lateral en vez de las tres rayas */
+body.liquid-glass ytmusic-nav-bar #guide-icon {
+  position: relative;
+}
+
+body.liquid-glass ytmusic-nav-bar #guide-icon > * {
+  opacity: 0;
+}
+
+body.liquid-glass ytmusic-nav-bar #guide-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='4.5' width='18' height='15' rx='3.5' fill='none' stroke='black' stroke-width='1.7'/%3E%3Crect x='5.2' y='6.7' width='4.6' height='10.6' rx='1.6' fill='black'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 /* ---------- Reproductor flotante, compacto y centrado ----------

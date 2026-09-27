@@ -1,6 +1,8 @@
 import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
 
+import { LyricsMode } from './lyrics';
+import lyricsStyle from './lyrics.css?inline';
 import { LiquidRefraction } from './refraction';
 import style from './style.css?inline';
 import { WaveProgress } from './wave';
@@ -37,7 +39,7 @@ export default createPlugin({
   description: () => t('plugins.liquid-glass.description'),
   restartNeeded: false,
   config: defaultConfig,
-  stylesheets: [style],
+  stylesheets: [style, lyricsStyle],
   menu: async ({ getConfig, setConfig }) => {
     const config = await getConfig();
     const blurLevels = [15, 30, 50];
@@ -78,6 +80,7 @@ export default createPlugin({
     lastArtwork: '',
     refraction: null as LiquidRefraction | null,
     wave: null as WaveProgress | null,
+    lyrics: null as LyricsMode | null,
     onDataChange: null as ((event: Event) => void) | null,
 
     async start({ getConfig }) {
@@ -96,6 +99,8 @@ export default createPlugin({
     onPlayerApiReady(playerApi) {
       this.wave = new WaveProgress();
       this.wave.start();
+      this.lyrics = new LyricsMode(t('plugins.liquid-glass.lyrics-button'));
+      this.lyrics.start();
 
       const update = () => {
         const thumbnails =
@@ -129,6 +134,8 @@ export default createPlugin({
       this.refraction = null;
       this.wave?.stop();
       this.wave = null;
+      this.lyrics?.stop();
+      this.lyrics = null;
       this.lastArtwork = '';
     },
 

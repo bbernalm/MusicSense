@@ -20,6 +20,8 @@ El complemento vive en [`src/plugins/liquid-glass/`](src/plugins/liquid-glass/) 
 - **Fondo vivo:** la portada de la canción actual, muy desenfocada, con un fundido al cambiar de canción y un movimiento lento opcional.
 - **Superficies de vidrio:** menú lateral, barra superior, menús emergentes, pestañas y chips translúcidos con un borde de luz.
 - **Reproductor flotante:** una píldora centrada con los controles, la canción y una barra de progreso ondulada, más una cápsula aparte para el volumen, repetir, aleatorio y abrir el reproductor.
+- **Letras estilo Apple Music:** botón de letras en el reproductor que muestra la letra sincronizada, grande y junto a la portada, con la línea actual resaltada y las demás atenuadas. Usa el complemento *Synced Lyrics*, que debe estar activado.
+- **Menú lateral estilo iPad:** tarjeta de vidrio flotante que se muestra u oculta por completo con el botón superior.
 - **Buscador:** campo en forma de píldora y sugerencias en un panel de vidrio.
 - **Refracción:** aberración cromática sutil en los bordes del reproductor y del buscador (se puede desactivar).
 - **Opciones del menú:** fondo animado, aberración cromática y nivel de desenfoque (15, 30 o 50).
@@ -31,6 +33,7 @@ Para que no haya conflictos, conviene desactivar *Album Color Theme*, *Transpare
 | `index.ts` | Definición del complemento, menú y fondo con la portada |
 | `style.css` | Todo el diseño del tema |
 | `refraction.ts` | Refracción con aberración cromática (filtros SVG) |
+| `lyrics.ts` / `lyrics.css` | Botón y modo de letras, estilo de las letras |
 | `wave.ts` | Barra de progreso ondulada y corrección del tiempo al pasar el ratón |
 
 ## Desarrollo
