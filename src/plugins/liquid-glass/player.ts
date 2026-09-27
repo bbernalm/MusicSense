@@ -35,6 +35,23 @@ const INFINITY_ICON = `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidd
   <path d="M12 12c-1.8-2.4-3.3-3.6-5-3.6a3.6 3.6 0 0 0 0 7.2c1.7 0 3.2-1.2 5-3.6Zm0 0c1.8 2.4 3.3 3.6 5 3.6a3.6 3.6 0 0 0 0-7.2c-1.7 0-3.2 1.2-5 3.6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
+// Controlador interno de la barra de YouTube Music (ytmusic-player-bar.inst)
+type PlayerBarController = {
+  volume?: number;
+  isMuted?: boolean;
+  shuffleOn?: boolean;
+  updateVolume?: (volume: number) => void;
+};
+
+const playerBar = () =>
+  document.querySelector<HTMLElement & { inst?: PlayerBarController }>(
+    'ytmusic-player-bar',
+  );
+
+// Zonas de las píldoras que no son botones ni enlaces
+const INTERACTIVE =
+  'button, a, input, [role="button"], [role="slider"], tp-yt-paper-slider, #progress-bar, .lg-wave, .image, .content-info-wrapper';
+
 type Labels = {
   autoplay: string;
   addToPlaylist: string;
@@ -98,6 +115,15 @@ export class PlayerLayout {
   // abierto y después se repite el clic derecho.
   private readonly onContextMenu = (event: MouseEvent) => {
     if (!event.isTrusted) return;
+    // En las píldoras del reproductor no hay menú de clic derecho
+    const inBar = (event.target as Element | null)?.closest(
+      'ytmusic-player-bar, #player-bar-background, #lg-side-background, #lg-expand-background, .lg-volume-panel',
+    );
+    if (inBar) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
     const dropdown = [
       ...document.querySelectorAll<
         HTMLElement & { opened?: boolean; close?: () => void }
@@ -134,8 +160,18 @@ export class PlayerLayout {
       target.dispatchEvent(new MouseEvent('contextmenu', init));
   }
 
+  // YouTube Music abre o cierra el reproductor al pulsar cualquier zona
+  // vacía de la barra: el hueco de la cápsula parecía el botón de al lado
+  private readonly onBarClick = (event: MouseEvent) => {
+    const target = event.target as Element | null;
+    if (!target?.closest('ytmusic-player-bar')) return;
+    if (target.closest(INTERACTIVE)) return;
+    event.stopPropagation();
+  };
+
   start() {
     document.addEventListener('contextmenu', this.onContextMenu, true);
+    document.addEventListener('click', this.onBarClick, true);
     document.addEventListener('dblclick', this.onDoubleClick, true);
     window.addEventListener('keydown', this.onKeyDown, true);
     this.timer = window.setInterval(() => this.tick(), 250);
@@ -145,6 +181,7 @@ export class PlayerLayout {
 
   stop() {
     document.removeEventListener('contextmenu', this.onContextMenu, true);
+    document.removeEventListener('click', this.onBarClick, true);
     document.removeEventListener('dblclick', this.onDoubleClick, true);
     window.removeEventListener('keydown', this.onKeyDown, true);
     if (this.timer !== null) window.clearInterval(this.timer);
@@ -205,9 +242,27 @@ export class PlayerLayout {
         )
         ?.click();
     }
+    this.updateToggles();
     this.updateQueueTop();
     this.updateBarStatus();
     this.updateNowPlaying();
+  }
+
+  // Botones activables con el mismo estilo (círculo blanco, como el de
+  // letras): repetir, aleatorio y subtítulos marcan "activado" con lg-on
+  private updateToggles() {
+    const bar = playerBar();
+    if (!bar) return;
+    const states: [string, boolean][] = [
+      ['.repeat', (bar.getAttribute('repeat-mode') ?? 'NONE') !== 'NONE'],
+      ['.shuffle', Boolean(bar.inst?.shuffleOn)],
+      ['.captions', Boolean(bar.querySelector('.captions yt-icon[active]'))],
+    ];
+    for (const [selector, on] of states) {
+      bar
+        .querySelector(`yt-icon-button${selector}`)
+        ?.classList.toggle('lg-on', on);
+    }
   }
 
   // Panel derecho: arriba "Reproduciendo desde … [Guardar]" y a su lado un
@@ -405,7 +460,7 @@ export class PlayerLayout {
     panel.addEventListener('wheel', (event) => {
       event.preventDefault();
       const step = event.deltaY < 0 ? 5 : -5;
-      this.setVolume((this.api?.getVolume() ?? 50) + step);
+      this.setVolume(this.sliderVolume() + step);
     });
 
     for (const element of [mute, panel]) {
@@ -414,21 +469,29 @@ export class PlayerLayout {
     }
   }
 
-  private setVolume(value: number) {
-    const volume = Math.min(100, Math.max(0, Math.round(value)));
-    if (!this.api) return;
-    if (this.api.isMuted() && volume > 0) this.api.unMute();
-    this.api.setVolume(volume);
-    // Mantiene sincronizada la barra nativa (oculta)
-    const slider = document.querySelector<HTMLElement & { value?: number }>(
-      'ytmusic-player-bar #volume-slider',
-    );
-    if (slider) slider.value = volume;
-    this.renderVolume();
+  // Volumen en las unidades de la barra de YouTube Music (su curva es
+  // exponencial: el 42 % de la barra es un 15 % real)
+  private sliderVolume() {
+    const inst = playerBar()?.inst;
+    if (inst?.volume !== undefined) return inst.isMuted ? 0 : inst.volume;
+    return this.api?.isMuted() ? 0 : (this.api?.getVolume() ?? 50);
   }
 
-  private renderVolume() {
-    const volume = this.api?.isMuted() ? 0 : (this.api?.getVolume() ?? 0);
+  // Se usa la misma función que la barra original: aplica la curva, guarda
+  // el volumen y en 0 silencia (el ícono pasa a "silenciado")
+  private setVolume(value: number) {
+    const volume = Math.min(100, Math.max(0, Math.round(value)));
+    const inst = playerBar()?.inst;
+    if (inst?.updateVolume) {
+      inst.updateVolume(volume);
+    } else if (this.api) {
+      if (this.api.isMuted() && volume > 0) this.api.unMute();
+      this.api.setVolume(volume);
+    }
+    this.renderVolume(volume);
+  }
+
+  private renderVolume(volume = this.sliderVolume()) {
     this.volumePanel?.style.setProperty('--lg-volume', String(volume / 100));
   }
 

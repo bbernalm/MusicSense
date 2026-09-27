@@ -894,6 +894,69 @@ body.liquid-glass {
   --lg-heart-filled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7.8-4.6-7.8-10.4A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 7.8 2.7c0 5.8-7.8 10.4-7.8 10.4Z' fill='black' stroke='black' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
+/* ---------- Botones activables con el mismo estilo (#8) ----------
+ * Apagado: ícono blanco. Encendido: círculo blanco con el ícono oscuro, como
+ * el de letras. player.ts marca lg-on en repetir, aleatorio y subtítulos.
+ */
+body.liquid-glass
+  ytmusic-player-bar
+  :is(.repeat, .shuffle, .captions, .volume):not(.lg-on) {
+  color: rgba(255, 255, 255, 0.85) !important;
+  opacity: 1 !important;
+}
+
+body.liquid-glass ytmusic-player-bar yt-icon-button.lg-on {
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  /* los nativos miden 36 px y el de letras 40: se igualan con el borde */
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+  color: #111 !important;
+  opacity: 1 !important;
+}
+
+body.liquid-glass ytmusic-player-bar yt-icon-button.lg-on yt-icon {
+  color: #111 !important;
+  fill: #111 !important;
+}
+
+/* ---------- Flecha de abrir/cerrar el reproductor (#13) ----------
+ * YouTube Music usa una flecha hacia abajo y gira el botón 180° con el
+ * reproductor cerrado; el agrandado al pasar el ratón reemplazaba ese giro y
+ * la flecha se daba la vuelta. Ahora el giro va en el ícono y al pasar el
+ * ratón la flecha se asoma en su dirección, abierto o cerrado (el círculo de
+ * vidrio no se mueve).
+ */
+body.liquid-glass ytmusic-player-bar .toggle-player-page-button,
+body.liquid-glass ytmusic-player-bar .toggle-player-page-button:hover,
+body.liquid-glass ytmusic-player-bar .toggle-player-page-button:active {
+  transform: none !important;
+}
+
+body.liquid-glass ytmusic-player-bar .toggle-player-page-button yt-icon {
+  transition: transform 0.35s cubic-bezier(0.34, 1.6, 0.64, 1) !important;
+}
+
+body.liquid-glass
+  ytmusic-player-bar:not([player-page-open])
+  .toggle-player-page-button
+  yt-icon {
+  transform: rotate(180deg) !important;
+}
+
+body.liquid-glass
+  ytmusic-player-bar:not([player-page-open])
+  .toggle-player-page-button:hover
+  yt-icon {
+  transform: translateY(-4px) rotate(180deg) !important;
+}
+
+body.liquid-glass
+  ytmusic-player-bar[player-page-open]
+  .toggle-player-page-button:hover
+  yt-icon {
+  transform: translateY(4px) !important;
+}
+
 /* Botones propios (+ y letras) con el mismo aspecto que los nativos */
 .lg-icon-button {
   display: inline-flex;
