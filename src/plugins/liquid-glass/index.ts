@@ -8,6 +8,7 @@ import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
 import { PlayerLayout } from './player';
 import { PreferMusic } from './prefer-music';
+import { ProfilePage } from './profile';
 import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
@@ -136,6 +137,7 @@ export default createPlugin({
     onDataChange: null as ((event: Event) => void) | null,
     settings: null as SettingsPanel | null,
     topBar: null as TopBar | null,
+    profile: null as ProfilePage | null,
     invoke: null as Invoke | null,
     playerApi: null as MusicPlayer | null,
     animatedArt: null as AnimatedArtwork | null,
@@ -181,6 +183,21 @@ export default createPlugin({
         },
       );
       this.topBar.start();
+      this.profile = new ProfilePage(
+        {
+          integrations: t('plugins.liquid-glass.profile.integrations'),
+          stats: t('plugins.liquid-glass.profile.stats'),
+          statsEmpty: t('plugins.liquid-glass.profile.stats-empty'),
+          statsSince: (date) =>
+            t('plugins.liquid-glass.profile.stats-since', { date }),
+          minutes: (count) =>
+            t('plugins.liquid-glass.profile.minutes', { count }),
+          discord: 'Discord',
+          scrobbler: t('plugins.liquid-glass.profile.scrobbler'),
+        },
+        (channel, ...args) => ipc.invoke(channel, ...args),
+      );
+      this.profile.start();
 
       this.wave = new WaveProgress();
       this.wave.start();
@@ -255,6 +272,8 @@ export default createPlugin({
       this.settings = null;
       this.topBar?.stop();
       this.topBar = null;
+      this.profile?.stop();
+      this.profile = null;
       this.animatedArt?.stop();
       this.animatedArt = null;
       this.preferMusic?.stop();

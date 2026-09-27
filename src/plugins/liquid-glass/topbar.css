@@ -75,6 +75,126 @@ body.liquid-glass ytmusic-nav-bar .center-content {
   color: #111;
 }
 
+/* ---------- Tarjetas del perfil (profile.ts) ---------- */
+.lg-profile-cards {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(320px, 2fr);
+  gap: 16px;
+  /* mismo ancho que el contenido de la página */
+  width: var(--ytmusic-content-width, calc(100% - 200px));
+  margin: 8px auto 28px;
+  box-sizing: border-box;
+  font-family: var(--lg-font);
+  color: #fff;
+}
+
+.lg-card {
+  padding: 18px 20px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 22px;
+  background: var(--lg-glass);
+  backdrop-filter: var(--lg-filter);
+  box-shadow: var(--lg-shadow);
+}
+
+.lg-card-title {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.lg-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lg-card-row + .lg-card-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lg-card-empty,
+.lg-card-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  opacity: 0.55;
+}
+
+.lg-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.lg-stats-donut {
+  position: relative;
+  flex: none;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+}
+
+.lg-stats-center {
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: rgba(18, 18, 24, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lg-stats-center strong {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.lg-stats-center span {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.lg-stats-legend {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-stats-legend li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 13px;
+}
+
+.lg-stats-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.lg-stats-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lg-stats-value {
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Deja sitio a la cápsula en la página del perfil */
 body.lg-profile-page ytmusic-browse-response #content-wrapper {
   padding-top: 44px;

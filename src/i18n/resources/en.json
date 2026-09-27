@@ -648,6 +648,14 @@
         "tab-profile": "Profile",
         "tab-plugins": "Plugins",
         "tab-youtube": "YouTube"
+      },
+      "profile": {
+        "integrations": "Integrations",
+        "stats": "Statistics",
+        "stats-empty": "No data yet. Listen to music and your top artists will show up here.",
+        "stats-since": "Listening time on this PC since {{date}}",
+        "minutes": "{{count}} min",
+        "scrobbler": "Scrobbler (Last.fm / ListenBrainz)"
       }
     },
     "lumiastream": {
