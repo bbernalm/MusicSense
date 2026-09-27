@@ -600,6 +600,22 @@
       },
       "name": "In-App Menu"
     },
+    "liquid-glass": {
+      "description": "Apple Music-style liquid glass design with an animated album art background and Apple typography",
+      "menu": {
+        "aberration": "Chromatic aberration",
+        "animated-background": "Animated background",
+        "blur": {
+          "label": "Glass blur",
+          "submenu": {
+            "15": "Subtle",
+            "30": "Normal",
+            "50": "Intense"
+          }
+        }
+      },
+      "name": "Liquid Glass"
+    },
     "lumiastream": {
       "description": "Adds Lumia Stream support",
       "name": "Lumia Stream [Beta]"

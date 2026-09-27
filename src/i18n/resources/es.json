@@ -600,6 +600,22 @@
       },
       "name": "Menú de aplicación"
     },
+    "liquid-glass": {
+      "description": "Diseño de vidrio líquido al estilo Apple Music, con fondo animado a partir de la portada y tipografía de Apple",
+      "menu": {
+        "aberration": "Aberración cromática",
+        "animated-background": "Fondo animado",
+        "blur": {
+          "label": "Desenfoque del vidrio",
+          "submenu": {
+            "15": "Suave",
+            "30": "Normal",
+            "50": "Intenso"
+          }
+        }
+      },
+      "name": "Liquid Glass"
+    },
     "lumiastream": {
       "description": "Agrega soporte para Lumia Stream",
       "name": "Lumia Stream [Beta]"
