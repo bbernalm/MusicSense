@@ -259,9 +259,11 @@ body.liquid-glass ytmusic-search-box {
   box-shadow: none !important;
 }
 
-/* Al abrirse YouTube Music lo saca del flujo (absolute) y los botones de
-   alrededor se le meten debajo: se mantiene en su sitio */
-body.liquid-glass ytmusic-nav-bar ytmusic-search-box[opened] {
+/* Al abrirse, y en la página de resultados, YouTube Music lo saca del flujo
+   (absolute) y los botones de alrededor se le meten debajo: se mantiene en
+   su sitio */
+body.liquid-glass ytmusic-nav-bar ytmusic-search-box[opened],
+body.liquid-glass ytmusic-nav-bar[is-search-page] ytmusic-search-box {
   position: relative !important;
   left: auto !important;
   right: auto !important;

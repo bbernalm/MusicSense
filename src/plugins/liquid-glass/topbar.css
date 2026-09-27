@@ -529,6 +529,10 @@ body.liquid-glass #guide-renderer {
   padding-bottom: 4px !important;
 }
 
+body.liquid-glass #guide-renderer #sections > * {
+  flex: none;
+}
+
 body.liquid-glass #guide-renderer #sections {
   flex: 1;
   min-height: 0;
@@ -537,10 +541,14 @@ body.liquid-glass #guide-renderer #sections {
   flex-direction: column;
 }
 
+/* La sección de las playlists (la que tiene "Nueva playlist") ocupa el
+   espacio libre y se desplaza por dentro. No siempre es la última: algunas
+   cuentas tienen debajo otra con Configuración, Ayuda... y entonces el botón
+   se montaba sobre ella */
 body.liquid-glass
   #guide-renderer
   #sections
-  > ytmusic-guide-section-renderer:last-of-type {
+  > ytmusic-guide-section-renderer:has(#buttons > *) {
   flex: 1;
   min-height: 0;
   display: flex !important;
@@ -550,7 +558,7 @@ body.liquid-glass
 body.liquid-glass
   #guide-renderer
   #sections
-  > ytmusic-guide-section-renderer:last-of-type
+  > ytmusic-guide-section-renderer:has(#buttons > *)
   #items {
   flex: 1;
   min-height: 0;
@@ -562,7 +570,7 @@ body.liquid-glass
 body.liquid-glass
   #guide-renderer
   #sections
-  > ytmusic-guide-section-renderer:last-of-type
+  > ytmusic-guide-section-renderer:has(#buttons > *)
   #buttons {
   order: 99;
   padding: 10px 0 12px;
