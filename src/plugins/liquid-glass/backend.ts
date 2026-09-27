@@ -2,6 +2,7 @@ import {
   type BrowserWindow,
   Menu,
   type MenuItem,
+  shell,
   type WebContents,
 } from 'electron';
 
@@ -70,6 +71,15 @@ export const backend = createBackend({
       window.setSize(Math.max(width, MIN_WIDTH), Math.max(height, MIN_HEIGHT));
 
     ipc.handle('liquid-glass:min-size', () => window.getMinimumSize());
+
+    // Letra no encontrada: búsqueda en el navegador (solo Google, con el
+    // texto de la canción; nunca una dirección enviada desde la página)
+    ipc.handle('liquid-glass:search-lyrics', (query: string) => {
+      const text = `${String(query).slice(0, 200)} lyrics`;
+      return shell.openExternal(
+        `https://www.google.com/search?q=${encodeURIComponent(text)}`,
+      );
+    });
 
     // Toda la interfaz se escala con el tamaño de la ventana (zoom de la
     // página): maximizada se ve más grande y al achicarla no se amontona en
@@ -163,5 +173,6 @@ export const backend = createBackend({
     ipc.removeHandler('liquid-glass:apple-motion');
     ipc.removeHandler('liquid-glass:check-collection');
     ipc.removeHandler('liquid-glass:min-size');
+    ipc.removeHandler('liquid-glass:search-lyrics');
   },
 });

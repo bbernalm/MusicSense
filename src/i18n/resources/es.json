@@ -658,7 +658,9 @@
         "minutes": "{{count}} min",
         "scrobbler": "Scrobbler (Last.fm / ListenBrainz)",
         "share": "Compartir perfil"
-      }
+      },
+      "lyrics-not-found": "No se encontró la letra de esta canción",
+      "lyrics-search": "Buscar la letra en internet"
     },
     "lumiastream": {
       "description": "Agrega soporte para Lumia Stream",

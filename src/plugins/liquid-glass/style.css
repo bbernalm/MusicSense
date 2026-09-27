@@ -361,6 +361,25 @@ body.liquid-glass #guide-wrapper {
     visibility 0s linear 0s !important;
 }
 
+/* Por encima del vidrio de la barra superior (nivel 5); si no, al
+   desplazar la página ese vidrio tapa la parte de arriba del menú */
+body.liquid-glass tp-yt-app-drawer#guide {
+  z-index: 6 !important;
+}
+
+/* Imagen grande de la página de artista: YouTube Music la desplaza según
+   el ancho del menú lateral (que aquí es 0) y queda recortada */
+body.liquid-glass ytmusic-immersive-header-renderer .image {
+  margin-left: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+}
+
+/* Sin pantalla completa: su botón de salida tampoco hace falta */
+body.liquid-glass ytmusic-player-bar .exit-fullscreen-button {
+  display: none !important;
+}
+
 /* El cajón de YouTube Music se desplaza -240 px al instante al cerrarse:
    se deja quieto y la animación la hace #guide-wrapper */
 body.liquid-glass tp-yt-app-drawer#guide #contentContainer {
@@ -1394,6 +1413,15 @@ body.liquid-glass tp-yt-iron-overlay-backdrop {
 body.liquid-glass tp-yt-paper-toast {
   left: 50% !important;
   right: auto !important;
+  /* YouTube Music también le pone top/altura: sin esto se estira */
+  top: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 64px !important;
+  width: max-content !important;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
   bottom: calc(var(--lg-bar-bottom) + var(--lg-bar-height) + 14px) !important;
   max-width: min(560px, calc(100vw - 32px)) !important;
   min-width: 0 !important;

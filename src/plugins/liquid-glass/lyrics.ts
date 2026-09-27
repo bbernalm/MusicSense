@@ -41,15 +41,67 @@ const PROVIDER_LABELS: Record<string, string> = {
   LyricsGenius: 'Genius',
 };
 
+export type LyricsLabels = {
+  button: string;
+  credit: (provider: string) => string;
+  notFound: string;
+  search: string;
+};
+
 export class LyricsMode {
   private button: HTMLButtonElement | null = null;
   private credit: HTMLDivElement | null = null;
+  private notFound: HTMLDivElement | null = null;
   private timer: number | null = null;
 
   constructor(
-    private readonly label: string,
-    private readonly creditText: (provider: string) => string,
+    private readonly labels: LyricsLabels,
+    // Abre en el navegador una búsqueda de la letra de la canción
+    private readonly searchLyrics: (query: string) => void,
   ) {}
+
+  private get label() {
+    return this.labels.button;
+  }
+
+  // Todas las fuentes respondieron y ninguna tiene letra
+  private lyricsMissing() {
+    const states = Object.values(lyricsStore.lyrics);
+    return (
+      states.length > 0 &&
+      states.every((state) => state.state !== 'fetching') &&
+      states.every((state) => !state.data?.lines && !state.data?.lyrics)
+    );
+  }
+
+  private updateNotFound(side: Element) {
+    const missing = this.lyricsMissing();
+    document.body.classList.toggle('lg-lyrics-missing', missing);
+    if (!missing) return;
+    if (this.notFound?.isConnected) return;
+
+    this.notFound = document.createElement('div');
+    this.notFound.className = 'lg-lyrics-not-found';
+    const text = document.createElement('p');
+    text.textContent = this.labels.notFound;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = this.labels.search;
+    button.addEventListener('click', () => {
+      const title =
+        document
+          .querySelector('ytmusic-player-bar .content-info-wrapper .title')
+          ?.textContent?.trim() ?? '';
+      const artist =
+        document
+          .querySelector('ytmusic-player-bar .content-info-wrapper .byline')
+          ?.textContent?.split('•')[0]
+          ?.trim() ?? '';
+      this.searchLyrics(`${title} ${artist}`.trim());
+    });
+    this.notFound.append(text, button);
+    side.append(this.notFound);
+  }
 
   start() {
     // YouTube Music puede volver a crear la barra: se revisa periódicamente
@@ -64,7 +116,9 @@ export class LyricsMode {
     this.button = null;
     this.credit?.remove();
     this.credit = null;
-    document.body.classList.remove(MODE_CLASS);
+    this.notFound?.remove();
+    this.notFound = null;
+    document.body.classList.remove(MODE_CLASS, 'lg-lyrics-missing');
   }
 
   private tick() {
@@ -85,12 +139,13 @@ export class LyricsMode {
       this.credit.className = 'lg-lyrics-credit';
       side.append(this.credit);
     }
+    this.updateNotFound(side);
 
     const provider = lyricsStore.provider;
     const state = lyricsStore.lyrics[provider];
     const found = state?.state === 'done' && state.data !== null;
     const text = found
-      ? this.creditText(PROVIDER_LABELS[provider] ?? provider)
+      ? this.labels.credit(PROVIDER_LABELS[provider] ?? provider)
       : '';
     if (this.credit.textContent !== text) this.credit.textContent = text;
   }

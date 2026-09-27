@@ -74,13 +74,35 @@ export class PlayerLayout {
     this.api = api;
   }
 
+  // Pantalla completa de YouTube Music desactivada: se abría con doble clic
+  // en la portada/video o con la tecla F y descolocaba toda la interfaz
+  private readonly onDoubleClick = (event: MouseEvent) => {
+    const target = event.target as Element | null;
+    if (target?.closest('ytmusic-player-page #player, #movie_player')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  };
+
+  private readonly onKeyDown = (event: KeyboardEvent) => {
+    if (event.key.toLowerCase() !== 'f' || event.ctrlKey || event.altKey)
+      return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, textarea, [contenteditable="true"]')) return;
+    event.stopImmediatePropagation();
+  };
+
   start() {
+    document.addEventListener('dblclick', this.onDoubleClick, true);
+    window.addEventListener('keydown', this.onKeyDown, true);
     this.timer = window.setInterval(() => this.tick(), 250);
     window.addEventListener('resize', this.onResize);
     this.tick();
   }
 
   stop() {
+    document.removeEventListener('dblclick', this.onDoubleClick, true);
+    window.removeEventListener('keydown', this.onKeyDown, true);
     if (this.timer !== null) window.clearInterval(this.timer);
     this.timer = null;
     window.removeEventListener('resize', this.onResize);
@@ -129,6 +151,16 @@ export class PlayerLayout {
         .querySelector('ytmusic-app-layout')
         ?.hasAttribute('player-page-open') ?? false;
     document.body.classList.toggle(NP_CLASS, open);
+    // Si aun así entra en pantalla completa (otro atajo), se sale
+    if (
+      document.querySelector('ytmusic-player[player-ui-state="FULLSCREEN"]')
+    ) {
+      document
+        .querySelector<HTMLElement>(
+          'ytmusic-player-bar .exit-fullscreen-button',
+        )
+        ?.click();
+    }
     this.updateQueueTop();
     this.updateBarStatus();
     this.updateNowPlaying();

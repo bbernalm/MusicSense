@@ -93,6 +93,12 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
   - `closeStrayAccountMenu` en topbar.ts cierra el menú de cuenta de YouTube si queda visible (p. ej. al volver atrás desde "Cambiar de cuenta"); el listener de clic va en captura.
   - DevTools solo con `PEAR_DEVTOOLS=1` (src/index.ts). Icono: solo el círculo magenta.
 
+- **Ronda 4 del 27/09/2026:**
+  - Pantalla completa de YouTube Music bloqueada (doble clic en `#player`/`#movie_player` y tecla F interceptados en captura en player.ts; si entra igualmente, se pulsa `.exit-fullscreen-button`, que está oculto).
+  - `closeStrayAccountMenu` solo tras clics reales (`isTrusted`) dentro de `ytmusic-popup-container` y nunca con `ytd-account-item-renderer` a la vista (para poder cambiar de cuenta).
+  - Musixmatch desactivado (fuente vacía en `synced-lyrics/providers/renderer.ts`: sin cuenta devuelve letras "codificadas"). Si ninguna fuente tiene letra: aviso `.lg-lyrics-not-found` con botón que abre una búsqueda de Google (`liquid-glass:search-lyrics`, la URL se arma en backend). En modo letras se oculta `.lg-queue-top`.
+  - `tp-yt-app-drawer#guide` z-index 6 (el vidrio de la barra superior, nivel 5, tapaba el menú al desplazar). Imagen de artista (`ytmusic-immersive-header-renderer .image`) sin el margen −72 px. Avisos con `top/height: auto` (se estiraban). Logo + "MusicSense" arriba a la izquierda.
+
 ### Pendiente o por verificar
 
 - Ideas pendientes: "Audio espacial" (requiere meter un nodo de efectos en la cadena de audio de Pear, afecta a otros complementos), probar que los avisos en cápsula se ven bien al dar "Me gusta", más estadísticas.

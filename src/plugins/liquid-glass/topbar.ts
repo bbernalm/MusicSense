@@ -183,10 +183,15 @@ export class TopBar {
     const target = event.target as Node;
     if (!this.profileMenu?.contains(target) && !this.profile?.contains(target))
       this.closeProfileMenu();
-    // Tras cualquier clic (p. ej. "atrás" en el selector de cuentas) se
-    // comprueba si quedó a la vista el menú de cuenta de YouTube
-    window.setTimeout(() => this.closeStrayAccountMenu(), 80);
-    window.setTimeout(() => this.closeStrayAccountMenu(), 350);
+    // Solo tras un clic real dentro del menú de YouTube (p. ej. "atrás" en el
+    // selector de cuentas): elegir otra cuenta sigue funcionando
+    if (
+      event.isTrusted &&
+      (target as Element | null)?.closest?.('ytmusic-popup-container')
+    ) {
+      window.setTimeout(() => this.closeStrayAccountMenu(), 120);
+      window.setTimeout(() => this.closeStrayAccountMenu(), 450);
+    }
   };
 
   /*
@@ -199,6 +204,11 @@ export class TopBar {
     if (document.body.classList.contains(SILENT_MENU_CLASS)) return;
     const dropdown = openDropdown();
     if (!dropdown) return;
+    // Selector de cuentas a la vista: no se toca
+    const switcherVisible = [
+      ...dropdown.querySelectorAll('ytd-account-item-renderer'),
+    ].some((item) => item.getClientRects().length > 0);
+    if (switcherVisible) return;
     const mainPageVisible = menuItems(dropdown).some(
       (item) =>
         item.getClientRects().length > 0 &&
@@ -273,6 +283,7 @@ export class TopBar {
     if (this.appIcon?.isConnected) return;
     const icon = el('div', 'lg-app-icon');
     icon.innerHTML = APP_ICON_SVG;
+    icon.append(el('span', 'lg-app-name', 'MusicSense'));
     icon.setAttribute('aria-hidden', 'true');
     document.body.append(icon);
     this.appIcon = icon;

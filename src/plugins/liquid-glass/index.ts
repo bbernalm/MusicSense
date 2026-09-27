@@ -251,8 +251,16 @@ export default createPlugin({
       this.wave = new WaveProgress();
       this.wave.start();
       this.lyrics = new LyricsMode(
-        t('plugins.liquid-glass.lyrics-button'),
-        (provider) => t('plugins.liquid-glass.lyrics-credit', { provider }),
+        {
+          button: t('plugins.liquid-glass.lyrics-button'),
+          credit: (provider) =>
+            t('plugins.liquid-glass.lyrics-credit', { provider }),
+          notFound: t('plugins.liquid-glass.lyrics-not-found'),
+          search: t('plugins.liquid-glass.lyrics-search'),
+        },
+        (query) => {
+          ipc.invoke('liquid-glass:search-lyrics', query).catch(console.error);
+        },
       );
       this.lyrics.start();
       this.player = new PlayerLayout({
