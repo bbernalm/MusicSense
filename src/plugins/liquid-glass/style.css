@@ -143,9 +143,66 @@ body.liquid-glass .background-gradient {
   background: none !important;
 }
 
-/* ---------- Barra de título (menú de la app) ---------- */
+/* ---------- Barra de título (menú de la app) ----------
+ * Sin hamburguesa ni menús: el menú completo se abre desde el botón de
+ * configuración (engranaje). La franja sigue sirviendo para arrastrar la ventana.
+ */
 body.liquid-glass nav[data-ytmd-main-panel] {
   background: transparent !important;
+}
+
+body.liquid-glass nav[data-ytmd-main-panel] > * {
+  visibility: hidden !important;
+}
+
+/* ---------- Barra superior: sin logo y con el buscador centrado ---------- */
+body.liquid-glass ytmusic-nav-bar ytmusic-logo {
+  display: none !important;
+}
+
+body.liquid-glass ytmusic-nav-bar .center-content,
+body.liquid-glass ytmusic-nav-bar[is-search-page] .center-content {
+  position: absolute !important;
+  top: 0 !important;
+  height: 100% !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  left: 0 !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  display: flex !important;
+  justify-content: center !important;
+  pointer-events: none;
+}
+
+body.liquid-glass ytmusic-nav-bar .center-content > *,
+body.liquid-glass
+  ytmusic-nav-bar[is-search-page]
+  .center-content
+  ytmusic-search-box {
+  margin-left: 0 !important;
+  pointer-events: auto;
+}
+
+/* Los botones de la derecha siguen a la derecha aunque el buscador salga del flujo */
+body.liquid-glass ytmusic-nav-bar .right-content {
+  margin-left: auto !important;
+  position: relative;
+  z-index: 1;
+}
+
+.lg-settings-button {
+  margin-right: 6px;
+}
+
+.lg-settings-button:hover svg {
+  transform: rotate(60deg);
+}
+
+.lg-settings-button svg {
+  transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 /* ---------- Barra superior ----------
@@ -240,6 +297,54 @@ body.liquid-glass #guide-wrapper {
   border: 0 !important;
 }
 
+/* El menú flota sobre el contenido y entra deslizándose con un rebote */
+body.liquid-glass #guide-wrapper,
+body.liquid-glass ytmusic-app-layout > [slot='guide'] {
+  width: 240px !important;
+}
+
+body.liquid-glass #guide-wrapper {
+  left: 0 !important;
+  z-index: 5 !important;
+  transform: none;
+  opacity: 1;
+  transition:
+    transform 0.55s cubic-bezier(0.32, 1.25, 0.5, 1),
+    opacity 0.3s ease;
+}
+
+body.liquid-glass ytmusic-app[guide-collapsed] #guide-wrapper {
+  transform: translateX(-105%) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.8, 0.4),
+    opacity 0.3s ease;
+}
+
+/*
+ * El contenido no se desplaza si hay sitio: YouTube Music lo aparta según
+ * --ytmusic-guide-width. Cerrado vale 0 (sin columna de íconos); abierto,
+ * solo lo necesario para que el contenido centrado no quede bajo la tarjeta
+ * (unos 260 px desde la izquierda). En ventanas muy anchas vale 0.
+ */
+body.liquid-glass ytmusic-app {
+  --ytmusic-guide-width: 0px !important;
+}
+
+body.liquid-glass ytmusic-app:not([guide-collapsed]) {
+  --ytmusic-guide-width: max(0px, min(204px, 1998px - 100vw)) !important;
+}
+
+body.liquid-glass #content-wrapper,
+body.liquid-glass ytmusic-search-page,
+body.liquid-glass ytmusic-nav-bar .left-content {
+  transition:
+    margin-left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    padding-left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 body.liquid-glass #guide-renderer {
   position: relative;
   box-sizing: border-box;
@@ -268,10 +373,6 @@ body.liquid-glass #mini-guide,
 body.liquid-glass #mini-guide-background,
 body.liquid-glass #mini-guide-spacer {
   display: none !important;
-}
-
-body.liquid-glass ytmusic-app-layout:not([guide-persistent-and-visible]) {
-  --ytmusic-mini-guide-width: 0px;
 }
 
 /* Filas: más compactas, ícono + texto, esquinas redondeadas */
@@ -349,14 +450,15 @@ body.liquid-glass ytmusic-nav-bar #guide-icon::before {
 }
 
 /* ---------- Reproductor flotante, compacto y centrado ----------
- * Dos piezas centradas como grupo:
- * - Píldora: portada redonda, título y artista, corazón y "+"; a la derecha
- *   la barra de progreso con los controles debajo.
- * - Cápsula: volumen, letras, repetir, aleatorio y abrir el reproductor.
+ * Dos piezas centradas como grupo, iguales en toda la app:
+ * - Píldora: portada redonda (gira como un disco), título y artista, corazón
+ *   y "+"; después los controles y a la derecha la barra de progreso.
+ * - Cápsula: volumen (despliega su barra hacia arriba), letras, repetir,
+ *   aleatorio y abrir el reproductor.
  * Los fondos de vidrio son #player-bar-background y #lg-side-background.
  */
 body.liquid-glass {
-  --lg-side-width: 290px;
+  --lg-side-width: 232px;
   --lg-gap: 10px;
   --lg-group-width: min(1120px, calc(100vw - 32px));
   --lg-bar-width: calc(
@@ -365,8 +467,8 @@ body.liquid-glass {
   --lg-bar-left: calc((100vw - var(--lg-group-width)) / 2);
   --lg-bar-height: 66px;
   --lg-bar-bottom: 12px;
-  /* ancho de la zona de controles dentro de la píldora */
-  --lg-controls-width: 40%;
+  /* ancho de la barra de progreso, a la derecha de la píldora */
+  --lg-progress-width: 34%;
 }
 
 body.liquid-glass ytmusic-app-layout {
@@ -400,9 +502,8 @@ body.liquid-glass #lg-side-background {
   opacity: 1 !important;
   transition:
     opacity 0.3s ease,
-    left 0.35s ease,
-    top 0.35s ease,
-    width 0.35s ease;
+    background 0.3s ease,
+    transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 body.liquid-glass #lg-side-background {
@@ -416,10 +517,54 @@ body.liquid-glass #lg-side-background {
   pointer-events: none;
 }
 
+/* Cápsula: entra con un rebote y se eleva al pasar el ratón
+   (fondo y controles se mueven juntos) */
+body.liquid-glass #lg-side-background,
+body.liquid-glass ytmusic-player-bar .right-controls {
+  animation: lg-capsule-in 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+}
+
+body.liquid-glass ytmusic-player-bar .right-controls {
+  transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+body.lg-side-hover #lg-side-background {
+  transform: translateY(-3px) scale(1.02);
+  background: rgba(30, 30, 38, 0.5) !important;
+}
+
+body.lg-side-hover ytmusic-player-bar .right-controls {
+  transform: translateY(-3px);
+}
+
+@keyframes lg-capsule-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.9);
+  }
+}
+
+body.liquid-glass ytmusic-player-bar .right-controls yt-icon-button,
+body.liquid-glass ytmusic-player-bar .right-controls .lg-icon-button {
+  transition:
+    background 0.2s ease,
+    transform 0.3s cubic-bezier(0.34, 1.6, 0.64, 1);
+}
+
+body.liquid-glass ytmusic-player-bar .right-controls yt-icon-button:hover,
+body.liquid-glass ytmusic-player-bar .right-controls .lg-icon-button:hover {
+  transform: scale(1.12);
+}
+
+body.liquid-glass ytmusic-player-bar .right-controls yt-icon-button:active,
+body.liquid-glass ytmusic-player-bar .right-controls .lg-icon-button:active {
+  transform: scale(0.9);
+}
+
 body.liquid-glass ytmusic-player-bar {
   background: transparent !important;
-  padding: 0 14px 0 10px !important;
-  grid-template-columns: minmax(0, 1fr) var(--lg-controls-width) !important;
+  padding: 0 18px 0 10px !important;
+  grid-template-columns: minmax(0, 1fr) auto var(--lg-progress-width) !important;
   grid-template-areas: none !important;
   align-items: center !important;
 }
@@ -434,12 +579,13 @@ body.liquid-glass ytmusic-player-bar .middle-controls {
   justify-content: flex-start !important;
 }
 
-/* Derecha de la píldora: controles bajo la barra de progreso */
+/* Centro de la píldora: controles (la barra de progreso va a su derecha) */
 body.liquid-glass ytmusic-player-bar .left-controls {
   grid-area: 1 / 2 !important;
-  width: 100% !important;
+  width: auto !important;
   height: 100% !important;
-  padding-top: 18px;
+  margin: 0 14px !important;
+  padding: 0 !important;
   box-sizing: border-box;
   align-items: center !important;
   justify-content: center !important;
@@ -447,7 +593,7 @@ body.liquid-glass ytmusic-player-bar .left-controls {
 
 /* Escala los grupos de botones completos para no descuadrar los íconos */
 body.liquid-glass ytmusic-player-bar .left-controls-buttons {
-  zoom: 0.72;
+  zoom: 0.76;
   align-items: center !important;
 }
 
@@ -467,12 +613,43 @@ body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
   flex: none;
 }
 
+/* Gira como un disco mientras suena; se detiene al pausar */
 body.liquid-glass ytmusic-player-bar .image {
   width: 46px !important;
   height: 46px !important;
   border-radius: 50% !important;
   object-fit: cover;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  animation: lg-spin 9s linear infinite;
+}
+
+body.liquid-glass.lg-paused ytmusic-player-bar .image {
+  animation-play-state: paused;
+}
+
+/* Agujero central del disco */
+body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
+  position: relative;
+}
+
+body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: rgba(14, 14, 18, 0.9);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+
+@keyframes lg-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 body.liquid-glass ytmusic-player-bar .content-info-wrapper {
@@ -603,10 +780,79 @@ body.liquid-glass ytmusic-player-bar .right-controls-buttons {
   align-items: center !important;
 }
 
-/* El volumen siempre visible (YouTube Music lo oculta hasta pasar el ratón) */
+/* La barra de volumen nativa se sustituye por el panel vertical */
 body.liquid-glass ytmusic-player-bar #volume-slider {
-  opacity: 1 !important;
-  width: 80px !important;
+  display: none !important;
+}
+
+/* Panel del volumen: sale hacia arriba desde el altavoz con un rebote */
+.lg-volume-panel {
+  position: fixed;
+  z-index: 2000;
+  width: 46px;
+  height: 156px;
+  padding: 16px 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  background: var(--lg-glass-tint);
+  backdrop-filter: var(--lg-filter);
+  border: 1px solid var(--lg-edge);
+  border-radius: 23px;
+  box-shadow: var(--lg-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px)) scale(0.5, 0.3);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.2s ease,
+    transform 0.45s cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+
+.lg-volume-panel.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, calc(-100% - 14px)) scale(1);
+}
+
+/* Puente invisible para no perder el panel al bajar el ratón al botón */
+.lg-volume-panel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 18px;
+}
+
+.lg-volume-track {
+  position: relative;
+  width: 26px;
+  height: 100%;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.lg-volume-track::before,
+.lg-volume-fill {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 6px;
+  margin-left: -3px;
+  border-radius: 999px;
+}
+
+.lg-volume-track::before {
+  top: 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lg-volume-fill {
+  height: calc(var(--lg-volume, 0.5) * 100%);
+  background: #fff;
+  transition: height 0.12s ease;
 }
 
 /* Mini reproductor cuadrado (miniatura del video) al cerrar la pantalla del
@@ -617,13 +863,13 @@ body.liquid-glass:not(.lg-np) ytmusic-player-page #player {
 }
 
 /* ---------- Barra de progreso ondulada ---------- */
-/* YouTube Music la desplaza 16 px y le pone márgenes: se reposiciona encima
-   de los controles, en la parte derecha de la píldora */
+/* YouTube Music la desplaza 16 px y le pone márgenes: se reposiciona en la
+   parte derecha de la píldora, centrada en altura */
 body.liquid-glass ytmusic-player-bar #progress-bar {
-  left: calc(100% - var(--lg-controls-width) - 4px) !important;
-  right: auto !important;
-  width: calc(var(--lg-controls-width) - 18px) !important;
-  top: 15px !important;
+  left: auto !important;
+  right: 18px !important;
+  width: calc(var(--lg-progress-width) - 30px) !important;
+  top: 32px !important;
   margin: 0 !important;
   transform: translateY(-16px) !important;
 }

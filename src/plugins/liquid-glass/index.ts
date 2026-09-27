@@ -1,6 +1,7 @@
 import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
 
+import { backend } from './backend';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
@@ -42,6 +43,7 @@ export default createPlugin({
   restartNeeded: false,
   config: defaultConfig,
   stylesheets: [style, lyricsStyle, nowPlayingStyle],
+  backend,
   menu: async ({ getConfig, setConfig }) => {
     const config = await getConfig();
     const blurLevels = [15, 30, 50];
@@ -85,9 +87,13 @@ export default createPlugin({
     lyrics: null as LyricsMode | null,
     player: null as PlayerLayout | null,
     onDataChange: null as ((event: Event) => void) | null,
+    openAppMenu: null as ((x: number, y: number) => void) | null,
 
-    async start({ getConfig }) {
+    async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
+      this.openAppMenu = (x: number, y: number) => {
+        ipc.invoke('liquid-glass:open-menu', x, y).catch(console.error);
+      };
 
       const backdrop = document.createElement('div');
       backdrop.id = BACKDROP_ID;
@@ -107,8 +113,14 @@ export default createPlugin({
         (provider) => t('plugins.liquid-glass.lyrics-credit', { provider }),
       );
       this.lyrics.start();
-      this.player = new PlayerLayout(t('plugins.liquid-glass.add-to-playlist'));
-      this.player.start();
+      this.player = new PlayerLayout(
+        {
+          addToPlaylist: t('plugins.liquid-glass.add-to-playlist'),
+          settings: t('plugins.liquid-glass.settings'),
+        },
+        (x, y) => this.openAppMenu?.(x, y),
+      );
+      this.player.start(playerApi);
 
       const update = () => {
         const thumbnails =

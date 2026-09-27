@@ -19,10 +19,11 @@ El complemento vive en [`src/plugins/liquid-glass/`](src/plugins/liquid-glass/) 
 
 - **Fondo vivo:** la portada de la canción actual, muy desenfocada, con un fundido al cambiar de canción y un movimiento lento opcional.
 - **Superficies de vidrio:** menú lateral, barra superior, menús emergentes, pestañas y chips translúcidos con un borde de luz.
-- **Reproductor flotante:** una píldora con la portada redonda, la canción, ♡ y + (guardar en una playlist), y a la derecha una barra de progreso ondulada sobre los controles; más una cápsula aparte con volumen, letras, repetir, aleatorio y abrir el reproductor.
-- **Pantalla del reproductor:** portada grande que se encoge al pausar; debajo, título, ♡, +, progreso, controles y volumen; a la derecha el panel de letras o la cola, con la cápsula debajo.
+- **Reproductor flotante:** una píldora con la portada redonda que gira como un disco, la canción, ♡ y + (guardar en una playlist), los controles y a la derecha una barra de progreso ondulada; más una cápsula aparte con volumen (desplegable hacia arriba), letras, repetir, aleatorio y abrir el reproductor.
+- **Pantalla del reproductor:** portada grande (se encoge al pausar) con el título y el artista; a la derecha el panel de letras o la cola.
+- **Barra superior:** buscador centrado y un botón de configuración con todo el menú de la app (Plugins, Options, View…).
 - **Letras estilo Apple Music:** la letra sincronizada, grande, con la línea actual resaltada y las demás atenuadas. La fuente se elige sola (primero la sincronizada de YouTube Music) y se indica al pie. Usa el complemento *Synced Lyrics*, que debe estar activado. Estilo inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics).
-- **Menú lateral estilo iPad:** tarjeta de vidrio flotante que se muestra u oculta por completo con el botón superior.
+- **Menú lateral estilo iPad:** tarjeta de vidrio flotante y animada que se muestra u oculta con el botón superior, sin desplazar el contenido cuando hay sitio.
 - **Buscador:** campo en forma de píldora y sugerencias en un panel de vidrio.
 - **Refracción:** aberración cromática sutil en los bordes del reproductor y del buscador (se puede desactivar).
 - **Opciones del menú:** fondo animado, aberración cromática y nivel de desenfoque (15, 30 o 50).
@@ -34,7 +35,8 @@ Para que no haya conflictos, conviene desactivar *Album Color Theme*, *Transpare
 | `index.ts` | Definición del complemento, menú y fondo con la portada |
 | `style.css` | Todo el diseño del tema |
 | `refraction.ts` | Refracción con aberración cromática (filtros SVG) |
-| `player.ts` / `now-playing.css` | Vidrio de la cápsula, botón +, portada animada y diseño de la pantalla del reproductor |
+| `backend.ts` | Abre el menú de la app desde el botón de configuración |
+| `player.ts` / `now-playing.css` | Vidrio de la cápsula, botones + y de configuración, volumen vertical, portada animada y pantalla del reproductor |
 | `lyrics.ts` / `lyrics.css` | Botón y modo de letras, estilo de las letras y crédito de la fuente |
 | `wave.ts` | Barra de progreso ondulada y corrección del tiempo al pasar el ratón |
 

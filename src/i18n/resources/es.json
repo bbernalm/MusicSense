@@ -617,7 +617,8 @@
           }
         }
       },
-      "name": "Liquid Glass"
+      "name": "Liquid Glass",
+      "settings": "Configuración"
     },
     "lumiastream": {
       "description": "Agrega soporte para Lumia Stream",

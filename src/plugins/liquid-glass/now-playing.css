@@ -1,24 +1,28 @@
 /*
- * Pantalla del reproductor (boceto del usuario):
- * izquierda  → portada grande; debajo título/artista con ♡ y +, barra de
- *              progreso, controles y volumen.
- * derecha    → panel de vidrio (letras o cola) y bajo él la cápsula.
- *
- * La barra de YouTube Music ocupa toda la ventana (sin recibir clics) y cada
- * grupo se coloca con las medidas que calcula player.ts:
- * --np-x / --np-y / --np-w           → borde izq., borde inferior y ancho de la portada
- * --np-side-x / --np-side-y / --np-side-w → lo mismo para el panel lateral
+ * Pantalla del reproductor:
+ * izquierda → portada cuadrada con el título y el artista debajo (#lg-np-info);
+ * derecha   → panel de vidrio (letras o cola).
+ * La píldora y la cápsula de abajo no cambian respecto al resto de la app.
  */
 
-/* ---------- Portada ---------- */
-/* Deja sitio debajo de la portada para los controles */
-body.liquid-glass.lg-np ytmusic-player-page #main-panel {
-  padding: 0 0 120px !important;
+/* ---------- No se desplaza al abrir el menú lateral ---------- */
+body.liquid-glass ytmusic-app-layout > [slot='player-page'] {
+  left: 0 !important;
+  width: 100vw !important;
+}
+
+/* ---------- Portada y título ---------- */
+body.liquid-glass ytmusic-player-page #main-panel {
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  row-gap: 18px;
+  padding: 0 !important;
   box-sizing: border-box !important;
 }
 
-/* Portada siempre cuadrada (YouTube Music la calcula sin contar ese espacio);
-   en modo video se deja su tamaño */
+/* Portada siempre cuadrada (YouTube Music calcula su tamaño con otras
+   cuentas); en modo video se deja su tamaño */
 body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #player {
   width: var(--np-art, 360px) !important;
   height: var(--np-art, 360px) !important;
@@ -48,151 +52,53 @@ body.liquid-glass.lg-paused ytmusic-player-page #song-image {
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
 }
 
-/* ---------- La barra se convierte en capa de toda la ventana ---------- */
-body.liquid-glass.lg-np ytmusic-player-bar {
-  left: 0 !important;
-  top: 0 !important;
-  bottom: auto !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  padding: 0 !important;
-  display: block !important;
-  pointer-events: none;
+#lg-np-info {
+  display: none;
+  width: var(--np-art, 360px);
+  max-width: 100%;
+  text-align: left;
+  color: #fff;
+  font-family: var(--lg-font);
 }
 
-body.liquid-glass.lg-np ytmusic-player-bar > * {
-  pointer-events: auto;
+body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info {
+  display: block;
+  animation: lg-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-body.liquid-glass.lg-np #player-bar-background {
-  opacity: 0 !important;
-  pointer-events: none !important;
+.lg-np-title,
+.lg-np-artist {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ---------- Título, artista, ♡ y + ---------- */
-body.liquid-glass.lg-np ytmusic-player-bar .middle-controls {
-  position: absolute !important;
-  left: var(--np-x) !important;
-  top: calc(var(--np-y) + 16px) !important;
-  width: var(--np-w) !important;
-  height: 52px !important;
+.lg-np-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-body.liquid-glass.lg-np ytmusic-player-bar .thumbnail-image-wrapper {
-  display: none !important;
+.lg-np-artist {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 500;
+  opacity: 0.65;
 }
 
-body.liquid-glass.lg-np ytmusic-player-bar .content-info-wrapper {
-  flex: 1 1 auto;
-  margin: 0 12px 0 0 !important;
+@keyframes lg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-body.liquid-glass.lg-np ytmusic-player-bar .title {
-  font-size: 19px !important;
-  font-weight: 700 !important;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar .byline {
-  font-size: 15px !important;
-}
-
-/* ---------- Barra de progreso ---------- */
-body.liquid-glass.lg-np ytmusic-player-bar #progress-bar {
-  left: var(--np-x) !important;
-  top: calc(var(--np-y) + 86px) !important;
-  width: var(--np-w) !important;
-}
-
-/* ---------- Tiempo y controles ---------- */
-body.liquid-glass.lg-np ytmusic-player-bar .left-controls {
-  position: absolute !important;
-  left: var(--np-x) !important;
-  top: calc(var(--np-y) + 96px) !important;
-  width: var(--np-w) !important;
-  height: 72px !important;
-  padding: 0 !important;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar .time-info {
-  display: block !important;
-  position: absolute;
-  left: 0;
-  top: 2px;
-  margin: 0 !important;
-  font-size: 11px !important;
-  opacity: 0.6;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar .left-controls-buttons {
-  zoom: 1;
-  margin-top: 14px;
-}
-
-/* ---------- Volumen bajo los controles ---------- */
-/* La cápsula deja de ser una caja: sus piezas se colocan por separado */
-body.liquid-glass.lg-np ytmusic-player-bar .right-controls {
-  display: contents !important;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar #volume-slider {
-  position: absolute !important;
-  left: calc(var(--np-x) + 28px) !important;
-  top: calc(var(--np-y) + 176px) !important;
-  width: calc(var(--np-w) - 56px) !important;
-}
-
-/* Altavoces a los lados del volumen */
-body.liquid-glass.lg-np ytmusic-player-bar #volume-slider::before,
-body.liquid-glass.lg-np ytmusic-player-bar #volume-slider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  margin-top: -8px;
-  background: currentColor;
-  opacity: 0.6;
-  -webkit-mask: var(--lg-speaker) center / contain no-repeat;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar #volume-slider::before {
-  left: -24px;
-  transform: scale(0.8);
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar #volume-slider::after {
-  right: -24px;
-  -webkit-mask-image: var(--lg-speaker-loud);
-}
-
-body.liquid-glass {
-  --lg-speaker: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 9h4l5-4v14l-5-4H4z' fill='black'/%3E%3C/svg%3E");
-  --lg-speaker-loud: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z' fill='black'/%3E%3Cpath d='M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
-}
-
-/* ---------- Cápsula bajo el panel lateral ---------- */
-body.liquid-glass.lg-np #lg-side-background {
-  left: var(--np-side-x);
-  top: calc(var(--np-side-y) + 12px);
-  bottom: auto;
-  width: var(--np-side-w);
-  height: 60px;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar .right-controls-buttons {
-  position: absolute !important;
-  zoom: 1;
-  left: calc(var(--np-side-x) + 16px) !important;
-  top: calc(var(--np-side-y) + 12px) !important;
-  width: calc(var(--np-side-w) - 80px) !important;
-  height: 60px !important;
-  display: flex !important;
-  justify-content: space-evenly !important;
-}
-
-body.liquid-glass.lg-np ytmusic-player-bar .toggle-player-page-button {
-  position: absolute !important;
-  zoom: 1;
-  left: calc(var(--np-side-x) + var(--np-side-w) - 60px) !important;
-  top: calc(var(--np-side-y) + 22px) !important;
+/* ---------- Panel lateral con márgenes interiores ---------- */
+body.liquid-glass ytmusic-player-page #side-panel {
+  padding: 4px 14px 12px !important;
+  box-sizing: border-box !important;
 }
