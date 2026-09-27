@@ -21,6 +21,7 @@ El complemento vive en [`src/plugins/liquid-glass/`](src/plugins/liquid-glass/) 
 - **Superficies de vidrio:** menú lateral, barra superior, menús emergentes, pestañas y chips translúcidos con un borde de luz.
 - **Reproductor flotante:** una píldora con la portada redonda que gira como un disco, la canción, ♡ y + (guardar en una playlist), los controles y a la derecha una barra de progreso ondulada; más una cápsula aparte con volumen (desplegable hacia arriba), letras, repetir, aleatorio y abrir el reproductor.
 - **Pantalla del reproductor:** portada grande (se encoge al pausar) con el título y el artista; a la derecha el panel de letras o la cola.
+- **Portadas animadas:** cuando la canción tiene portada animada en Apple Music, se muestra en movimiento en la pantalla del reproductor. Se obtienen del servicio de portadas de [Better Lyrics Shaders](https://github.com/better-lyrics/shaders) (`artwork.boidu.dev`). Se pueden desactivar en las opciones de Liquid Glass.
 - **Barra superior:** buscador centrado y un botón de configuración que abre un panel de vidrio con interruptores: complementos activados y disponibles (con buscador y opciones desplegables) y el resto de opciones de la app (Options, View, Navigation, About).
 - **Letras estilo Apple Music:** la letra sincronizada, grande, con la línea actual resaltada y las demás atenuadas. La fuente se elige sola (primero la sincronizada de YouTube Music) y se indica al pie. Usa el complemento *Synced Lyrics*, que debe estar activado. Estilo inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics).
 - **Menú lateral estilo iPad:** tarjeta de vidrio flotante y animada que se muestra u oculta con el botón superior, sin desplazar el contenido cuando hay sitio.
@@ -37,6 +38,7 @@ Para que no haya conflictos, conviene desactivar *Album Color Theme*, *Transpare
 | `refraction.ts` | Refracción con aberración cromática (filtros SVG) |
 | `backend.ts` | Da al panel de configuración acceso al menú de la app |
 | `settings.ts` / `settings.css` | Panel de configuración con interruptores |
+| `animated-art.ts` | Portadas animadas (servicio de Better Lyrics Shaders) |
 | `player.ts` / `now-playing.css` | Vidrio de la cápsula, botones + y de configuración, volumen vertical, portada animada y pantalla del reproductor |
 | `lyrics.ts` / `lyrics.css` | Botón y modo de letras, estilo de las letras y crédito de la fuente |
 | `wave.ts` | Barra de progreso ondulada y corrección del tiempo al pasar el ratón |
@@ -77,4 +79,4 @@ git merge upstream/master
 
 ## Créditos y licencia
 
-Basado en [Pear Desktop](https://github.com/pear-devs/pear-desktop) y el trabajo de sus colaboradores. Se distribuye bajo la licencia MIT; ver [`license`](license).
+Basado en [Pear Desktop](https://github.com/pear-devs/pear-desktop) y el trabajo de sus colaboradores. Estilo de letras inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics); portadas animadas gracias al servicio de [Better Lyrics Shaders](https://github.com/better-lyrics/shaders). Se distribuye bajo la licencia MIT; ver [`license`](license).

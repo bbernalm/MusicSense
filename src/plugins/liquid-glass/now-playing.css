@@ -52,6 +52,28 @@ body.liquid-glass.lg-paused ytmusic-player-page #song-image {
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
 }
 
+/* Portada animada (animated-art.ts): video encima de la imagen, con fundido */
+body.liquid-glass ytmusic-player-page #song-image {
+  position: relative;
+}
+
+.lg-animated-art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+.lg-animated-art.ready {
+  opacity: 1;
+}
+
 #lg-np-info {
   display: none;
   width: var(--np-art, 360px);

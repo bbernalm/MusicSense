@@ -47,7 +47,10 @@ export class WaveProgress {
       'ytmusic-player-bar #progress-bar',
     );
     const container = slider?.querySelector<HTMLElement>('#sliderContainer');
-    const video = document.querySelector<HTMLVideoElement>('video');
+    // El del reproductor de YouTube (no el de la portada animada)
+    const video = document.querySelector<HTMLVideoElement>(
+      '#movie_player video.video-stream',
+    );
     if (!slider || !container || !video) {
       this.retryTimer = window.setTimeout(() => this.attach(), 1000);
       return;

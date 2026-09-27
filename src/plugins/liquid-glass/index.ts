@@ -1,6 +1,7 @@
 import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
 
+import { AnimatedArtwork } from './animated-art';
 import { backend } from './backend';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
@@ -12,10 +13,13 @@ import settingsStyle from './settings.css?inline';
 import style from './style.css?inline';
 import { WaveProgress } from './wave';
 
+import type { MusicPlayer } from '@/types/music-player';
+
 type LiquidGlassConfig = {
   enabled: boolean;
   animatedBackground: boolean;
   aberration: boolean;
+  animatedArtwork: boolean;
   blur: number;
 };
 
@@ -23,6 +27,7 @@ const defaultConfig: LiquidGlassConfig = {
   enabled: false,
   animatedBackground: true,
   aberration: true,
+  animatedArtwork: true,
   blur: 30,
 };
 
@@ -68,6 +73,14 @@ export default createPlugin({
         },
       },
       {
+        label: t('plugins.liquid-glass.menu.animated-artwork'),
+        type: 'checkbox',
+        checked: config.animatedArtwork,
+        click(item) {
+          setConfig({ animatedArtwork: item.checked });
+        },
+      },
+      {
         label: t('plugins.liquid-glass.menu.blur.label'),
         submenu: blurLevels.map((blur) => ({
           label: t(`plugins.liquid-glass.menu.blur.submenu.${blur}`),
@@ -90,6 +103,9 @@ export default createPlugin({
     player: null as PlayerLayout | null,
     onDataChange: null as ((event: Event) => void) | null,
     settings: null as SettingsPanel | null,
+    playerApi: null as MusicPlayer | null,
+    animatedArt: null as AnimatedArtwork | null,
+    animatedArtEnabled: true,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
@@ -133,6 +149,8 @@ export default createPlugin({
         },
       );
       this.player.start(playerApi);
+      this.playerApi = playerApi;
+      this.updateAnimatedArt();
 
       const update = () => {
         const thumbnails =
@@ -172,13 +190,37 @@ export default createPlugin({
       this.player = null;
       this.settings?.stop();
       this.settings = null;
+      this.animatedArt?.stop();
+      this.animatedArt = null;
+      this.playerApi = null;
       this.lastArtwork = '';
     },
 
+    // Arranca o detiene las portadas animadas según la opción del menú
+    updateAnimatedArt(this: {
+      playerApi: MusicPlayer | null;
+      animatedArt: AnimatedArtwork | null;
+      animatedArtEnabled: boolean;
+    }) {
+      if (this.animatedArtEnabled && this.playerApi && !this.animatedArt) {
+        this.animatedArt = new AnimatedArtwork();
+        this.animatedArt.start(this.playerApi);
+      } else if (!this.animatedArtEnabled && this.animatedArt) {
+        this.animatedArt.stop();
+        this.animatedArt = null;
+      }
+    },
+
     applyConfig(
-      this: { refraction: LiquidRefraction | null },
+      this: {
+        refraction: LiquidRefraction | null;
+        animatedArtEnabled: boolean;
+        updateAnimatedArt: () => void;
+      },
       config: LiquidGlassConfig,
     ) {
+      this.animatedArtEnabled = config.animatedArtwork;
+      this.updateAnimatedArt();
       document.body.classList.toggle(ANIMATED_CLASS, config.animatedBackground);
       document.documentElement.style.setProperty(
         '--lg-blur',

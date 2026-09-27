@@ -607,6 +607,7 @@
       "lyrics-credit": "Lyrics: {{provider}} · Style inspired by Better Lyrics",
       "menu": {
         "aberration": "Chromatic aberration",
+        "animated-artwork": "Animated artwork (Apple Music)",
         "animated-background": "Animated background",
         "blur": {
           "label": "Glass blur",

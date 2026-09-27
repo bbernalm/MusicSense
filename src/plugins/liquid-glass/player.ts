@@ -268,7 +268,10 @@ export class PlayerLayout {
 
   // Estado de reproducción: gira el disco y anima la portada
   private ensureVideo() {
-    const video = document.querySelector<HTMLVideoElement>('video');
+    // El del reproductor de YouTube (no el de la portada animada)
+    const video = document.querySelector<HTMLVideoElement>(
+      '#movie_player video.video-stream',
+    );
     if (!video || video === this.video) return;
     this.video?.removeEventListener('play', this.onPlay);
     this.video?.removeEventListener('pause', this.onPause);
