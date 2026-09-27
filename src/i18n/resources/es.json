@@ -609,6 +609,7 @@
         "aberration": "Aberración cromática",
         "animated-artwork": "Portadas animadas (Apple Music)",
         "animated-background": "Fondo animado",
+        "prefer-music": "Preferir música (sin videos)",
         "blur": {
           "label": "Desenfoque del vidrio",
           "submenu": {
@@ -621,6 +622,7 @@
       "name": "Liquid Glass",
       "settings": "Configuración",
       "settings-panel": {
+        "general": "MusicSense",
         "available": "Disponibles",
         "empty": "No hay complementos con ese nombre",
         "enabled": "Activados",

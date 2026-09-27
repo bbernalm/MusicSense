@@ -609,6 +609,7 @@
         "aberration": "Chromatic aberration",
         "animated-artwork": "Animated artwork (Apple Music)",
         "animated-background": "Animated background",
+        "prefer-music": "Prefer music (no videos)",
         "blur": {
           "label": "Glass blur",
           "submenu": {
@@ -621,6 +622,7 @@
       "name": "Liquid Glass",
       "settings": "Settings",
       "settings-panel": {
+        "general": "MusicSense",
         "available": "Available",
         "empty": "No plugins match that name",
         "enabled": "Enabled",

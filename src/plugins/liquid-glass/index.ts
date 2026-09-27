@@ -7,6 +7,7 @@ import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
 import { PlayerLayout } from './player';
+import { PreferMusic } from './prefer-music';
 import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
@@ -22,6 +23,7 @@ type LiquidGlassConfig = {
   animatedBackground: boolean;
   aberration: boolean;
   animatedArtwork: boolean;
+  preferMusic: boolean;
   blur: number;
 };
 
@@ -30,6 +32,7 @@ const defaultConfig: LiquidGlassConfig = {
   animatedBackground: true,
   aberration: true,
   animatedArtwork: true,
+  preferMusic: false,
   blur: 30,
 };
 
@@ -64,6 +67,14 @@ export default createPlugin({
     const blurLevels = [15, 30, 50];
 
     return [
+      {
+        label: t('plugins.liquid-glass.menu.prefer-music'),
+        type: 'checkbox',
+        checked: config.preferMusic,
+        click(item) {
+          setConfig({ preferMusic: item.checked });
+        },
+      },
       {
         label: t('plugins.liquid-glass.menu.animated-background'),
         type: 'checkbox',
@@ -115,6 +126,8 @@ export default createPlugin({
     playerApi: null as MusicPlayer | null,
     animatedArt: null as AnimatedArtwork | null,
     animatedArtEnabled: true,
+    preferMusic: null as PreferMusic | null,
+    preferMusicEnabled: false,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
@@ -125,6 +138,8 @@ export default createPlugin({
           enabled: t('plugins.liquid-glass.settings-panel.enabled'),
           available: t('plugins.liquid-glass.settings-panel.available'),
           empty: t('plugins.liquid-glass.settings-panel.empty'),
+          general: t('plugins.liquid-glass.settings-panel.general'),
+          ownPlugin: t('plugins.liquid-glass.name'),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
       );
@@ -167,6 +182,7 @@ export default createPlugin({
       this.player.start(playerApi);
       this.playerApi = playerApi;
       this.updateAnimatedArt();
+      this.updatePreferMusic();
 
       const update = () => {
         const thumbnails =
@@ -210,6 +226,8 @@ export default createPlugin({
       this.topBar = null;
       this.animatedArt?.stop();
       this.animatedArt = null;
+      this.preferMusic?.stop();
+      this.preferMusic = null;
       this.playerApi = null;
       this.lastArtwork = '';
     },
@@ -229,16 +247,35 @@ export default createPlugin({
       }
     },
 
+    // Arranca o detiene "Preferir música" según la opción del menú
+    updatePreferMusic(this: {
+      playerApi: MusicPlayer | null;
+      preferMusic: PreferMusic | null;
+      preferMusicEnabled: boolean;
+    }) {
+      if (this.preferMusicEnabled && this.playerApi && !this.preferMusic) {
+        this.preferMusic = new PreferMusic();
+        this.preferMusic.start(this.playerApi);
+      } else if (!this.preferMusicEnabled && this.preferMusic) {
+        this.preferMusic.stop();
+        this.preferMusic = null;
+      }
+    },
+
     applyConfig(
       this: {
         refraction: LiquidRefraction | null;
         animatedArtEnabled: boolean;
+        preferMusicEnabled: boolean;
         updateAnimatedArt: () => void;
+        updatePreferMusic: () => void;
       },
       config: LiquidGlassConfig,
     ) {
       this.animatedArtEnabled = config.animatedArtwork;
       this.updateAnimatedArt();
+      this.preferMusicEnabled = config.preferMusic;
+      this.updatePreferMusic();
       document.body.classList.toggle(ANIMATED_CLASS, config.animatedBackground);
       document.documentElement.style.setProperty(
         '--lg-blur',

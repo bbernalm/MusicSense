@@ -23,13 +23,53 @@ body.liquid-glass ytmusic-player-page #main-panel {
 
 /* Portada siempre cuadrada (YouTube Music calcula su tamaño con otras
    cuentas); en modo video se deja su tamaño */
-body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #player {
+body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #player,
+body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #player {
   width: var(--np-art, 360px) !important;
   height: var(--np-art, 360px) !important;
   max-width: none !important;
   max-height: none !important;
   flex: none !important;
   margin: 0 !important;
+}
+
+/* Preferir música (prefer-music.ts): sin video, se muestra la portada */
+body.liquid-glass.lg-prefer-music ytmusic-player-page #song-video {
+  display: none !important;
+}
+
+body.liquid-glass.lg-prefer-music ytmusic-player-page #song-image {
+  display: block !important;
+}
+
+/* En modo video YouTube Music le da proporción 16:9: se hace llenar el cuadro */
+body.liquid-glass.lg-prefer-music ytmusic-player-page[video-mode] #player {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 16px;
+}
+
+body.liquid-glass.lg-prefer-music ytmusic-player-page[video-mode] #song-image {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+body.liquid-glass.lg-prefer-music
+  ytmusic-player-page[video-mode]
+  #song-image
+  :is(yt-img-shadow, img) {
+  width: var(--np-art, 100%) !important;
+  height: var(--np-art, 100%) !important;
+  padding: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+body.liquid-glass.lg-prefer-music ytmusic-player-page #song-image img {
+  object-fit: cover !important;
 }
 
 /* Sin fondo gris detrás de la portada (se ve cuando se encoge) */
@@ -83,7 +123,8 @@ body.liquid-glass ytmusic-player-page #song-image {
   font-family: var(--lg-font);
 }
 
-body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info {
+body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info,
+body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #lg-np-info {
   display: block;
   animation: lg-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   transition: transform 0.7s cubic-bezier(0.34, 1.45, 0.64, 1);
@@ -93,6 +134,9 @@ body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info {
    para quedar pegado a su borde izquierdo e inferior (8 % de cada lado) */
 body.liquid-glass.lg-np.lg-paused
   ytmusic-player-page:not([video-mode])
+  #lg-np-info,
+body.liquid-glass.lg-np.lg-paused.lg-prefer-music
+  ytmusic-player-page
   #lg-np-info {
   transform: translate(
     calc(var(--np-art, 360px) * 0.08),

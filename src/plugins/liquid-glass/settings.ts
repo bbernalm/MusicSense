@@ -28,6 +28,15 @@ export type SettingsLabels = {
   enabled: string;
   available: string;
   empty: string;
+  // Pestaña propia con las opciones de nuestro complemento
+  general: string;
+  ownPlugin: string;
+};
+
+type Tab = {
+  label: string;
+  kind: 'plugins' | 'items';
+  items: MenuNode[];
 };
 
 type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
@@ -71,7 +80,7 @@ export class SettingsPanel {
   private body: HTMLDivElement | null = null;
   private tabs: HTMLDivElement | null = null;
   private search: HTMLInputElement | null = null;
-  private menu: MenuNode[] = [];
+  private menu: Tab[] = [];
   private tab = 0;
   private query = '';
   private readonly expanded = new Set<string>();
@@ -158,9 +167,39 @@ export class SettingsPanel {
     const menu = (await this.invoke('liquid-glass:get-menu')) as {
       items?: MenuNode[];
     } | null;
-    this.menu = (menu?.items ?? []).filter(
+    const top = (menu?.items ?? []).filter(
       (item) => isVisible(item) && item.type === 'submenu',
     );
+
+    // 1.ª pestaña: opciones de MusicSense (las de nuestro complemento);
+    // 2.ª: Plugins; después el resto de menús de la app
+    const [plugins, ...rest] = top;
+    const own = plugins?.submenu?.items.find(
+      (item) => item.label === this.labels.ownPlugin,
+    );
+    const tabs: Tab[] = [];
+    if (own?.type === 'submenu') {
+      tabs.push({
+        label: this.labels.general,
+        kind: 'items',
+        items: pluginOptions(own),
+      });
+    }
+    if (plugins) {
+      tabs.push({
+        label: plugins.label,
+        kind: 'plugins',
+        items: plugins.submenu?.items ?? [],
+      });
+    }
+    for (const item of rest) {
+      tabs.push({
+        label: item.label,
+        kind: 'items',
+        items: item.submenu?.items ?? [],
+      });
+    }
+    this.menu = tabs;
     if (this.tab >= this.menu.length) this.tab = 0;
     this.renderTabs();
     this.renderBody();
@@ -194,15 +233,20 @@ export class SettingsPanel {
       }),
     );
     // El buscador solo tiene sentido en la pestaña de complementos
-    this.search?.classList.toggle('hidden', this.tab !== 0);
+    this.search?.classList.toggle(
+      'hidden',
+      this.menu[this.tab]?.kind !== 'plugins',
+    );
   }
 
   private renderBody() {
     if (!this.body) return;
     const current = this.menu[this.tab];
-    const items = (current?.submenu?.items ?? []).filter(isVisible);
+    const items = (current?.items ?? []).filter(isVisible);
     const content =
-      this.tab === 0 ? this.renderPlugins(items) : this.renderItems(items, []);
+      current?.kind === 'plugins'
+        ? this.renderPlugins(items)
+        : this.renderItems(items, [current?.label ?? '']);
     this.body.replaceChildren(content);
   }
 
