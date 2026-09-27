@@ -367,10 +367,18 @@ body.liquid-glass #guide-wrapper {
   /* por encima del vidrio de la barra superior (z-index 5) */
   z-index: 6 !important;
   transform: none !important;
-  opacity: 1 !important;
   visibility: visible !important;
+  /* Sin opacidad aquí: mientras un contenedor cambia de opacidad el
+     navegador desactiva el desenfoque de lo que tiene dentro (el vidrio del
+     menú aparecía de golpe al terminar de abrirse). Se desvanece la tarjeta */
   transition:
     transform 0.55s cubic-bezier(0.32, 1.25, 0.5, 1),
+    visibility 0s linear 0s !important;
+}
+
+body.liquid-glass #guide-renderer {
+  opacity: 1;
+  transition:
     opacity 0.3s ease,
     visibility 0s linear 0s !important;
 }
@@ -422,16 +430,17 @@ body.liquid-glass ytmusic-app[guide-collapsed] #guide-renderer {
 
 body.liquid-glass ytmusic-app[guide-collapsed] #guide-wrapper {
   transform: translateX(-105%) scale(0.96) !important;
-  opacity: 0 !important;
   pointer-events: none;
   transition:
     transform 0.4s cubic-bezier(0.5, 0, 0.75, 0),
-    opacity 0.4s cubic-bezier(0.5, 0, 0.75, 0),
     visibility 0s linear 0.4s !important;
 }
 
 body.liquid-glass ytmusic-app[guide-collapsed] #guide-renderer {
-  transition: visibility 0s linear 0.4s !important;
+  opacity: 0;
+  transition:
+    opacity 0.4s cubic-bezier(0.5, 0, 0.75, 0),
+    visibility 0s linear 0.4s !important;
 }
 
 /*
@@ -1189,6 +1198,16 @@ body.liquid-glass ytmusic-player-bar #volume-slider {
   height: calc(var(--lg-volume, 0.5) * 100%);
   background: #fff;
   transition: height 0.12s ease;
+}
+
+/* Al arrastrar, la barra sigue al puntero sin retraso */
+.lg-volume-panel.dragging .lg-volume-fill {
+  transition: none;
+}
+
+.lg-volume-panel {
+  cursor: pointer;
+  touch-action: none;
 }
 
 /* Mini reproductor cuadrado (miniatura del video) al cerrar la pantalla del

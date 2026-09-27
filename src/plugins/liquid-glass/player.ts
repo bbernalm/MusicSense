@@ -92,7 +92,50 @@ export class PlayerLayout {
     event.stopImmediatePropagation();
   };
 
+  // Clic derecho con un menú ya abierto: YouTube Music abre el nuevo y al
+  // cerrar el anterior borra el punto donde debía colocarse, así que salía en
+  // la esquina superior izquierda y no se podía cerrar. Se cierra primero el
+  // abierto y después se repite el clic derecho.
+  private readonly onContextMenu = (event: MouseEvent) => {
+    if (!event.isTrusted) return;
+    const dropdown = [
+      ...document.querySelectorAll<
+        HTMLElement & { opened?: boolean; close?: () => void }
+      >('ytmusic-popup-container tp-yt-iron-dropdown'),
+    ].find((element) => element.opened);
+    if (!dropdown) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const target = event.target as Element | null;
+    const init: MouseEventInit = {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      button: 2,
+      buttons: 2,
+      shiftKey: event.shiftKey,
+    };
+    dropdown.close?.();
+    this.reopenContextMenu(dropdown, target, init).catch(console.error);
+  };
+
+  private async reopenContextMenu(
+    dropdown: HTMLElement & { opened?: boolean },
+    target: Element | null,
+    init: MouseEventInit,
+  ) {
+    for (let i = 0; i < 20 && dropdown.opened; i++) await wait(25);
+    // YouTube Music quita su punto de anclaje en un setTimeout al cerrar
+    await wait(50);
+    if (target?.isConnected)
+      target.dispatchEvent(new MouseEvent('contextmenu', init));
+  }
+
   start() {
+    document.addEventListener('contextmenu', this.onContextMenu, true);
     document.addEventListener('dblclick', this.onDoubleClick, true);
     window.addEventListener('keydown', this.onKeyDown, true);
     this.timer = window.setInterval(() => this.tick(), 250);
@@ -101,6 +144,7 @@ export class PlayerLayout {
   }
 
   stop() {
+    document.removeEventListener('contextmenu', this.onContextMenu, true);
     document.removeEventListener('dblclick', this.onDoubleClick, true);
     window.removeEventListener('keydown', this.onKeyDown, true);
     if (this.timer !== null) window.clearInterval(this.timer);
@@ -330,18 +374,33 @@ export class PlayerLayout {
     document.body.append(panel);
     this.volumePanel = panel;
 
+    // Todo el panel responde (también sus márgenes) y mientras se arrastra
+    // sigue al puntero aunque salga del panel, sin ocultarse ni animar la
+    // barra (iba por detrás del ratón)
     const track = panel.querySelector<HTMLElement>('.lg-volume-track')!;
     const setFromPointer = (event: PointerEvent) => {
       const rect = track.getBoundingClientRect();
       const ratio = (rect.bottom - event.clientY) / rect.height;
       this.setVolume(Math.round(Math.min(1, Math.max(0, ratio)) * 100));
     };
-    track.addEventListener('pointerdown', (event) => {
-      track.setPointerCapture(event.pointerId);
+    panel.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      panel.setPointerCapture(event.pointerId);
+      panel.classList.add('dragging');
       setFromPointer(event);
     });
-    track.addEventListener('pointermove', (event) => {
-      if (track.hasPointerCapture(event.pointerId)) setFromPointer(event);
+    panel.addEventListener('pointermove', (event) => {
+      if (panel.hasPointerCapture(event.pointerId)) setFromPointer(event);
+    });
+    panel.addEventListener('lostpointercapture', (event) => {
+      panel.classList.remove('dragging');
+      const rect = panel.getBoundingClientRect();
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (!inside) this.hideVolumeSoon();
     });
     panel.addEventListener('wheel', (event) => {
       event.preventDefault();
@@ -392,6 +451,7 @@ export class PlayerLayout {
   }
 
   private hideVolumeSoon() {
+    if (this.volumePanel?.classList.contains('dragging')) return;
     if (this.volumeHideTimer !== null)
       window.clearTimeout(this.volumeHideTimer);
     this.volumeHideTimer = window.setTimeout(() => {

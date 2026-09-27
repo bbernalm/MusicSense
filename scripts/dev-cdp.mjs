@@ -4,7 +4,7 @@
 // Uso:
 //   node scripts/dev-cdp.mjs archivo.js            evalúa el JS en la página (devuelve JSON)
 //   node scripts/dev-cdp.mjs --shot salida.png [x,y,ancho,alto]   captura
-//   node scripts/dev-cdp.mjs --click x,y           clic real
+//   node scripts/dev-cdp.mjs --click x,y           clic real (--rclick: derecho)
 //   node scripts/dev-cdp.mjs --dblclick x,y        doble clic real
 //   node scripts/dev-cdp.mjs --move x,y archivo.js mueve el ratón y evalúa
 //   TARGET=accounts.google.com node scripts/dev-cdp.mjs ...   otra ventana
@@ -50,10 +50,11 @@ if (args[0] === '--shot') {
     for (const type of ['mousePressed', 'mouseReleased'])
       await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount });
   console.log('dblclicked');
-} else if (args[0] === '--click') {
+} else if (args[0] === '--click' || args[0] === '--rclick') {
   const [x, y] = args[1].split(',').map(Number);
+  const button = args[0] === '--rclick' ? 'right' : 'left';
   for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased'])
-    await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type, x, y, button, clickCount: 1 });
   console.log('clicked');
 } else {
   if (args[0] === '--move') {
