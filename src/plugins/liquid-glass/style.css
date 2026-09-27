@@ -627,25 +627,6 @@ body.liquid-glass.lg-paused ytmusic-player-bar .image {
   animation-play-state: paused;
 }
 
-/* Agujero central del disco */
-body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper {
-  position: relative;
-}
-
-body.liquid-glass ytmusic-player-bar .thumbnail-image-wrapper::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  margin: -4.5px 0 0 -4.5px;
-  border-radius: 50%;
-  background: rgba(14, 14, 18, 0.9);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.28);
-  pointer-events: none;
-}
-
 @keyframes lg-spin {
   to {
     transform: rotate(360deg);
@@ -995,8 +976,7 @@ body.liquid-glass ytmusic-player-bar yt-icon-button:active {
 body.liquid-glass #player-bar-background::after,
 body.liquid-glass #lg-side-background::after,
 body.liquid-glass ytmusic-search-box .search-box::after,
-body.liquid-glass #suggestion-list::after,
-body.liquid-glass ytmusic-player-page #side-panel::after {
+body.liquid-glass #suggestion-list::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -1033,12 +1013,28 @@ body.liquid-glass ytmusic-player-page #song-image {
   filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.5));
 }
 
+/* Panel lateral (letras / cola) sin caja: integrado en el fondo, con los
+   bordes superior e inferior desvanecidos y separado de la cápsula */
 body.liquid-glass ytmusic-player-page #side-panel {
-  background: var(--lg-glass) !important;
-  backdrop-filter: var(--lg-filter);
-  border: 1px solid var(--lg-edge);
-  border-radius: var(--lg-radius);
-  box-shadow: var(--lg-shadow);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 34px !important;
+}
+
+body.liquid-glass ytmusic-player-page #side-panel #tab-renderer {
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 28px,
+    #000 calc(100% - 56px),
+    transparent 100%
+  );
+}
+
+body.liquid-glass ytmusic-player-page #side-panel .tab-header-container {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 /* ---------- Menús emergentes y diálogos ---------- */

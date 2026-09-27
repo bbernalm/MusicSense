@@ -63,7 +63,19 @@ body.liquid-glass.lg-paused ytmusic-player-page #song-image {
 
 body.liquid-glass.lg-np ytmusic-player-page:not([video-mode]) #lg-np-info {
   display: block;
-  animation: lg-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: lg-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  transition: transform 0.7s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+/* Al pausar la portada se encoge al 84 % desde su centro: el título la sigue
+   para quedar pegado a su borde izquierdo e inferior (8 % de cada lado) */
+body.liquid-glass.lg-np.lg-paused
+  ytmusic-player-page:not([video-mode])
+  #lg-np-info {
+  transform: translate(
+    calc(var(--np-art, 360px) * 0.08),
+    calc(var(--np-art, 360px) * -0.08)
+  );
 }
 
 .lg-np-title,

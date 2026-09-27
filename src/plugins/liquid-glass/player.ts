@@ -3,7 +3,7 @@
  * - fondo de vidrio de la cápsula derecha (#lg-side-background);
  * - botón "+" (guardar en una playlist) junto al corazón;
  * - volumen: el botón de altavoz despliega una barra vertical hacia arriba;
- * - botón de configuración en la barra superior (menú completo de la app);
+ * - botón de configuración en la barra superior (abre el panel de settings.ts);
  * - pantalla del reproductor: portada cuadrada con título y artista debajo;
  * - clases de estado: lg-np (pantalla del reproductor abierta), lg-paused.
  *
@@ -57,7 +57,7 @@ export class PlayerLayout {
 
   constructor(
     private readonly labels: Labels,
-    private readonly openAppMenu: (x: number, y: number) => void,
+    private readonly openSettings: (anchor: DOMRect) => void,
   ) {}
 
   start(api: MusicPlayer) {
@@ -175,8 +175,7 @@ export class PlayerLayout {
     button.innerHTML = GEAR_ICON;
     button.addEventListener('click', (event) => {
       event.stopPropagation();
-      const rect = button.getBoundingClientRect();
-      this.openAppMenu(rect.left, rect.bottom + 6);
+      this.openSettings(button.getBoundingClientRect());
     });
     right.prepend(button);
     this.settingsButton = button;

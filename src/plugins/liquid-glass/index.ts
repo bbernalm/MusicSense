@@ -7,6 +7,8 @@ import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
 import { PlayerLayout } from './player';
 import { LiquidRefraction } from './refraction';
+import { SettingsPanel } from './settings';
+import settingsStyle from './settings.css?inline';
 import style from './style.css?inline';
 import { WaveProgress } from './wave';
 
@@ -42,7 +44,7 @@ export default createPlugin({
   description: () => t('plugins.liquid-glass.description'),
   restartNeeded: false,
   config: defaultConfig,
-  stylesheets: [style, lyricsStyle, nowPlayingStyle],
+  stylesheets: [style, lyricsStyle, nowPlayingStyle, settingsStyle],
   backend,
   menu: async ({ getConfig, setConfig }) => {
     const config = await getConfig();
@@ -87,13 +89,21 @@ export default createPlugin({
     lyrics: null as LyricsMode | null,
     player: null as PlayerLayout | null,
     onDataChange: null as ((event: Event) => void) | null,
-    openAppMenu: null as ((x: number, y: number) => void) | null,
+    settings: null as SettingsPanel | null,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
-      this.openAppMenu = (x: number, y: number) => {
-        ipc.invoke('liquid-glass:open-menu', x, y).catch(console.error);
-      };
+      this.settings = new SettingsPanel(
+        {
+          title: t('plugins.liquid-glass.settings'),
+          search: t('plugins.liquid-glass.settings-panel.search'),
+          enabled: t('plugins.liquid-glass.settings-panel.enabled'),
+          available: t('plugins.liquid-glass.settings-panel.available'),
+          empty: t('plugins.liquid-glass.settings-panel.empty'),
+        },
+        (channel, ...args) => ipc.invoke(channel, ...args),
+      );
+      this.settings.start();
 
       const backdrop = document.createElement('div');
       backdrop.id = BACKDROP_ID;
@@ -118,7 +128,9 @@ export default createPlugin({
           addToPlaylist: t('plugins.liquid-glass.add-to-playlist'),
           settings: t('plugins.liquid-glass.settings'),
         },
-        (x, y) => this.openAppMenu?.(x, y),
+        (anchor) => {
+          this.settings?.toggle(anchor).catch(console.error);
+        },
       );
       this.player.start(playerApi);
 
@@ -158,6 +170,8 @@ export default createPlugin({
       this.lyrics = null;
       this.player?.stop();
       this.player = null;
+      this.settings?.stop();
+      this.settings = null;
       this.lastArtwork = '';
     },
 

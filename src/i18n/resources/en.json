@@ -618,7 +618,13 @@
         }
       },
       "name": "Liquid Glass",
-      "settings": "Settings"
+      "settings": "Settings",
+      "settings-panel": {
+        "available": "Available",
+        "empty": "No plugins match that name",
+        "enabled": "Enabled",
+        "search": "Search plugins"
+      }
     },
     "lumiastream": {
       "description": "Adds Lumia Stream support",

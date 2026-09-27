@@ -27,9 +27,10 @@ Se activa en el menú **Plugins → Liquid Glass**. Conviene desactivar *Album C
 | `index.ts` | Definición del complemento, menú (fondo animado, aberración cromática, nivel de desenfoque 15/30/50), fondo con la portada y arranque de los demás módulos |
 | `style.css` | Todo el diseño: variables `--lg-*`, fondos transparentes, vidrio, tipografía, buscador, reproductor, onda, borde de luz |
 | `refraction.ts` | Refracción con aberración cromática (lente ancho estilo iOS 26): genera un mapa de desplazamiento por panel (canvas) y lo aplica con `backdrop-filter: url(#filtro SVG)` (solo Chromium). En `#player-bar-background`, `#lg-side-background` y `ytmusic-search-box .search-box` |
-| `backend.ts` | Proceso principal: `liquid-glass:open-menu` abre el menú de la app (`Menu.getApplicationMenu().popup`) junto al botón de engranaje |
+| `backend.ts` | Proceso principal: `liquid-glass:get-menu` (menú de la app serializado) y `liquid-glass:menu-click` (pulsa una opción por `commandId`; el click de Electron alterna casillas/radios). Pear reconstruye el menú tras cambios, así que los `commandId` cambian: volver a leerlo siempre |
+| `settings.ts` / `settings.css` | Panel de configuración del engranaje: una pestaña por menú de la app; en Plugins buscador + secciones "Activados"/"Disponibles" con interruptor y opciones desplegables (el interruptor es la casilla del complemento o la "Enabled" de su submenú). Casillas → interruptores, radios → lista con ✓, submenús → grupos desplegables, acciones → filas que cierran el panel |
 | `player.ts` | Crea `#lg-side-background` (vidrio de la cápsula), el botón "+" (abre "Guardar en una playlist" del menú ⋮ oculto, clase `lg-silent-menu`), el botón de engranaje (`.lg-settings-button`, en `ytmusic-nav-bar .right-content`), el panel vertical de volumen (`.lg-volume-panel`, en `body`, usa `setVolume` de la API), `#lg-np-info` (título y artista bajo la portada), y las clases `lg-np`, `lg-paused`, `lg-side-hover`; calcula `--np-art` |
-| `now-playing.css` | Pantalla del reproductor: solo portada cuadrada + título y artista a la izquierda, panel (letras/cola) con márgenes interiores a la derecha. La píldora y la cápsula NO cambian aquí (el usuario quiere que sean siempre iguales) |
+| `now-playing.css` | Pantalla del reproductor: solo portada cuadrada + título y artista a la izquierda (al pausar, el título se desplaza con la portada encogida para seguir pegado a su borde), panel (letras/cola) a la derecha. La píldora y la cápsula NO cambian aquí (el usuario quiere que sean siempre iguales) |
 | `lyrics.ts` / `lyrics.css` | Botón de letras (burbuja) en la cápsula y modo letras: abre la pantalla del reproductor en la pestaña "Letra" y oculta las pestañas. Estilo Apple Music para las letras de *Synced Lyrics* (sobrescribe sus variables `--lyrics-*` en `body`). Selector de fuente oculto (sigue montado porque elige la mejor fuente). Crédito al pie: fuente real + "estilo inspirado en Better Lyrics" |
 | `wave.ts` | Barra de progreso ondulada estilo Android dibujada encima del slider nativo `#progress-bar` (el nativo sigue gestionando clics y arrastre) |
 
@@ -48,6 +49,8 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
 - Píldora y cápsula, **iguales en toda la app** (también en la pantalla del reproductor): píldora (66 px) con portada redonda que gira como disco (se detiene con `lg-paused`), título/artista, ♡ (el "Me gusta" con máscara de corazón) y +; luego los controles y a la derecha la onda de progreso (`--lg-progress-width`). Cápsula (232 px): altavoz (al pasar el ratón despliega el panel vertical de volumen), letras, repetir, aleatorio, abrir reproductor; entra con rebote y se eleva al pasar el ratón. Sin "No me gusta" ni menú ⋮ ni tiempo. Grupo centrado (máx. 1120 px). El mini reproductor cuadrado se oculta con `opacity: 0`.
 - La pista gris de la barra empieza donde acaba la onda (gradiente con `--lg-progress`, que `wave.ts` pone también en el slider).
 - La etiqueta de tiempo al pasar el ratón (`#hover-time-info`) la recalcula `wave.ts`, porque YouTube Music la calcula como si la barra empezara en el borde de la ventana.
+- Panel lateral de la pantalla del reproductor: sin caja (sin fondo, borde, sombra ni brillo), bordes superior/inferior desvanecidos con máscara y `margin-bottom` para separarlo de la cápsula. El usuario lo prefirió integrado en el fondo.
+- Portada redonda de la píldora: sin círculo central (el usuario lo pidió quitar).
 - Buscador: píldora de vidrio; sugerencias en un panel aparte con fondo más opaco (dentro de la barra superior el `backdrop-filter` no se aplica).
 - Borde de luz especular (degradado diagonal con máscara) en reproductor, buscador, sugerencias y panel "A continuación".
 - Menús emergentes, chips, pestañas y filas con estilo de vidrio.
@@ -57,7 +60,7 @@ Textos del menú en `src/i18n/resources/en.json` y `es.json`, clave `plugins.liq
 - Falta que el usuario confirme el nuevo lente (más fuerte) en la app real, con contenido colorido detrás.
 - La referencia de vidrio del usuario es la barra de pestañas de iOS 26: tinte oscuro, fondo visible, lente ancho en los bordes con irisado. Una versión muy antigua se veía con "bordes raros llenos de colores"; si vuelve a pasar, bajar `scale` en `refraction.ts`.
 - Con sesión iniciada, comprobar que "+" abre el diálogo de playlists (sin sesión muestra el aviso de acceso anclado arriba a la izquierda).
-- El usuario debe confirmar que el engranaje abre el menú nativo (las capturas por DevTools no muestran menús nativos).
+- Los textos del menú de la app (Plugins, Options, nombres y descripciones de complementos) salen en el idioma de la app; los nuestros tienen traducción en `es.json`/`en.json`.
 - Ideas propuestas y no hechas: pantalla completa con letras sincronizadas, crossfade o Automix entre canciones, colores de acento tomados de la portada.
 
 ## Notas técnicas
