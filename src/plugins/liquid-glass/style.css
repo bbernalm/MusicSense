@@ -294,12 +294,20 @@ body.liquid-glass ytmusic-search-box[opened] .search-box {
   background: var(--lg-glass-tint) !important;
 }
 
+/* YouTube Music le pone una sombra rectangular al contenedor del campo:
+   se veía un rectángulo alrededor del buscador */
+body.liquid-glass ytmusic-search-box .search-container {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 /* Lista de sugerencias: panel de vidrio flotante separado del campo, con
-   el lente de refraction.ts como la píldora (algo más oscuro para leerla) */
+   el lente de refraction.ts como la píldora (un tinte más oscuro tapaba
+   la lente) */
 body.liquid-glass ytmusic-search-box #suggestion-list {
   margin-top: 8px !important;
   padding: 6px !important;
-  background: rgba(14, 14, 18, 0.55) !important;
+  background: rgba(14, 14, 18, 0.42) !important;
   backdrop-filter: var(--lg-filter) !important;
   border: 1px solid var(--lg-edge) !important;
   border-radius: 24px !important;
