@@ -186,23 +186,12 @@ body.liquid-glass
   pointer-events: auto;
 }
 
-/* Los botones de la derecha siguen a la derecha aunque el buscador salga del flujo */
+/* La derecha queda en su sitio aunque el buscador salga del flujo
+   (sus botones se ocultan en topbar.css) */
 body.liquid-glass ytmusic-nav-bar .right-content {
   margin-left: auto !important;
   position: relative;
   z-index: 1;
-}
-
-.lg-settings-button {
-  margin-right: 6px;
-}
-
-.lg-settings-button:hover svg {
-  transform: rotate(60deg);
-}
-
-.lg-settings-button svg {
-  transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 /* ---------- Barra superior ----------

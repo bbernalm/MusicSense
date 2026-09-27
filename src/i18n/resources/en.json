@@ -625,6 +625,13 @@
         "empty": "No plugins match that name",
         "enabled": "Enabled",
         "search": "Search plugins"
+      },
+      "topbar": {
+        "back": "Back",
+        "forward": "Forward",
+        "profile": "Profile",
+        "settings": "Settings",
+        "sign-in": "Sign in"
       }
     },
     "lumiastream": {

@@ -3,7 +3,6 @@
  * - fondo de vidrio de la cápsula derecha (#lg-side-background);
  * - botón "+" (guardar en una playlist) junto al corazón;
  * - volumen: el botón de altavoz despliega una barra vertical hacia arriba;
- * - botón de configuración en la barra superior (abre el panel de settings.ts);
  * - pantalla del reproductor: portada cuadrada con título y artista debajo;
  * - clases de estado: lg-np (pantalla del reproductor abierta), lg-paused.
  *
@@ -23,21 +22,14 @@ const PLUS_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="
   <path d="M12 7.8v8.4M7.8 12h8.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
 </svg>`;
 
-const GEAR_ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-  <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"
-    d="M10.3 3.2h3.4l.5 2.4c.6.2 1.1.5 1.6.9l2.3-.8 1.7 2.9-1.8 1.6c.1.6.1 1.2 0 1.8l1.8 1.6-1.7 2.9-2.3-.8c-.5.4-1 .7-1.6.9l-.5 2.4h-3.4l-.5-2.4c-.6-.2-1.1-.5-1.6-.9l-2.3.8-1.7-2.9 1.8-1.6a6 6 0 0 1 0-1.8L4.2 8.6l1.7-2.9 2.3.8c.5-.4 1-.7 1.6-.9Z"/>
-  <circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6"/>
-</svg>`;
-
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-type Labels = { addToPlaylist: string; settings: string };
+type Labels = { addToPlaylist: string };
 
 export class PlayerLayout {
   private api: MusicPlayer | null = null;
   private sideBackground: HTMLDivElement | null = null;
   private addButton: HTMLButtonElement | null = null;
-  private settingsButton: HTMLButtonElement | null = null;
   private npInfo: HTMLDivElement | null = null;
   private volumePanel: HTMLDivElement | null = null;
   private volumeHideTimer: number | null = null;
@@ -55,10 +47,7 @@ export class PlayerLayout {
   private readonly onVolumeEnter = () => this.showVolume();
   private readonly onVolumeLeave = () => this.hideVolumeSoon();
 
-  constructor(
-    private readonly labels: Labels,
-    private readonly openSettings: (anchor: DOMRect) => void,
-  ) {}
+  constructor(private readonly labels: Labels) {}
 
   start(api: MusicPlayer) {
     this.api = api;
@@ -80,7 +69,6 @@ export class PlayerLayout {
     for (const element of [
       this.sideBackground,
       this.addButton,
-      this.settingsButton,
       this.npInfo,
       this.volumePanel,
     ]) {
@@ -88,7 +76,6 @@ export class PlayerLayout {
     }
     this.sideBackground = null;
     this.addButton = null;
-    this.settingsButton = null;
     this.npInfo = null;
     this.volumePanel = null;
     document.body.classList.remove(
@@ -102,7 +89,6 @@ export class PlayerLayout {
   private tick() {
     this.ensureSideBackground();
     this.ensureAddButton();
-    this.ensureSettingsButton();
     this.ensureVolume();
     this.ensureVideo();
 
@@ -159,26 +145,6 @@ export class PlayerLayout {
     });
     like.after(button);
     this.addButton = button;
-  }
-
-  // Botón de configuración en la barra superior: menú completo de la app
-  private ensureSettingsButton() {
-    if (this.settingsButton?.isConnected) return;
-    const right = document.querySelector('ytmusic-nav-bar .right-content');
-    if (!right) return;
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'lg-icon-button lg-settings-button';
-    button.title = this.labels.settings;
-    button.setAttribute('aria-label', this.labels.settings);
-    button.innerHTML = GEAR_ICON;
-    button.addEventListener('click', (event) => {
-      event.stopPropagation();
-      this.openSettings(button.getBoundingClientRect());
-    });
-    right.prepend(button);
-    this.settingsButton = button;
   }
 
   // Volumen: panel vertical que sale hacia arriba desde el botón del altavoz

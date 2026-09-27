@@ -11,6 +11,8 @@ import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
 import style from './style.css?inline';
+import { TopBar } from './topbar';
+import topBarStyle from './topbar.css?inline';
 import { WaveProgress } from './wave';
 
 import type { MusicPlayer } from '@/types/music-player';
@@ -49,7 +51,13 @@ export default createPlugin({
   description: () => t('plugins.liquid-glass.description'),
   restartNeeded: false,
   config: defaultConfig,
-  stylesheets: [style, lyricsStyle, nowPlayingStyle, settingsStyle],
+  stylesheets: [
+    style,
+    lyricsStyle,
+    nowPlayingStyle,
+    settingsStyle,
+    topBarStyle,
+  ],
   backend,
   menu: async ({ getConfig, setConfig }) => {
     const config = await getConfig();
@@ -103,6 +111,7 @@ export default createPlugin({
     player: null as PlayerLayout | null,
     onDataChange: null as ((event: Event) => void) | null,
     settings: null as SettingsPanel | null,
+    topBar: null as TopBar | null,
     playerApi: null as MusicPlayer | null,
     animatedArt: null as AnimatedArtwork | null,
     animatedArtEnabled: true,
@@ -120,6 +129,19 @@ export default createPlugin({
         (channel, ...args) => ipc.invoke(channel, ...args),
       );
       this.settings.start();
+      this.topBar = new TopBar(
+        {
+          back: t('plugins.liquid-glass.topbar.back'),
+          forward: t('plugins.liquid-glass.topbar.forward'),
+          profile: t('plugins.liquid-glass.topbar.profile'),
+          signIn: t('plugins.liquid-glass.topbar.sign-in'),
+          settings: t('plugins.liquid-glass.topbar.settings'),
+        },
+        (anchor) => {
+          this.settings?.toggle(anchor).catch(console.error);
+        },
+      );
+      this.topBar.start();
 
       const backdrop = document.createElement('div');
       backdrop.id = BACKDROP_ID;
@@ -139,15 +161,9 @@ export default createPlugin({
         (provider) => t('plugins.liquid-glass.lyrics-credit', { provider }),
       );
       this.lyrics.start();
-      this.player = new PlayerLayout(
-        {
-          addToPlaylist: t('plugins.liquid-glass.add-to-playlist'),
-          settings: t('plugins.liquid-glass.settings'),
-        },
-        (anchor) => {
-          this.settings?.toggle(anchor).catch(console.error);
-        },
-      );
+      this.player = new PlayerLayout({
+        addToPlaylist: t('plugins.liquid-glass.add-to-playlist'),
+      });
       this.player.start(playerApi);
       this.playerApi = playerApi;
       this.updateAnimatedArt();
@@ -190,6 +206,8 @@ export default createPlugin({
       this.player = null;
       this.settings?.stop();
       this.settings = null;
+      this.topBar?.stop();
+      this.topBar = null;
       this.animatedArt?.stop();
       this.animatedArt = null;
       this.playerApi = null;
