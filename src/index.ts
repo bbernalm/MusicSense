@@ -614,12 +614,23 @@ app.once('browser-window-created', (_event, win) => {
 
   const customWindowTitle = config.get('options.customWindowTitle');
 
-  if (customWindowTitle) {
-    win.on('page-title-updated', (event) => {
-      event.preventDefault();
+  win.on('page-title-updated', (event, title) => {
+    event.preventDefault();
+    if (customWindowTitle) {
       win.setTitle(customWindowTitle);
-    });
-  }
+      return;
+    }
+    // MusicSense: "Canción | YouTube Music" → "Canción · MusicSense"
+    const song = title
+      .replace(/\s*[|·–-]\s*YouTube Music\s*$/i, '')
+      .replace(/^YouTube Music$/i, '')
+      .trim();
+    if (song === APPLICATION_NAME) {
+      win.setTitle(APPLICATION_NAME);
+      return;
+    }
+    win.setTitle(song ? `${song} · ${APPLICATION_NAME}` : APPLICATION_NAME);
+  });
 });
 
 app.on('window-all-closed', () => {

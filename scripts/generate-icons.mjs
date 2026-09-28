@@ -4,6 +4,7 @@
 // - assets/icon.png (512 px) y assets/generated/icons/png/<n>x<n>.png
 // - assets/generated/icons/win/icon.ico (16–256 px, imágenes PNG dentro)
 // - assets/generated/icons/mac/icon.icon/Assets/SVG Image.svg
+// - assets/tray*.png (bandeja del sistema; la de pausa con una insignia ⏸)
 import { app, BrowserWindow } from 'electron';
 import { mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -48,7 +49,7 @@ app.whenReady().then(async () => {
   });
   await win.loadURL('about:blank');
 
-  const render = async (size) => {
+  const render = async (size, paused = false) => {
     /** @type {string} */
     const dataUrl = String(
       await win.webContents.executeJavaScript(`
@@ -61,6 +62,25 @@ app.whenReady().then(async () => {
           const context = canvas.getContext('2d');
           context.imageSmoothingQuality = 'high';
           context.drawImage(image, 0, 0, ${size}, ${size});
+          if (${paused}) {
+            // Insignia de pausa abajo a la derecha
+            const r = ${size} * 0.24;
+            const cx = ${size} - r - ${size} * 0.02;
+            const cy = cx;
+            context.fillStyle = '#1c1c22';
+            context.beginPath();
+            context.arc(cx, cy, r + ${size} * 0.03, 0, Math.PI * 2);
+            context.fill();
+            context.fillStyle = '#ffffff';
+            context.beginPath();
+            context.arc(cx, cy, r, 0, Math.PI * 2);
+            context.fill();
+            context.fillStyle = '#1c1c22';
+            const w = r * 0.28;
+            const h = r * 0.95;
+            context.fillRect(cx - w * 1.4, cy - h / 2, w, h);
+            context.fillRect(cx + w * 0.4, cy - h / 2, w, h);
+          }
           resolve(canvas.toDataURL('image/png'));
         };
         image.onerror = reject;
@@ -86,6 +106,13 @@ app.whenReady().then(async () => {
     join(root, 'assets/icon.svg'),
     join(root, 'assets/generated/icons/mac/icon.icon/Assets/SVG Image.svg'),
   );
-  console.log('ico + icon.png listos');
+  // Bandeja del sistema (144 px como las originales)
+  const tray = await render(144);
+  const trayPaused = await render(144, true);
+  for (const name of ['tray.png', 'tray-white.png'])
+    writeFileSync(join(root, 'assets', name), tray);
+  for (const name of ['tray-paused.png', 'tray-paused-white.png'])
+    writeFileSync(join(root, 'assets', name), trayPaused);
+  console.log('ico + icon.png + bandeja listos');
   app.quit();
 });

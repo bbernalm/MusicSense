@@ -38,6 +38,13 @@ win:
   compression: maximum
 nsisWeb:
   runAfterFinish: false
+  # MusicSense: nombre visible (productName no se cambia: de él depende la
+  # carpeta de datos con la sesión y los ajustes)
+  shortcutName: MusicSense
+  uninstallDisplayName: MusicSense
+  artifactName: MusicSense-Web-Setup-${version}.${ext}
+portable:
+  artifactName: MusicSense-${version}-portable.${ext}
 linux:
   icon: assets/generated/icons/png
   category: AudioVideo

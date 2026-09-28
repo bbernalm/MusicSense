@@ -72,8 +72,9 @@ Otros cambios fuera del complemento: `src/plugins/scrobbler/services/clean-title
 ## Pendiente e ideas
 
 - Por confirmar con el usuario: letra no encontrada (aviso y botón), avisos en cápsula al dar "Me gusta", "Cambiar de cuenta" → atrás, escalado maximizado/mínimo.
-- Ideas no hechas: resaltado de letra palabra por palabra, traducciones de letras, crossfade/Automix, icono nuevo en la bandeja (`assets/tray*.png`), cambiar el nombre "Pear Desktop" de la ventana y el instalador por MusicSense.
+- Ideas no hechas: resaltado de letra palabra por palabra, traducciones de letras, crossfade/Automix.
 - No hay bloqueador de anuncios en esta versión de Pear (solo SponsorBlock).
+- Nombre: `APPLICATION_NAME` (`src/i18n/index.ts`) es "MusicSense" (título de ventana "Canción · MusicSense", bandeja, notificaciones, acceso directo). **No cambiar `productName`** (package.json / electron-builder.yml): de él depende la carpeta de datos `%APPDATA%/YouTube Music` con la sesión y los ajustes; el instalador usa `shortcutName`/`artifactName`. Iconos de bandeja generados por `scripts/generate-icons.mjs` (la bandeja es una opción de Pear, apagada por defecto).
 
 ## Notas técnicas de YouTube Music (verificadas)
 
