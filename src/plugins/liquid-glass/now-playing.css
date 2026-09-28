@@ -667,6 +667,8 @@ body.liquid-glass
   #tab-renderer
   ytmusic-carousel
   #items:has(> ytmusic-responsive-list-item-renderer) {
+  /* YouTube Music fija columnas propias más anchas que el panel */
+  grid-template-columns: none !important;
   grid-auto-columns: 100% !important;
 }
 
@@ -720,4 +722,38 @@ body.liquid-glass
   ytmusic-responsive-list-item-renderer
   > .lg-panel-add {
   margin-left: auto;
+}
+
+/* "Artista • Álbum" en una sola línea que termina en "…" (YouTube Music la
+   reparte en dos columnas a medias que no se recortan bien) */
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  .secondary-flex-columns {
+  display: block !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  .secondary-flex-columns
+  :is(.flex-column, yt-formatted-string, a) {
+  display: inline !important;
+  overflow: visible !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  :is(.title-column, .flex-columns) {
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
