@@ -6,7 +6,10 @@
  * cuándo se muestran y su aspecto (ver lyrics.css).
  */
 
-import { lyricsStore } from '@/plugins/synced-lyrics/renderer/store';
+import {
+  lyricsStore,
+  setTranslations,
+} from '@/plugins/synced-lyrics/renderer/store';
 
 const MODE_CLASS = 'lg-lyrics-open';
 const BUTTON_CLASS = 'lg-lyrics-button';
@@ -42,6 +45,11 @@ const PROVIDER_LABELS: Record<string, string> = {
   LyricsGenius: 'Genius',
 };
 
+export type Translate = (
+  text: string,
+  target: string,
+) => Promise<{ language: string; text: string } | null>;
+
 export type LyricsLabels = {
   button: string;
   credit: (provider: string) => string;
@@ -53,12 +61,66 @@ export class LyricsMode {
   private button: HTMLButtonElement | null = null;
   private notFound: HTMLDivElement | null = null;
   private timer: number | null = null;
+  // Traducción de la letra (opción "Traducir letras")
+  private translateEnabled = false;
+  private translatedKey = '';
 
   constructor(
     private readonly labels: LyricsLabels,
     // Abre en el navegador una búsqueda de la letra de la canción
     private readonly searchLyrics: (query: string) => void,
+    private readonly translate: Translate,
   ) {}
+
+  setTranslate(enabled: boolean) {
+    this.translateEnabled = enabled;
+    if (!enabled) {
+      this.translatedKey = '';
+      setTranslations({});
+    }
+  }
+
+  // Idioma de la app (el de la interfaz): "es", "en", "pt-BR"...
+  private targetLanguage() {
+    const language: string | undefined =
+      window.mainConfig?.get('options.language');
+    return language || navigator.language || 'es';
+  }
+
+  // Traduce la letra actual una vez por canción; cada línea traducida se
+  // muestra bajo la original (SyncedLine). Si ya está en el idioma de la
+  // app, no se muestra nada.
+  private updateTranslation() {
+    if (!this.translateEnabled) return;
+    const data = lyricsStore.lyrics[lyricsStore.provider]?.data;
+    const lines = (
+      data?.lines?.map((line) => line.text) ??
+      data?.lyrics?.split('\n') ??
+      []
+    )
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const unique = [...new Set(lines)];
+    const target = this.targetLanguage();
+    const key = `${target}:${unique.join('\n')}`;
+    if (!unique.length || key === this.translatedKey) return;
+    this.translatedKey = key;
+    setTranslations({});
+    this.translate(unique.join('\n'), target)
+      .then((result) => {
+        if (this.translatedKey !== key || !result) return;
+        const base = (code: string) => code.toLowerCase().split('-')[0];
+        if (base(result.language ?? '') === base(target)) return;
+        const translated = result.text.split('\n');
+        const map: Record<string, string> = {};
+        unique.forEach((line, index) => {
+          const text = translated[index]?.trim();
+          if (text) map[line] = text;
+        });
+        setTranslations(map);
+      })
+      .catch(console.error);
+  }
 
   private get label() {
     return this.labels.button;
@@ -127,6 +189,7 @@ export class LyricsMode {
     this.button?.classList.toggle('active', open);
     this.button?.setAttribute('aria-pressed', String(open));
     if (open) this.updateCredit();
+    this.updateTranslation();
   }
 
   // Crédito (fuente real y estilo de Better Lyrics) al final de la letra: lo

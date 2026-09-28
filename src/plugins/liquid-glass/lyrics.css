@@ -180,3 +180,51 @@ body.liquid-glass.lg-lyrics-open ytmusic-player-page #side-panel {
   max-width: none !important;
   transition: flex-basis 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* ---------- Palabra por palabra (SyncedLine) ----------
+ * En la línea que suena, cada palabra se rellena de blanco en su momento:
+ * --w-start / --w-len son fracciones de la duración de la línea y
+ * --line-elapsed lo que ya había sonado al volverse la actual. */
+body.liquid-glass .synced-line.current .lyrics-word {
+  background: linear-gradient(
+    90deg,
+    #fff 0 50%,
+    rgba(255, 255, 255, 0.38) 50% 100%
+  );
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: lg-word-fill linear forwards !important;
+  animation-duration: calc(
+    var(--lyrics-duration, 3s) * var(--w-len, 1)
+  ) !important;
+  animation-delay: calc(
+    var(--lyrics-duration, 3s) * var(--w-start, 0) - var(--line-elapsed, 0s)
+  ) !important;
+}
+
+body.liquid-glass .synced-line.current .lyrics-word yt-formatted-string {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent;
+}
+
+body.liquid-glass.lg-paused .synced-line.current .lyrics-word {
+  animation-play-state: paused !important;
+}
+
+@keyframes lg-word-fill {
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* Traducción bajo cada línea */
+body.liquid-glass .synced-line .lyrics-translation {
+  display: block;
+  margin-top: 0.2em;
+  font-size: 0.62em;
+  font-weight: 600;
+  line-height: 1.3;
+  opacity: 0.6;
+}

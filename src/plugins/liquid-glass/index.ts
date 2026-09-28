@@ -33,6 +33,7 @@ type LiquidGlassConfig = {
   preferMusic: boolean;
   visualizer: boolean;
   spatialAudio: boolean;
+  translateLyrics: boolean;
   // 'balatro' era el estilo anterior: ahora cuenta como 'liquid'
   background: 'artwork' | 'liquid' | 'balatro';
   blur: number;
@@ -48,6 +49,7 @@ const defaultConfig: LiquidGlassConfig = {
   preferMusic: false,
   visualizer: false,
   spatialAudio: false,
+  translateLyrics: true,
   background: 'liquid',
   blur: 15,
 };
@@ -147,6 +149,14 @@ export default createPlugin({
         checked: config.visualizer,
         click(item) {
           setConfig({ visualizer: item.checked });
+        },
+      },
+      {
+        label: t('plugins.liquid-glass.menu.translate-lyrics'),
+        type: 'checkbox',
+        checked: config.translateLyrics,
+        click(item) {
+          setConfig({ translateLyrics: item.checked });
         },
       },
       {
@@ -310,6 +320,11 @@ export default createPlugin({
         (query) => {
           ipc.invoke('liquid-glass:search-lyrics', query).catch(console.error);
         },
+        (text, target) =>
+          ipc.invoke('liquid-glass:translate', text, target) as Promise<{
+            language: string;
+            text: string;
+          } | null>,
       );
       this.lyrics.start();
 
@@ -468,6 +483,7 @@ export default createPlugin({
     applyConfig(
       this: {
         refraction: LiquidRefraction | null;
+        lyrics: LyricsMode | null;
         visualizer: Visualizer | null;
         spatialAudio: SpatialAudio | null;
         liquid: LiquidBackground | null;
@@ -488,6 +504,7 @@ export default createPlugin({
         this.visualizer = null;
       }
       this.spatialAudio?.setEnabled(config.spatialAudio);
+      this.lyrics?.setTranslate(config.translateLyrics);
 
       // Fondo líquido (liquid-background.ts) en lugar de la portada
       // desenfocada

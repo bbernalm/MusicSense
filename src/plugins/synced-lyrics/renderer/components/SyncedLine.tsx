@@ -1,10 +1,18 @@
-import { createEffect, For, Show, createSignal, createMemo } from 'solid-js';
+import {
+  createEffect,
+  For,
+  Show,
+  createSignal,
+  createMemo,
+  untrack,
+} from 'solid-js';
 import { type VirtualizerHandle } from 'virtua/solid';
 
 import { type LineLyrics } from '@/plugins/synced-lyrics/types';
 
 import { _ytAPI } from '..';
 import { config, currentTime } from '../renderer';
+import { translations } from '../store';
 import {
   canonicalize,
   convertChineseCharacter,
@@ -93,6 +101,33 @@ export const SyncedLine = (props: SyncedLineProps) => {
     return line.trim();
   });
 
+  // MusicSense: cada palabra se ilumina en su momento. Sin tiempos por
+  // palabra, la duración de la línea se reparte según el largo de cada una
+  // (como Better Lyrics). --w-start / --w-len: fracciones de la línea
+  const words = createMemo(() => {
+    const list = text().split(' ');
+    const weights = list.map((word) => word.length + 1);
+    const total = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+    let start = 0;
+    return list.map((word, index) => {
+      const length = weights[index] / total;
+      const item = { word, start, length };
+      start += length;
+      return item;
+    });
+  });
+
+  // Al volverse la línea actual: cuánto lleva sonando (por si se entra a
+  // mitad de línea, p. ej. al adelantar)
+  let lyricsDiv: HTMLDivElement | undefined;
+  createEffect(() => {
+    if (props.status !== 'current' || !lyricsDiv) return;
+    const elapsed = Math.max(0, untrack(currentTime) - props.line.timeInMs);
+    lyricsDiv.style.setProperty('--line-elapsed', `${elapsed / 1000}s`);
+  });
+
+  const translation = createMemo(() => translations()[text()] ?? '');
+
   const [romanization, setRomanization] = createSignal('');
   createEffect(() => {
     const input = canonicalize(text());
@@ -125,6 +160,7 @@ export const SyncedLine = (props: SyncedLineProps) => {
           <div
             class="text-lyrics"
             ref={(div: HTMLDivElement) => {
+              lyricsDiv = div;
               // TODO: Investigate the animation, even though the duration is properly set, all lines have the same animation duration
               div.style.setProperty(
                 '--lyrics-duration',
@@ -135,18 +171,21 @@ export const SyncedLine = (props: SyncedLineProps) => {
             style={{ 'display': 'flex', 'flex-direction': 'column' }}
           >
             <span>
-              <For each={text().split(' ')}>
-                {(word, index) => {
+              <For each={words()}>
+                {(item, index) => {
                   return (
                     <span
+                      class="lyrics-word"
                       style={{
                         'transition-delay': `${index() * 0.05}s`,
                         'animation-delay': `${index() * 0.05}s`,
+                        '--w-start': `${item.start}`,
+                        '--w-len': `${item.length}`,
                       }}
                     >
                       <yt-formatted-string
                         text={{
-                          runs: [{ text: `${word} ` }],
+                          runs: [{ text: `${item.word} ` }],
                         }}
                       />
                     </span>
@@ -154,6 +193,10 @@ export const SyncedLine = (props: SyncedLineProps) => {
                 }}
               </For>
             </span>
+
+            <Show when={translation() && translation() !== text()}>
+              <span class="lyrics-translation">{translation()}</span>
+            </Show>
 
             <Show
               when={

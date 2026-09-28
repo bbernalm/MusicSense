@@ -2,6 +2,7 @@ import {
   type BrowserWindow,
   Menu,
   type MenuItem,
+  net,
   shell,
   type WebContents,
 } from 'electron';
@@ -125,6 +126,33 @@ export const backend = createBackend({
     };
     window.webContents.on('will-navigate', onWillNavigate);
     window.webContents.on('did-navigate', onDidNavigate);
+
+    // Traducción de la letra (lyrics.ts): el servicio gratuito de Google
+    // Translate que usan Better Lyrics y otras extensiones. Devuelve el idioma
+    // detectado y el texto traducido (mismas líneas, separadas por \n).
+    ipc.handle(
+      'liquid-glass:translate',
+      async (text: string, target: string) => {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(target)}&dt=t`;
+        const response = await net.fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          },
+          body: `q=${encodeURIComponent(text)}`,
+        });
+        if (!response.ok) return null;
+        const data = (await response.json()) as [
+          [string, string][] | null,
+          unknown,
+          string,
+        ];
+        const translated = (data[0] ?? [])
+          .map((segment) => segment[0] ?? '')
+          .join('');
+        return { language: data[2], text: translated };
+      },
+    );
 
     ipc.handle('liquid-glass:get-menu', () =>
       serializeMenu(Menu.getApplicationMenu()),

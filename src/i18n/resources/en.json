@@ -618,6 +618,7 @@
             "50": "Subtle"
           }
         },
+        "translate-lyrics": "Translate lyrics",
         "spatial-audio": "Spatial audio (headphones)",
         "background": {
           "label": "Background style",

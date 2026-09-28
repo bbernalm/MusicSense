@@ -1,4 +1,4 @@
-import { createMemo, runWithOwner } from 'solid-js';
+import { createMemo, createSignal, runWithOwner } from 'solid-js';
 import { createStore } from 'solid-js/store';
 
 import { getSongInfo } from '@/providers/song-info-front';
@@ -37,6 +37,12 @@ export const [lyricsStore, setLyricsStore] = createStore<LyricsStore>({
     return this.lyrics[this.provider];
   },
 });
+
+// MusicSense: traducción de cada línea (la rellena el complemento Liquid
+// Glass, lyrics.ts). Clave: texto original de la línea
+export const [translations, setTranslations] = createSignal<
+  Record<string, string>
+>({});
 
 export const currentLyrics = runWithOwner(reactiveOwner, () =>
   createMemo(() => {
