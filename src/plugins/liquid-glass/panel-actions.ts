@@ -2,13 +2,18 @@
  * Canciones del panel derecho de la pantalla del reproductor
  * ("A continuación" y "Similares"):
  * - Sin arrastrar para reordenar (el cursor de mover no servía de nada).
+ * - "A continuación" empieza en la canción que suena: las ya escuchadas se
+ *   ocultan (si vuelves a una anterior con el botón, pasa a ser la primera).
  * - Botón junto a los ⋮ que manda la canción a tu fila (queue.ts).
  * - Menú ⋮ / clic derecho reducido a lo útil: Comenzar mix, Reproducir a
  *   continuación, Compartir y Fijar en Volver a escuchar (lo demás ya tiene
  *   botón propio: +, corazón, fila...).
  * - Clic en el artista: menú pequeño con "Ir al álbum" e "Ir al artista".
+ * - Canciones de la reproducción automática (al final de la cola): YouTube
+ *   Music no les dibuja ⋮; se les pone uno propio con Reproducir a
+ *   continuación, Compartir (copia el enlace), Ir al álbum e Ir al artista.
  *
- * Las opciones salen de los datos del menú de cada canción (data.items).
+ * Las opciones salen de los datos del menú de cada canción.
  */
 
 import type { MusicPlayerAppElement } from '@/types/music-player-app-element';
@@ -25,12 +30,24 @@ type MenuItemData = {
   };
 };
 
-type MenuElement = HTMLElement & {
-  data?: { items?: Record<string, MenuItemData>[] };
+type MenuItems = Record<string, MenuItemData>[];
+
+type RowElement = HTMLElement & {
+  data?: { videoId?: string; menu?: { menuRenderer?: { items?: MenuItems } } };
 };
+
+type PopupEntry = { label: string; action: () => void };
 
 export type PanelActionsLabels = {
   addToQueue: string;
+  more: string;
+  linkCopied: string;
+};
+
+export type PanelActionsHandlers = {
+  addToQueue: (videoId: string) => Promise<boolean>;
+  playNext: (videoId: string) => Promise<boolean>;
+  toast: (message: string) => void;
 };
 
 const ROWS =
@@ -40,25 +57,43 @@ const MENU_ITEMS =
 // Opciones que se quedan en el menú de las canciones del panel
 const KEEP = new Set(['MIX', 'QUEUE_PLAY_NEXT', 'SHARE', 'KEEP']);
 const HIDDEN_CLASS = 'lg-menu-hidden';
+const PLAYED_CLASS = 'lg-played';
 
 const QUEUE_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
   <path d="M4 6.5h11M4 11.5h11M4 16.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
   <path d="M18 13.5v6M15 16.5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
 </svg>`;
 
+const MORE_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+  <circle cx="12" cy="5.5" r="1.8" fill="currentColor"/>
+  <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
+  <circle cx="12" cy="18.5" r="1.8" fill="currentColor"/>
+</svg>`;
+
 const text = (runs?: Runs) => runs?.runs?.map((run) => run.text).join('') ?? '';
 
-// Opciones del menú de una fila: { icono: datos }
-const menuOf = (row: Element) => {
-  const menu = row.querySelector<MenuElement>(':scope > ytmusic-menu-renderer');
+// Opciones del menú de una fila: { icono: datos }. Del ⋮ dibujado o, si no
+// lo hay (reproducción automática), de los datos de la fila
+const menuOf = (row: RowElement) => {
+  const menu = row.querySelector<
+    HTMLElement & { data?: { items?: MenuItems } }
+  >(':scope > ytmusic-menu-renderer');
+  const items = menu?.data?.items ?? row.data?.menu?.menuRenderer?.items ?? [];
   const entries = new Map<string, MenuItemData>();
-  for (const item of menu?.data?.items ?? []) {
+  for (const item of items) {
     const data = Object.values(item)[0];
     const icon = data?.icon?.iconType ?? data?.defaultIcon?.iconType;
     if (icon && data) entries.set(icon, data);
   }
   return entries;
 };
+
+const videoIdOf = (row: RowElement) =>
+  menuOf(row).get('ADD_TO_REMOTE_QUEUE')?.serviceEndpoint?.queueAddEndpoint
+    ?.queueTarget?.videoId ?? row.data?.videoId;
+
+const hasNativeMenu = (row: Element) =>
+  Boolean(row.querySelector(':scope > ytmusic-menu-renderer'));
 
 export class PanelActions {
   private timer: number | null = null;
@@ -69,7 +104,7 @@ export class PanelActions {
 
   constructor(
     private readonly labels: PanelActionsLabels,
-    private readonly addToQueue: (videoId: string) => Promise<boolean>,
+    private readonly handlers: PanelActionsHandlers,
   ) {}
 
   // YouTube Music empieza a arrastrar con pointerdown escuchado en window:
@@ -96,18 +131,22 @@ export class PanelActions {
     const byline = target?.closest(
       'ytmusic-player-queue-item .byline, ytmusic-responsive-list-item-renderer .secondary-flex-columns',
     );
-    const row = byline?.closest(ROWS);
+    const row = byline?.closest<RowElement>(ROWS);
     if (!byline || !row) return;
-    const menu = menuOf(row);
-    const options = ['ALBUM', 'ARTIST']
-      .map((icon) => menu.get(icon))
-      .filter((data): data is MenuItemData =>
-        Boolean(data?.navigationEndpoint?.browseEndpoint?.browseId),
-      );
-    if (!options.length) return;
+    const entries = this.navigationEntries(row);
+    if (!entries.length) return;
     event.preventDefault();
     event.stopPropagation();
-    this.showPopup(event.clientX, event.clientY, options);
+    this.showPopup(event.clientX, event.clientY, entries);
+  };
+
+  // Clic derecho en una canción sin ⋮ de YouTube Music: el menú propio
+  private readonly onContextMenu = (event: MouseEvent) => {
+    const row = (event.target as Element | null)?.closest<RowElement>(ROWS);
+    if (!row || hasNativeMenu(row)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.showRowMenu(row, event.clientX, event.clientY);
   };
 
   private readonly onDocumentDown = (event: Event) => {
@@ -124,18 +163,20 @@ export class PanelActions {
     document.addEventListener('pointerdown', this.onPointerDown);
     document.addEventListener('click', this.onOpen, true);
     document.addEventListener('contextmenu', this.onOpen, true);
+    document.addEventListener('contextmenu', this.onContextMenu, true);
     document.addEventListener('click', this.onArtistClick, true);
     document.addEventListener('pointerdown', this.onDocumentDown, true);
     document.addEventListener('wheel', this.onDocumentDown, true);
     document.addEventListener('keydown', this.onKey);
-    this.timer = window.setInterval(() => this.ensureButtons(), 700);
-    this.ensureButtons();
+    this.timer = window.setInterval(() => this.tick(), 500);
+    this.tick();
   }
 
   stop() {
     document.removeEventListener('pointerdown', this.onPointerDown);
     document.removeEventListener('click', this.onOpen, true);
     document.removeEventListener('contextmenu', this.onOpen, true);
+    document.removeEventListener('contextmenu', this.onContextMenu, true);
     document.removeEventListener('click', this.onArtistClick, true);
     document.removeEventListener('pointerdown', this.onDocumentDown, true);
     document.removeEventListener('wheel', this.onDocumentDown, true);
@@ -144,39 +185,146 @@ export class PanelActions {
     this.timer = null;
     if (this.markFrame !== null) cancelAnimationFrame(this.markFrame);
     this.closePopup();
-    document.querySelectorAll('.lg-panel-add').forEach((b) => b.remove());
     document
-      .querySelectorAll(`.${HIDDEN_CLASS}`)
-      .forEach((item) => item.classList.remove(HIDDEN_CLASS));
+      .querySelectorAll('.lg-panel-add, .lg-panel-more')
+      .forEach((button) => button.remove());
+    for (const name of [HIDDEN_CLASS, PLAYED_CLASS])
+      document
+        .querySelectorAll(`.${name}`)
+        .forEach((item) => item.classList.remove(name));
   }
 
-  // Botón "Agregar a tu fila" junto a los ⋮ de cada canción
+  private tick() {
+    this.ensureButtons();
+    this.hidePlayed();
+  }
+
+  // "A continuación" empieza en la canción que suena
+  private hidePlayed() {
+    const items = [
+      ...document.querySelectorAll<HTMLElement>(
+        'ytmusic-player-page ytmusic-player-queue #contents > *',
+      ),
+    ];
+    const current = items.findIndex(
+      (item) =>
+        item.hasAttribute('selected') || item.querySelector('[selected]'),
+    );
+    items.forEach((item, index) =>
+      item.classList.toggle(PLAYED_CLASS, current > 0 && index < current),
+    );
+  }
+
+  // Botón "Agregar a tu fila" junto a los ⋮ (y ⋮ propio si no lo hay)
   private ensureButtons() {
-    for (const row of document.querySelectorAll<HTMLElement>(ROWS)) {
+    for (const row of document.querySelectorAll<RowElement>(ROWS)) {
+      if (row.querySelector(':scope > .lg-panel-add')) continue;
       const menu = row.querySelector(':scope > ytmusic-menu-renderer');
-      if (!menu || row.querySelector(':scope > .lg-panel-add')) continue;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'lg-panel-add';
-      button.title = this.labels.addToQueue;
-      button.setAttribute('aria-label', this.labels.addToQueue);
-      button.innerHTML = QUEUE_ICON;
-      button.addEventListener('click', (event) => {
+      const anchor = menu ?? row.querySelector(':scope > .duration');
+      if (!anchor) continue;
+
+      const add = this.iconButton(
+        'lg-panel-add',
+        QUEUE_ICON,
+        this.labels.addToQueue,
+      );
+      add.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
         // La fila se reutiliza para otras canciones: se lee al pulsar
-        const videoId = menuOf(row).get('ADD_TO_REMOTE_QUEUE')?.serviceEndpoint
-          ?.queueAddEndpoint?.queueTarget?.videoId;
+        const videoId = videoIdOf(row);
         if (!videoId) return;
-        button.classList.add('done');
-        this.addToQueue(videoId)
+        add.classList.add('done');
+        this.handlers
+          .addToQueue(videoId)
           .catch(console.error)
           .finally(() => {
-            window.setTimeout(() => button.classList.remove('done'), 1200);
+            window.setTimeout(() => add.classList.remove('done'), 1200);
           });
       });
-      menu.before(button);
+      anchor.before(add);
+
+      if (!menu) {
+        const more = this.iconButton(
+          'lg-panel-more',
+          MORE_ICON,
+          this.labels.more,
+        );
+        more.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const rect = more.getBoundingClientRect();
+          this.showRowMenu(row, rect.left, rect.bottom);
+        });
+        anchor.before(more);
+        row.classList.add('lg-own-menu');
+      }
     }
+  }
+
+  private iconButton(className: string, icon: string, label: string) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.title = label;
+    button.setAttribute('aria-label', label);
+    button.innerHTML = icon;
+    return button;
+  }
+
+  // Menú propio de una canción (sin ⋮ de YouTube Music)
+  private showRowMenu(row: RowElement, x: number, y: number) {
+    const videoId = videoIdOf(row);
+    if (!videoId) return;
+    const menu = menuOf(row);
+    const entries: PopupEntry[] = [];
+    const playNext = menu.get('QUEUE_PLAY_NEXT');
+    if (playNext)
+      entries.push({
+        label: text(playNext.text),
+        action: () => {
+          this.handlers.playNext(videoId).catch(console.error);
+        },
+      });
+    const share = menu.get('SHARE');
+    if (share)
+      entries.push({
+        label: text(share.text),
+        action: () => {
+          navigator.clipboard
+            .writeText(`https://music.youtube.com/watch?v=${videoId}`)
+            .then(() => this.handlers.toast(this.labels.linkCopied))
+            .catch(console.error);
+        },
+      });
+    entries.push(...this.navigationEntries(row));
+    if (entries.length) this.showPopup(x, y, entries);
+  }
+
+  // "Ir al álbum" / "Ir al artista"
+  private navigationEntries(row: RowElement): PopupEntry[] {
+    const menu = menuOf(row);
+    return ['ALBUM', 'ARTIST'].flatMap((icon) => {
+      const data = menu.get(icon);
+      const id = data?.navigationEndpoint?.browseEndpoint?.browseId;
+      if (!data || !id) return [];
+      return [{ label: text(data.text), action: () => this.openPage(id) }];
+    });
+  }
+
+  private openPage(id: string) {
+    // Se sale de la pantalla del reproductor para ver la página
+    if (
+      document
+        .querySelector('ytmusic-app-layout')
+        ?.hasAttribute('player-page-open')
+    )
+      document
+        .querySelector<HTMLElement>(
+          'ytmusic-player-bar .toggle-player-page-button',
+        )
+        ?.click();
+    document.querySelector<MusicPlayerAppElement>('ytmusic-app')?.navigate(id);
   }
 
   // Oculta las opciones que sobran mientras el menú se dibuja
@@ -196,31 +344,17 @@ export class PanelActions {
     step();
   }
 
-  private showPopup(x: number, y: number, options: MenuItemData[]) {
+  private showPopup(x: number, y: number, entries: PopupEntry[]) {
     this.closePopup();
     const popup = document.createElement('div');
     popup.className = 'lg-artist-menu';
-    for (const option of options) {
+    for (const entry of entries) {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = text(option.text);
+      button.textContent = entry.label;
       button.addEventListener('click', () => {
-        const id = option.navigationEndpoint?.browseEndpoint?.browseId;
         this.closePopup();
-        if (!id) return;
-        const app =
-          document.querySelector<MusicPlayerAppElement>('ytmusic-app');
-        // Se sale de la pantalla del reproductor para ver la página
-        const toggle = document.querySelector<HTMLElement>(
-          'ytmusic-player-bar .toggle-player-page-button',
-        );
-        if (
-          document
-            .querySelector('ytmusic-app-layout')
-            ?.hasAttribute('player-page-open')
-        )
-          toggle?.click();
-        app?.navigate(id);
+        entry.action();
       });
       popup.append(button);
     }

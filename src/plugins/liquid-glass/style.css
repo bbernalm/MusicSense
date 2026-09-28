@@ -1793,3 +1793,43 @@ body.liquid-glass
 ytmusic-player-queue-item > .lg-panel-add {
   margin-right: -10px;
 }
+
+/* "A continuación" empieza en la canción que suena (panel-actions.ts) */
+body.liquid-glass ytmusic-player-page ytmusic-player-queue .lg-played {
+  display: none !important;
+}
+
+/* ⋮ propio en las canciones de la reproducción automática */
+.lg-panel-more {
+  display: none;
+  flex: none;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+}
+
+.lg-panel-more:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+ytmusic-player-queue-item.lg-own-menu:hover > .lg-panel-more {
+  display: inline-flex;
+}
+
+ytmusic-player-queue-item.lg-own-menu:hover > .duration {
+  display: none !important;
+}
+
+ytmusic-player-queue-item.lg-own-menu > .lg-panel-add {
+  margin-left: auto;
+  margin-right: -4px;
+}

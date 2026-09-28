@@ -646,6 +646,8 @@
         "search": "Search plugins"
       },
       "queue": {
+        "more": "More options",
+        "link-copied": "Link copied",
         "add": "Add to your queue",
         "added": "Added to your queue",
         "button": "Playing queue",

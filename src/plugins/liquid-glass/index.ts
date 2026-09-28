@@ -325,8 +325,16 @@ export default createPlugin({
 
       const upNext = this.upNext;
       this.panelActions = new PanelActions(
-        { addToQueue: t('plugins.liquid-glass.queue.add') },
-        (videoId) => upNext.addToQueue(videoId),
+        {
+          addToQueue: t('plugins.liquid-glass.queue.add'),
+          more: t('plugins.liquid-glass.queue.more'),
+          linkCopied: t('plugins.liquid-glass.queue.link-copied'),
+        },
+        {
+          addToQueue: (videoId) => upNext.addToQueue(videoId),
+          playNext: (videoId) => upNext.addToQueue(videoId, true),
+          toast: (message) => upNext.toast(message),
+        },
       );
       this.panelActions.start();
       this.player = new PlayerLayout({

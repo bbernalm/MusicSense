@@ -646,6 +646,8 @@
         "search": "Buscar complementos"
       },
       "queue": {
+        "more": "Más opciones",
+        "link-copied": "Enlace copiado",
         "add": "Agregar a tu fila",
         "added": "Se agregó a tu fila",
         "button": "Fila de reproducción",

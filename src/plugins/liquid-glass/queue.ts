@@ -521,9 +521,10 @@ export class UpNext {
   }
 
   // Botón del panel (panel-actions.ts): la canción va detrás de la actual y
-  // de lo que ya añadiste. Se pide a YouTube Music como Music Together
-  // (/music/get_queue) y se inserta en la cola con ADD_ITEMS.
-  async addToQueue(videoId: string) {
+  // de lo que ya añadiste (next: justo detrás de la actual). Se pide a
+  // YouTube Music como Music Together (/music/get_queue) y se inserta en la
+  // cola con ADD_ITEMS.
+  async addToQueue(videoId: string, next = false) {
     const state = this.state();
     const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
     if (!state || !app) return false;
@@ -542,7 +543,7 @@ export class UpNext {
     if (!items.length || !fresh) return false;
 
     this.prune();
-    const userCount = this.upcomingUserCount(fresh);
+    const userCount = next ? 0 : this.upcomingUserCount(fresh);
     this.dispatch('ADD_ITEMS', {
       nextQueueItemId: fresh.nextQueueItemId ?? 0,
       index: selectedIndex(fresh) + 1 + userCount,
@@ -553,12 +554,12 @@ export class UpNext {
     this.userQueue.splice(userCount, 0, ...items.map(videoIdOf));
     this.rendered = '';
     this.scheduleSave();
-    this.toast(this.labels.added);
+    if (!next) this.toast(this.labels.added);
     return true;
   }
 
   // Aviso de vidrio de YouTube Music (el mismo de "Se agregó a la fila")
-  private toast(message: string) {
+  toast(message: string) {
     document
       .querySelector<
         HTMLElement & { resolveCommand?: (command: unknown) => unknown }
