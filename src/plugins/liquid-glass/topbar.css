@@ -573,10 +573,10 @@ body.liquid-glass
   > ytmusic-guide-section-renderer:has(#buttons > *)
   #buttons {
   /* "Nueva playlist": botón redondo con un + en la esquina inferior
-     izquierda, flotando sobre la lista */
+     derecha, flotando sobre la lista */
   position: absolute !important;
   z-index: 2;
-  left: 12px;
+  right: 12px;
   bottom: 12px;
   width: auto !important;
   margin: 0 !important;
