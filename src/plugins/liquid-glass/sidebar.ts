@@ -31,6 +31,24 @@ export type SidebarLabels = {
   empty: string;
 };
 
+const svg = (body: string) =>
+  `<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">${body}</svg>`;
+const line =
+  'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+
+// Iconos de los filtros (el nombre va en la descripción emergente)
+const FILTER_ICONS: Record<Filter, string> = {
+  playlists: svg(
+    `<path d="M4 6h12M4 11h12M4 16h7" ${line}/><circle cx="17.5" cy="17" r="2.5" ${line}/><path d="M20 17V9.5l-2.5.8" ${line}/>`,
+  ),
+  albums: svg(
+    `<circle cx="12" cy="12" r="8.5" ${line}/><circle cx="12" cy="12" r="2.5" ${line}/>`,
+  ),
+  artists: svg(
+    `<circle cx="12" cy="8.5" r="3.8" ${line}/><path d="M4.8 19.5c.9-3.6 3.8-5.6 7.2-5.6s6.3 2 7.2 5.6" ${line}/>`,
+  ),
+};
+
 const FILTER_KEY = 'lg-guide-filter';
 const FILTERED_CLASS = 'lg-guide-filtered';
 const SIGNED_IN_CLASS = 'lg-guide-library';
@@ -183,7 +201,9 @@ export class LibrarySidebar {
         chip.type = 'button';
         chip.className = 'lg-guide-filter';
         chip.dataset.filter = filter;
-        chip.textContent = label;
+        chip.title = label;
+        chip.setAttribute('aria-label', label);
+        chip.innerHTML = FILTER_ICONS[filter];
         chip.addEventListener('click', () => this.select(filter));
         chips.append(chip);
       }

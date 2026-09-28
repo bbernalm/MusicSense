@@ -572,9 +572,60 @@ body.liquid-glass
   #sections
   > ytmusic-guide-section-renderer:has(#buttons > *)
   #buttons {
-  order: 99;
-  padding: 10px 0 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  /* "Nueva playlist": botón redondo con un + en la esquina inferior
+     izquierda, flotando sobre la lista */
+  position: absolute !important;
+  z-index: 2;
+  left: 12px;
+  bottom: 12px;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+/* La lista ocupa todo el alto y se difumina abajo (sin raya) */
+body.liquid-glass
+  #guide-renderer
+  #sections
+  > ytmusic-guide-section-renderer:has(#buttons > *)
+  #items,
+body.lg-guide-filtered .lg-guide-list {
+  padding-bottom: 64px !important;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 calc(100% - 80px),
+    transparent
+  );
+  mask-image: linear-gradient(180deg, #000 calc(100% - 80px), transparent);
+}
+
+body.liquid-glass #guide-renderer #buttons button {
+  width: 44px !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+  border: 1px solid var(--lg-edge) !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  backdrop-filter: var(--lg-filter);
+  box-shadow: var(--lg-shadow);
+}
+
+body.liquid-glass #guide-renderer #buttons button:hover {
+  background: rgba(255, 255, 255, 0.26) !important;
+}
+
+body.liquid-glass
+  #guide-renderer
+  #buttons
+  :is(.ytSpecButtonShapeNextButtonTextContent, [class*='ButtonTextContent']) {
+  display: none !important;
+}
+
+body.liquid-glass #guide-renderer #buttons .ytSpecButtonShapeNextIcon {
+  margin: 0 !important;
 }
 
 /* ---------- Opciones del menú ⋮ al final del menú lateral ---------- */
@@ -663,6 +714,9 @@ body.lg-guide-library .lg-guide-filters {
   background: transparent;
   color: rgba(255, 255, 255, 0.75);
   font-family: var(--lg-font);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
