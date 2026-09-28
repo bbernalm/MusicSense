@@ -54,9 +54,9 @@ No se puede desactivar: `ALWAYS_ENABLED` en `src/config/plugins.ts` lo fuerza en
 | `sidebar.ts` | Menú lateral solo con la biblioteca: cápsula Playlists / Álbumes / Artistas (álbumes y artistas pedidos con `networkManager`, `FEmusic_liked_albums` y `FEmusic_library_corpus_track_artists`). Principal/Explorar/Biblioteca van en la barra superior |
 | `queue.ts` | Fila de reproducción: "Agregar a la fila" cambia `queueInsertPosition` a `INSERT_AFTER_CURRENT_VIDEO` y lo coloca tras lo ya añadido (`MOVE_ITEM`); botón ≡ con la vista "Tu fila"; cola guardada en `localStorage` `lg-queue` y recuperada al reiniciar. La canción actual es la marcada `selected` (no `selectedItemIndex`). En `ADD_ITEMS` el `index` es la posición donde se inserta |
 | `spatial-audio.ts` | Audio espacial (opción, apagado por defecto): virtualizador HRTF para auriculares + sala suave + limitador; marca `lg-spatial-on` en `body` si está conectado |
-| `balatro.ts` | Fondo "Balatro" (opción Estilo del fondo): shader WebGL de pintura en espiral pixelada con 3 colores de la portada, a baja resolución y 30 fps |
+| `liquid-background.ts` | Fondo líquido (opción Estilo del fondo, por defecto): ondas de color con la portada usando Kawarp (`@kawarp/core`, MIT, de Better Lyrics), a media resolución; si la portada no se puede leer, degradado con el acento |
 
-Otros cambios fuera del complemento: `src/plugins/scrobbler/services/clean-title.ts` (quita "(con X)", "(feat. X)" de los títulos), `src/plugins/synced-lyrics/providers/renderer.ts` (Musixmatch desactivado: devuelve letras codificadas sin cuenta), `src/index.ts` (DevTools), `assets/icon.svg` y `scripts/generate-icons.mjs`.
+Otros cambios fuera del complemento: `src/plugins/scrobbler/services/clean-title.ts` (quita "(con X)", "(feat. X)" de los títulos), `src/plugins/synced-lyrics/providers/renderer.ts` (Musixmatch desactivado: devuelve letras codificadas sin cuenta), `src/plugins/synced-lyrics/renderer/renderer.tsx` (pie `.synced-lyrics-footer` tras la última línea, para el crédito), `src/index.ts` (DevTools), `assets/icon.svg` y `scripts/generate-icons.mjs`.
 
 ## Preferencias del usuario (respetarlas)
 

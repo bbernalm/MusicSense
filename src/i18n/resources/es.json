@@ -611,19 +611,19 @@
         "animated-background": "Fondo animado",
         "prefer-music": "Preferir música (sin videos)",
         "blur": {
-          "label": "Desenfoque del vidrio",
+          "label": "Efecto del vidrio",
           "submenu": {
-            "15": "Suave",
+            "15": "Intenso",
             "30": "Normal",
-            "50": "Intenso"
+            "50": "Suave"
           }
         },
         "spatial-audio": "Audio espacial (auriculares)",
         "background": {
           "label": "Estilo del fondo",
           "submenu": {
-            "artwork": "Portada",
-            "balatro": "Balatro (pintura en espiral)"
+            "artwork": "Portada desenfocada",
+            "liquid": "Líquido (ondas con la portada)"
           }
         },
         "visualizer": "Visualizador sobre el reproductor"

@@ -611,19 +611,19 @@
         "animated-background": "Animated background",
         "prefer-music": "Prefer music (no videos)",
         "blur": {
-          "label": "Glass blur",
+          "label": "Glass effect",
           "submenu": {
-            "15": "Subtle",
+            "15": "Intense",
             "30": "Normal",
-            "50": "Intense"
+            "50": "Subtle"
           }
         },
         "spatial-audio": "Spatial audio (headphones)",
         "background": {
           "label": "Background style",
           "submenu": {
-            "artwork": "Artwork",
-            "balatro": "Balatro (paint swirl)"
+            "artwork": "Blurred artwork",
+            "liquid": "Liquid (artwork waves)"
           }
         },
         "visualizer": "Visualizer above the player"

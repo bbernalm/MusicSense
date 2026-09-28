@@ -3,7 +3,7 @@ import { createPlugin } from '@/utils';
 
 import { AnimatedArtwork } from './animated-art';
 import { backend } from './backend';
-import { BalatroBackground } from './balatro';
+import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
@@ -32,7 +32,8 @@ type LiquidGlassConfig = {
   preferMusic: boolean;
   visualizer: boolean;
   spatialAudio: boolean;
-  background: 'artwork' | 'balatro';
+  // 'balatro' era el estilo anterior: ahora cuenta como 'liquid'
+  background: 'artwork' | 'liquid' | 'balatro';
   blur: number;
 };
 
@@ -46,8 +47,8 @@ const defaultConfig: LiquidGlassConfig = {
   preferMusic: false,
   visualizer: false,
   spatialAudio: false,
-  background: 'artwork',
-  blur: 30,
+  background: 'liquid',
+  blur: 15,
 };
 
 type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
@@ -126,7 +127,9 @@ export default createPlugin({
   backend,
   menu: async ({ getConfig, setConfig }) => {
     const config = await getConfig();
-    const blurLevels = [15, 30, 50];
+    // Efecto del vidrio: de Suave (más desenfoque) a Intenso (menos
+    // desenfoque, se nota más la lente y el irisado de los bordes)
+    const blurLevels = [50, 30, 15];
 
     return [
       {
@@ -155,12 +158,14 @@ export default createPlugin({
       },
       {
         label: t('plugins.liquid-glass.menu.background.label'),
-        submenu: (['artwork', 'balatro'] as const).map((background) => ({
+        submenu: (['artwork', 'liquid'] as const).map((background) => ({
           label: t(
             `plugins.liquid-glass.menu.background.submenu.${background}`,
           ),
           type: 'radio',
-          checked: config.background === background,
+          checked:
+            (config.background === 'artwork' ? 'artwork' : 'liquid') ===
+            background,
           click() {
             setConfig({ background });
           },
@@ -225,7 +230,7 @@ export default createPlugin({
     preferMusicEnabled: false,
     visualizer: null as Visualizer | null,
     spatialAudio: null as SpatialAudio | null,
-    balatro: null as BalatroBackground | null,
+    liquid: null as LiquidBackground | null,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
@@ -400,8 +405,8 @@ export default createPlugin({
       this.visualizer = null;
       this.spatialAudio?.stop();
       this.spatialAudio = null;
-      this.balatro?.stop();
-      this.balatro = null;
+      this.liquid?.stop();
+      this.liquid = null;
       this.playerApi = null;
       this.lastArtwork = '';
     },
@@ -445,7 +450,7 @@ export default createPlugin({
         refraction: LiquidRefraction | null;
         visualizer: Visualizer | null;
         spatialAudio: SpatialAudio | null;
-        balatro: BalatroBackground | null;
+        liquid: LiquidBackground | null;
         backdrop: HTMLDivElement | null;
         lastArtwork: string;
         animatedArtEnabled: boolean;
@@ -464,17 +469,18 @@ export default createPlugin({
       }
       this.spatialAudio?.setEnabled(config.spatialAudio);
 
-      // Fondo "Balatro" (balatro.ts) en lugar de la portada desenfocada
-      const balatro = config.background === 'balatro';
-      if (balatro && !this.balatro && this.backdrop) {
-        this.balatro = new BalatroBackground();
-        this.balatro.start(this.backdrop);
-        this.balatro.setArtwork(this.lastArtwork);
-      } else if (!balatro && this.balatro) {
-        this.balatro.stop();
-        this.balatro = null;
+      // Fondo líquido (liquid-background.ts) en lugar de la portada
+      // desenfocada
+      const liquid = config.background !== 'artwork';
+      if (liquid && !this.liquid && this.backdrop) {
+        this.liquid = new LiquidBackground();
+        this.liquid.start(this.backdrop);
+        this.liquid.setArtwork(this.lastArtwork);
+      } else if (!liquid && this.liquid) {
+        this.liquid.stop();
+        this.liquid = null;
       }
-      document.body.classList.toggle('lg-balatro-bg', Boolean(this.balatro));
+      document.body.classList.toggle('lg-liquid-bg', Boolean(this.liquid));
 
       this.animatedArtEnabled = config.animatedArtwork;
       this.updateAnimatedArt();
@@ -503,7 +509,7 @@ export default createPlugin({
         backdrop: HTMLDivElement | null;
         activeLayer: number;
         lastArtwork: string;
-        balatro: BalatroBackground | null;
+        liquid: LiquidBackground | null;
       },
       url: string,
     ) {
@@ -523,7 +529,7 @@ export default createPlugin({
       };
       image.src = url;
       updateAccent(url);
-      this.balatro?.setArtwork(url);
+      this.liquid?.setArtwork(url);
     },
   },
 });
