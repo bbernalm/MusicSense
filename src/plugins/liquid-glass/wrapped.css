@@ -1,0 +1,405 @@
+/*
+ * Resumen mensual (wrapped.ts), según el diseño de Figma "MusicSense ·
+ * Resumen mensual": pantallas verticales con degradado, manchas de luz y
+ * tarjetas de vidrio.
+ */
+
+/* ---------- Botones en la tarjeta de estadísticas del perfil ---------- */
+.lg-wrapped-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.lg-wrapped-button {
+  padding: 8px 14px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: var(--lg-font);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.lg-wrapped-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.lg-wrapped-button.main {
+  background: var(--lg-accent, #fa2d48);
+  border-color: transparent;
+  text-transform: none;
+}
+
+/* ---------- Vista a pantalla completa ---------- */
+.lg-wrapped {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(30px) saturate(140%);
+  animation: lg-wr-in 0.35s ease;
+}
+
+@keyframes lg-wr-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.lg-wr-stage {
+  position: relative;
+  /* 390 × 780 como en Figma, a la altura de la ventana */
+  height: min(84vh, 780px);
+  aspect-ratio: 1 / 2;
+}
+
+.lg-wr-story {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 36px;
+  background: linear-gradient(
+    143deg,
+    var(--wr-a) 0%,
+    var(--wr-b) 55%,
+    #07070b 100%
+  );
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transform: scale(0.94);
+  pointer-events: none;
+  transition:
+    opacity 0.4s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  font-family: var(--lg-font);
+  color: #fff;
+  container-type: inline-size;
+}
+
+.lg-wr-story.active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* Manchas de luz */
+.lg-wr-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+
+.lg-wr-blob.a {
+  left: -15%;
+  top: -5%;
+  width: 67%;
+  aspect-ratio: 1;
+  background: var(--wr-a);
+  opacity: 0.55;
+}
+
+.lg-wr-blob.b {
+  left: 56%;
+  top: 54%;
+  width: 77%;
+  aspect-ratio: 1;
+  background: var(--wr-b);
+  opacity: 0.5;
+}
+
+.lg-wr-blob.c {
+  left: 10%;
+  top: 80%;
+  width: 56%;
+  aspect-ratio: 1;
+  background: var(--wr-c);
+  opacity: 0.35;
+}
+
+.lg-wr-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4.6cqw;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 9cqw 7cqw;
+}
+
+.lg-wr-brand {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+  font-size: 3.4cqw;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.lg-wr-logo {
+  width: 4.6cqw;
+  height: 4.6cqw;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.lg-wr-spacer {
+  flex: 1;
+}
+
+.lg-wr-title {
+  margin: 0;
+  font-size: 11.3cqw;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
+.lg-wr-title:not(.dim)::first-letter {
+  text-transform: uppercase;
+}
+
+.lg-wr-title.dim {
+  margin-top: -3cqw;
+  opacity: 0.55;
+}
+
+.lg-wr-title.small {
+  font-size: 7.7cqw;
+}
+
+.lg-wr-glass {
+  display: flex;
+  flex-direction: column;
+  gap: 3cqw;
+  padding: 4.2cqw 4.6cqw;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6.7cqw;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px);
+}
+
+.lg-wr-glass.small {
+  flex: 1;
+  gap: 0.5cqw;
+}
+
+.lg-wr-glass.hero {
+  align-items: center;
+  text-align: center;
+}
+
+.lg-wr-row {
+  display: flex;
+  gap: 2.6cqw;
+}
+
+.lg-wr-huge {
+  font-size: 18.5cqw;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.lg-wr-big {
+  font-size: 6.7cqw;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lg-wr-name {
+  font-size: 7.2cqw;
+  font-weight: 900;
+}
+
+.lg-wr-label {
+  font-size: 3.8cqw;
+  font-weight: 600;
+  opacity: 0.72;
+}
+
+.lg-wr-photo {
+  width: 38cqw;
+  height: 38cqw;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.lg-wr-item {
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+  min-width: 0;
+}
+
+.lg-wr-rank {
+  width: 3.5cqw;
+  font-size: 4.4cqw;
+  font-weight: 700;
+  opacity: 0.5;
+}
+
+.lg-wr-thumb {
+  flex: none;
+  width: 13.3cqw;
+  height: 13.3cqw;
+  border-radius: 2.6cqw;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.lg-wr-item.first .lg-wr-thumb {
+  width: 18.5cqw;
+  height: 18.5cqw;
+}
+
+.round {
+  border-radius: 50% !important;
+}
+
+.lg-wr-thumb.round {
+  width: 10.3cqw;
+  height: 10.3cqw;
+}
+
+.lg-wr-item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lg-wr-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 4.4cqw;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lg-wr-item.first .lg-wr-item-name {
+  font-size: 5.1cqw;
+}
+
+.lg-wr-item-sub {
+  overflow: hidden;
+  font-size: 3.4cqw;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.65;
+}
+
+.lg-wr-item-value {
+  flex: none;
+  font-size: 3.4cqw;
+  font-weight: 600;
+  opacity: 0.62;
+}
+
+.lg-wr-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1cqw;
+  height: 26cqw;
+}
+
+.lg-wr-bars span {
+  flex: 1;
+  border-radius: 1cqw;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.lg-wr-bars span.peak {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Controles alrededor de la pantalla */
+.lg-wr-nav,
+.lg-wr-close {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: var(--lg-filter);
+}
+
+.lg-wr-nav:hover,
+.lg-wr-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lg-wr-nav.prev {
+  left: calc(50% - min(42vh, 390px) / 2 - 78px);
+}
+
+.lg-wr-nav.next {
+  right: calc(50% - min(42vh, 390px) / 2 - 78px);
+}
+
+.lg-wr-nav.hidden {
+  visibility: hidden;
+}
+
+.lg-wr-close {
+  top: 24px;
+  right: 24px;
+  font-size: 18px;
+}
+
+.lg-wr-dots {
+  position: absolute;
+  top: calc(50% - min(42vh, 390px) - 26px);
+  display: flex;
+  gap: 6px;
+}
+
+.lg-wr-dot {
+  width: 28px;
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+.lg-wr-dot.active {
+  background: #fff;
+}
+
+.lg-wr-save {
+  position: absolute;
+  bottom: calc(50% - min(42vh, 390px) - 60px);
+  padding: 12px 26px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+  font-family: var(--lg-font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Sin controles mientras se guarda la imagen */
+.lg-wrapped.capturing :is(.lg-wr-nav, .lg-wr-close, .lg-wr-dots, .lg-wr-save) {
+  visibility: hidden;
+}

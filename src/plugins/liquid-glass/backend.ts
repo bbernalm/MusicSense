@@ -1,7 +1,10 @@
+import { writeFile } from 'node:fs/promises';
+
 import {
   type BrowserWindow,
   Menu,
   type MenuItem,
+  dialog,
   net,
   shell,
   type WebContents,
@@ -151,6 +154,31 @@ export const backend = createBackend({
           .map((segment) => segment[0] ?? '')
           .join('');
         return { language: data[2], text: translated };
+      },
+    );
+
+    // Resumen mensual (wrapped.ts): guarda una pantalla como imagen PNG. El
+    // rectángulo llega en píxeles de la página: se pasa a los de la ventana
+    ipc.handle(
+      'liquid-glass:save-image',
+      async (
+        rect: { x: number; y: number; width: number; height: number },
+        name: string,
+      ) => {
+        const zoom = window.webContents.getZoomFactor();
+        const image = await window.webContents.capturePage({
+          x: Math.round(rect.x * zoom),
+          y: Math.round(rect.y * zoom),
+          width: Math.round(rect.width * zoom),
+          height: Math.round(rect.height * zoom),
+        });
+        const result = await dialog.showSaveDialog(window, {
+          defaultPath: name,
+          filters: [{ name: 'PNG', extensions: ['png'] }],
+        });
+        if (result.canceled || !result.filePath) return false;
+        await writeFile(result.filePath, image.toPNG());
+        return true;
       },
     );
 

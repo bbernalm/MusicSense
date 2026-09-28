@@ -22,6 +22,8 @@ import { TopBar } from './topbar';
 import topBarStyle from './topbar.css?inline';
 import { Visualizer } from './visualizer';
 import { WaveProgress } from './wave';
+import { WrappedView } from './wrapped';
+import wrappedStyle from './wrapped.css?inline';
 
 import type { MusicPlayer } from '@/types/music-player';
 
@@ -130,6 +132,7 @@ export default createPlugin({
     nowPlayingStyle,
     settingsStyle,
     topBarStyle,
+    wrappedStyle,
   ],
   backend,
   menu: async ({ getConfig, setConfig }) => {
@@ -318,6 +321,11 @@ export default createPlugin({
         empty: t('plugins.liquid-glass.sidebar.empty'),
       });
       this.sidebar.start();
+      const wrapped = new WrappedView(
+        (key, vars) => t(`plugins.liquid-glass.wrapped.${key}`, vars),
+        (rect, name) =>
+          ipc.invoke('liquid-glass:save-image', rect, name) as Promise<boolean>,
+      );
       this.profile = new ProfilePage(
         {
           integrations: t('plugins.liquid-glass.profile.integrations'),
@@ -330,8 +338,11 @@ export default createPlugin({
           discord: 'Discord',
           scrobbler: t('plugins.liquid-glass.profile.scrobbler'),
           share: t('plugins.liquid-glass.profile.share'),
+          wrapped: (month) =>
+            t('plugins.liquid-glass.wrapped.button', { month }),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
+        (month) => wrapped.open(month),
       );
       this.profile.start();
 

@@ -9,6 +9,8 @@
  *   PC (localStorage) a partir de ahora: tiempo escuchado por artista y total.
  */
 
+import { availableMonths, monthKey, recordListening } from './wrapped';
+
 type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
 
 type MenuNode = {
@@ -34,6 +36,8 @@ export type ProfileLabels = {
   discord: string;
   scrobbler: string;
   share: string;
+  // Botón del resumen mensual ("Ver tu resumen de septiembre")
+  wrapped: (month: string) => string;
 };
 
 const STATS_KEY = 'lg-stats';
@@ -70,7 +74,14 @@ const avatarUrl = (header: Element | null) => {
   const image = [...(header?.querySelectorAll('img') ?? [])].find((img) =>
     img.src.startsWith('https://'),
   );
-  return image?.src.replace(/=s\d+/, '=s240') ?? '';
+  // La cabecera está oculta y a veces su foto no llega a cargarse: la de la
+  // cuenta (barra superior) es la misma
+  const account = document.querySelector<HTMLImageElement>(
+    'ytmusic-nav-bar ytmusic-settings-button img',
+  );
+  const src =
+    image?.src ?? (account?.src.startsWith('https://') ? account.src : '');
+  return src.replace(/=s\d+/, '=s240');
 };
 
 const loadStats = (): Stats => {
@@ -109,6 +120,7 @@ export class ProfilePage {
   constructor(
     private readonly labels: ProfileLabels,
     private readonly invoke: Invoke,
+    private readonly openWrapped: (month: string) => void,
   ) {}
 
   start() {
@@ -137,6 +149,27 @@ export class ProfilePage {
         ?.textContent?.split('•')[0]
         ?.trim() ?? '';
     if (!artist) return;
+    // Resumen mensual (wrapped.ts): canción, portada, día y hora
+    const videoId =
+      document
+        .querySelector<
+          HTMLElement & { getVideoData?: () => { video_id?: string } }
+        >('#movie_player')
+        ?.getVideoData?.()?.video_id ?? '';
+    if (videoId)
+      recordListening({
+        videoId,
+        title:
+          document
+            .querySelector('ytmusic-player-bar .content-info-wrapper .title')
+            ?.textContent?.trim() ?? '',
+        artist,
+        art:
+          document
+            .querySelector<HTMLImageElement>('ytmusic-player-bar img.image')
+            ?.src.replace(/=w\d+-h\d+[^&?]*/, '=w240-h240-l90-rj') ?? '',
+        seconds: 5,
+      });
     this.stats.total += 5;
     this.stats.artists[artist] = (this.stats.artists[artist] ?? 0) + 5;
     saveStats(this.stats);
@@ -261,6 +294,7 @@ export class ProfilePage {
       .slice(0, 5);
     if (top.length === 0) {
       card.append(el('p', 'lg-card-empty', this.labels.statsEmpty));
+      card.append(this.wrappedButtons());
       return card;
     }
 
@@ -306,6 +340,30 @@ export class ProfilePage {
 
     const since = new Date(this.stats.since).toLocaleDateString();
     card.append(el('p', 'lg-card-note', this.labels.statsSince(since)));
+    card.append(this.wrappedButtons());
     return card;
+  }
+
+  // Resumen mensual: el mes actual y los anteriores con datos
+  private wrappedButtons() {
+    const row = el('div', 'lg-wrapped-buttons');
+    const months = availableMonths();
+    if (!months.length) return row;
+    const current = monthKey();
+    for (const key of months.slice(0, 6)) {
+      const [year, month] = key.split('-').map(Number);
+      const name = new Date(year, month - 1, 1).toLocaleDateString(undefined, {
+        month: 'long',
+        ...(year === new Date().getFullYear() ? {} : { year: 'numeric' }),
+      });
+      const button = el(
+        'button',
+        key === current ? 'lg-wrapped-button main' : 'lg-wrapped-button',
+        key === current ? this.labels.wrapped(name) : name,
+      );
+      button.addEventListener('click', () => this.openWrapped(key));
+      row.append(button);
+    }
+    return row;
   }
 }

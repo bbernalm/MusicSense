@@ -664,6 +664,25 @@
         "enabled": "Enabled",
         "search": "Search plugins"
       },
+      "wrapped": {
+        "button": "See your {{month}} recap",
+        "title": "Your {{month}}",
+        "subtitle": "in music",
+        "minutes": "minutes listened",
+        "days": "days",
+        "songs": "songs",
+        "artists": "artists",
+        "artists-title": "Your artists of the month",
+        "top-artist": "{{minutes}} min · your number 1",
+        "songs-title": "The ones you kept playing",
+        "plays": "{{count}} plays",
+        "moment-title": "Your music moment",
+        "favorite-hour": "is your favourite time to listen",
+        "day": "Day {{day}}",
+        "best-day": "your most musical day · {{time}}",
+        "save": "Save image",
+        "close": "Close"
+      },
       "queue": {
         "more": "More options",
         "link-copied": "Link copied",

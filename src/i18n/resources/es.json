@@ -664,6 +664,25 @@
         "enabled": "Activados",
         "search": "Buscar complementos"
       },
+      "wrapped": {
+        "button": "Ver tu resumen de {{month}}",
+        "title": "Tu {{month}}",
+        "subtitle": "en música",
+        "minutes": "minutos escuchados",
+        "days": "días",
+        "songs": "canciones",
+        "artists": "artistas",
+        "artists-title": "Tus artistas del mes",
+        "top-artist": "{{minutes}} min · tu número 1",
+        "songs-title": "Las que no dejaste de escuchar",
+        "plays": "{{count}} veces",
+        "moment-title": "Tu momento musical",
+        "favorite-hour": "es tu hora favorita para escuchar",
+        "day": "Día {{day}}",
+        "best-day": "tu día más musical · {{time}}",
+        "save": "Guardar imagen",
+        "close": "Cerrar"
+      },
       "queue": {
         "more": "Más opciones",
         "link-copied": "Enlace copiado",
