@@ -32,7 +32,7 @@ Responde siempre en español. El usuario no es programador experto: explica en l
 
 ## Complemento `src/plugins/liquid-glass/` (siempre activo)
 
-No se puede desactivar: `ALWAYS_ENABLED` en `src/config/plugins.ts` lo fuerza en `getPlugins`/`isEnabled` e ignora `disable`; `src/menu.ts` solo muestra sus opciones. Textos en `src/i18n/resources/es.json` y `en.json`, clave `plugins.liquid-glass`.
+No se puede desactivar: `ALWAYS_ENABLED` en `src/config/plugins.ts` lo fuerza en `getPlugins`/`isEnabled` e ignora `disable`; `src/menu.ts` solo muestra sus opciones. Al revés, `DISCARDED` (mismo archivo) fuerza desactivados y oculta en `src/menu.ts` los complementos de Pear que chocan con el diseño o lo repiten (navigation, blur-nav-bar, album-color-theme, ambient-mode, transparent-player, visualizer, video-toggle, precise-volume, exponential-volume, clock, picture-in-picture, album-actions, music-together, touchbar). Ecualizador, compresor, dispositivo de audio y crossfade siguen disponibles pero chocan con el audio espacial. Textos en `src/i18n/resources/es.json` y `en.json`, clave `plugins.liquid-glass`.
 
 | Archivo | Qué hace |
 | --- | --- |

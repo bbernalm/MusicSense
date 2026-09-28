@@ -71,64 +71,70 @@ export const mainMenuTemplate = async (
   const allPluginsStubs = await allPlugins();
 
   const menuResult = await Promise.all(
-    Object.entries(getAllMenuTemplate()).map(async ([id, template]) => {
-      const plugin = allPluginsStubs[id];
-      const pluginLabel = plugin?.name?.() ?? id;
-      const pluginDescription = plugin?.description?.() ?? undefined;
-      const isNew = plugin?.addedVersion
-        ? satisfies(packageJson.version, plugin.addedVersion)
-        : false;
+    Object.entries(getAllMenuTemplate())
+      // MusicSense: sin los complementos descartados
+      .filter(([id]) => !config.plugins.DISCARDED.has(id))
+      .map(async ([id, template]) => {
+        const plugin = allPluginsStubs[id];
+        const pluginLabel = plugin?.name?.() ?? id;
+        const pluginDescription = plugin?.description?.() ?? undefined;
+        const isNew = plugin?.addedVersion
+          ? satisfies(packageJson.version, plugin.addedVersion)
+          : false;
 
-      if (!(await config.plugins.isEnabled(id))) {
-        return [
-          id,
-          await pluginEnabledMenu(
+        if (!(await config.plugins.isEnabled(id))) {
+          return [
             id,
-            pluginLabel,
-            pluginDescription,
-            isNew,
-            true,
-            innerRefreshMenu,
-          ),
-        ] as const;
-      }
+            await pluginEnabledMenu(
+              id,
+              pluginLabel,
+              pluginDescription,
+              isNew,
+              true,
+              innerRefreshMenu,
+            ),
+          ] as const;
+        }
 
-      // Complementos de MusicSense siempre activos: solo sus opciones
-      if (config.plugins.ALWAYS_ENABLED.has(id)) {
+        // Complementos de MusicSense siempre activos: solo sus opciones
+        if (config.plugins.ALWAYS_ENABLED.has(id)) {
+          return [
+            id,
+            {
+              label: pluginLabel,
+              toolTip: pluginDescription,
+              submenu: template,
+            } satisfies Electron.MenuItemConstructorOptions,
+          ] as const;
+        }
+
         return [
           id,
           {
             label: pluginLabel,
+            sublabel: isNew ? t('main.menu.plugins.new') : undefined,
             toolTip: pluginDescription,
-            submenu: template,
+            submenu: [
+              await pluginEnabledMenu(
+                id,
+                t('main.menu.plugins.enabled'),
+                undefined,
+                false,
+                true,
+                innerRefreshMenu,
+              ),
+              { type: 'separator' },
+              ...template,
+            ],
           } satisfies Electron.MenuItemConstructorOptions,
         ] as const;
-      }
-
-      return [
-        id,
-        {
-          label: pluginLabel,
-          sublabel: isNew ? t('main.menu.plugins.new') : undefined,
-          toolTip: pluginDescription,
-          submenu: [
-            await pluginEnabledMenu(
-              id,
-              t('main.menu.plugins.enabled'),
-              undefined,
-              false,
-              true,
-              innerRefreshMenu,
-            ),
-            { type: 'separator' },
-            ...template,
-          ],
-        } satisfies Electron.MenuItemConstructorOptions,
-      ] as const;
-    }),
+      }),
   );
 
-  const availablePlugins = Object.keys(await allPlugins());
+  // MusicSense: sin los complementos descartados
+  const availablePlugins = Object.keys(await allPlugins()).filter(
+    (id) => !config.plugins.DISCARDED.has(id),
+  );
   const pluginMenus = await Promise.all(
     availablePlugins
       .sort((a, b) => {

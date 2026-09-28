@@ -11,16 +11,38 @@ import type { PluginConfig } from '@/types/plugins';
 // desactivar (solo ajustar sus opciones)
 export const ALWAYS_ENABLED = new Set(['liquid-glass']);
 
+// MusicSense: complementos de Pear descartados. Chocan con el diseño de
+// Liquid Glass o repiten algo que ya hace: siempre desactivados y ocultos en
+// los menús.
+export const DISCARDED = new Set([
+  'navigation',
+  'blur-nav-bar',
+  'album-color-theme',
+  'ambient-mode',
+  'transparent-player',
+  'visualizer',
+  'video-toggle',
+  'precise-volume',
+  'exponential-volume',
+  'clock',
+  'picture-in-picture',
+  'album-actions',
+  'music-together',
+  'touchbar',
+]);
+
 export function getPlugins() {
   const plugins = store.get('plugins') as Record<string, PluginConfig>;
-  const forced = Object.fromEntries(
-    [...ALWAYS_ENABLED].map((id) => [id, { ...plugins?.[id], enabled: true }]),
-  );
-  return { ...plugins, ...forced } as Record<string, PluginConfig>;
+  const forced: Record<string, PluginConfig> = {};
+  for (const id of ALWAYS_ENABLED)
+    forced[id] = { ...plugins?.[id], enabled: true };
+  for (const id of DISCARDED) forced[id] = { ...plugins?.[id], enabled: false };
+  return { ...plugins, ...forced };
 }
 
 export async function isEnabled(plugin: string) {
   if (ALWAYS_ENABLED.has(plugin)) return true;
+  if (DISCARDED.has(plugin)) return false;
   const pluginConfig = deepmerge(
     (await allPlugins())[plugin]?.config ?? { enabled: false },
     (store.get('plugins') as Record<string, PluginConfig>)[plugin] ?? {},
@@ -71,6 +93,7 @@ export function getOptions<T>(plugin: string): T {
 }
 
 export function enable(plugin: string) {
+  if (DISCARDED.has(plugin)) return;
   setMenuOptions(plugin, { enabled: true }, []);
 }
 

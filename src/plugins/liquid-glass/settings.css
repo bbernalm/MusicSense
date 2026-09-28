@@ -268,7 +268,8 @@
 }
 
 .lg-switch[aria-checked='true'] {
-  background: #34c759;
+  /* color de acento de la portada (index.ts, --lg-accent) */
+  background: var(--lg-accent, #34c759);
 }
 
 .lg-switch span {
