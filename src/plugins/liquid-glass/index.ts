@@ -2,6 +2,7 @@ import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
 
 import { AnimatedArtwork } from './animated-art';
+import { AudioEngine, EQ_PRESETS } from './audio-engine';
 import { backend } from './backend';
 import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
@@ -16,7 +17,6 @@ import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
 import { LibrarySidebar } from './sidebar';
-import { SpatialAudio } from './spatial-audio';
 import style from './style.css?inline';
 import { TopBar } from './topbar';
 import topBarStyle from './topbar.css?inline';
@@ -33,6 +33,8 @@ type LiquidGlassConfig = {
   preferMusic: boolean;
   visualizer: boolean;
   spatialAudio: boolean;
+  eqPreset: string;
+  crossfade: number;
   translateLyrics: boolean;
   // 'balatro' era el estilo anterior: ahora cuenta como 'liquid'
   background: 'artwork' | 'liquid' | 'balatro';
@@ -49,6 +51,8 @@ const defaultConfig: LiquidGlassConfig = {
   preferMusic: false,
   visualizer: false,
   spatialAudio: false,
+  eqPreset: 'flat',
+  crossfade: 0,
   translateLyrics: true,
   background: 'liquid',
   blur: 15,
@@ -160,6 +164,30 @@ export default createPlugin({
         },
       },
       {
+        label: t('plugins.liquid-glass.menu.equalizer.label'),
+        submenu: Object.keys(EQ_PRESETS).map((preset) => ({
+          label: t(`plugins.liquid-glass.menu.equalizer.submenu.${preset}`),
+          type: 'radio',
+          checked: config.eqPreset === preset,
+          click() {
+            setConfig({ eqPreset: preset });
+          },
+        })),
+      },
+      {
+        label: t('plugins.liquid-glass.menu.crossfade.label'),
+        submenu: [0, 3, 6, 10].map((seconds) => ({
+          label: seconds
+            ? t('plugins.liquid-glass.menu.crossfade.seconds', { seconds })
+            : t('plugins.liquid-glass.menu.crossfade.off'),
+          type: 'radio',
+          checked: config.crossfade === seconds,
+          click() {
+            setConfig({ crossfade: seconds });
+          },
+        })),
+      },
+      {
         label: t('plugins.liquid-glass.menu.spatial-audio'),
         type: 'checkbox',
         checked: config.spatialAudio,
@@ -241,7 +269,7 @@ export default createPlugin({
     preferMusic: null as PreferMusic | null,
     preferMusicEnabled: false,
     visualizer: null as Visualizer | null,
-    spatialAudio: null as SpatialAudio | null,
+    audio: null as AudioEngine | null,
     liquid: null as LiquidBackground | null,
 
     async start({ getConfig, ipc }) {
@@ -370,8 +398,8 @@ export default createPlugin({
       document.body.prepend(backdrop);
       this.backdrop = backdrop;
 
-      this.spatialAudio = new SpatialAudio();
-      this.spatialAudio.start();
+      this.audio = new AudioEngine();
+      this.audio.start();
 
       this.applyConfig(await getConfig());
     },
@@ -438,8 +466,8 @@ export default createPlugin({
       this.preferMusic = null;
       this.visualizer?.stop();
       this.visualizer = null;
-      this.spatialAudio?.stop();
-      this.spatialAudio = null;
+      this.audio?.stop();
+      this.audio = null;
       this.liquid?.stop();
       this.liquid = null;
       this.playerApi = null;
@@ -485,7 +513,7 @@ export default createPlugin({
         refraction: LiquidRefraction | null;
         lyrics: LyricsMode | null;
         visualizer: Visualizer | null;
-        spatialAudio: SpatialAudio | null;
+        audio: AudioEngine | null;
         liquid: LiquidBackground | null;
         backdrop: HTMLDivElement | null;
         lastArtwork: string;
@@ -503,7 +531,9 @@ export default createPlugin({
         this.visualizer.stop();
         this.visualizer = null;
       }
-      this.spatialAudio?.setEnabled(config.spatialAudio);
+      this.audio?.setSpatial(config.spatialAudio);
+      this.audio?.setEq(config.eqPreset);
+      this.audio?.setCrossfade(config.crossfade);
       this.lyrics?.setTranslate(config.translateLyrics);
 
       // Fondo líquido (liquid-background.ts) en lugar de la portada

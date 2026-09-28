@@ -619,6 +619,24 @@
           }
         },
         "translate-lyrics": "Traducir letras",
+        "equalizer": {
+          "label": "Ecualizador",
+          "submenu": {
+            "flat": "Plano",
+            "bass": "Más graves",
+            "vocal": "Voz",
+            "treble": "Más agudos",
+            "loudness": "Sonoridad (volumen bajo)",
+            "acoustic": "Acústico",
+            "electronic": "Electrónica",
+            "rock": "Rock"
+          }
+        },
+        "crossfade": {
+          "label": "Fundido entre canciones (crossfade)",
+          "off": "Desactivado",
+          "seconds": "{{seconds}} segundos"
+        },
         "spatial-audio": "Audio espacial (auriculares)",
         "background": {
           "label": "Estilo del fondo",

@@ -619,6 +619,24 @@
           }
         },
         "translate-lyrics": "Translate lyrics",
+        "equalizer": {
+          "label": "Equalizer",
+          "submenu": {
+            "flat": "Flat",
+            "bass": "Bass boost",
+            "vocal": "Vocal",
+            "treble": "Treble boost",
+            "loudness": "Loudness (low volume)",
+            "acoustic": "Acoustic",
+            "electronic": "Electronic",
+            "rock": "Rock"
+          }
+        },
+        "crossfade": {
+          "label": "Crossfade between songs",
+          "off": "Off",
+          "seconds": "{{seconds}} seconds"
+        },
         "spatial-audio": "Spatial audio (headphones)",
         "background": {
           "label": "Background style",
