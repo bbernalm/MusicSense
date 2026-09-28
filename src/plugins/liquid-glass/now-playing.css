@@ -323,6 +323,8 @@ body.liquid-glass
  * (player.ts calcula --np-side-offset) */
 body.liquid-glass.lg-np ytmusic-player-page #side-panel {
   padding-top: var(--np-side-offset, 0px) !important;
+  /* y termina a la altura del artista bajo la portada */
+  padding-bottom: var(--np-side-bottom, 12px) !important;
 }
 
 body.liquid-glass ytmusic-player-page #side-panel > .tab-header-container {

@@ -1500,13 +1500,8 @@ body.liquid-glass ytmusic-player-page #side-panel {
 }
 
 body.liquid-glass ytmusic-player-page #side-panel #tab-renderer {
-  mask-image: linear-gradient(
-    180deg,
-    transparent 0,
-    #000 28px,
-    #000 calc(100% - 56px),
-    transparent 100%
-  );
+  /* Solo abajo: arriba daba la sensación de que había algo más */
+  mask-image: linear-gradient(180deg, #000 calc(100% - 56px), transparent 100%);
 }
 
 body.liquid-glass ytmusic-player-page #side-panel .tab-header-container {
@@ -1676,4 +1671,120 @@ body.liquid-glass
    donde aparecía al pasar el ratón) */
 body.liquid-glass ytmusic-like-button-renderer #button-shape-dislike {
   display: none !important;
+}
+
+/* ---------- Menús ⋮ con vidrio y lente (refraction.ts) ---------- */
+body.liquid-glass ytmusic-menu-popup-renderer {
+  /* el mismo tinte que la píldora del reproductor */
+  background: var(--lg-glass-tint) !important;
+  border-radius: 20px !important;
+  /* la refracción no respeta las esquinas redondeadas */
+  clip-path: inset(0 round 20px);
+}
+
+/* Opciones que sobran en el menú de las canciones del panel
+   (panel-actions.ts) */
+body.liquid-glass .lg-menu-hidden {
+  display: none !important;
+}
+
+/* ---------- Canciones del panel (panel-actions.ts) ---------- */
+/* Sin arrastrar para reordenar */
+body.liquid-glass ytmusic-player-page ytmusic-player-queue-item,
+body.liquid-glass ytmusic-player-page ytmusic-player-queue-item * {
+  cursor: default !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  ytmusic-player-queue-item
+  :is(ytmusic-play-button-renderer, .byline, button, a) {
+  cursor: pointer !important;
+}
+
+/* Botón "Agregar a tu fila" junto a los ⋮ (aparece al pasar el ratón) */
+.lg-panel-add {
+  display: none;
+  flex: none;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  margin: 0 2px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+:is(ytmusic-player-queue-item, ytmusic-responsive-list-item-renderer):hover
+  > .lg-panel-add,
+.lg-panel-add.done {
+  display: inline-flex;
+}
+
+.lg-panel-add:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.lg-panel-add.done {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+/* Artista de una canción: "Ir al álbum" / "Ir al artista" */
+body.liquid-glass ytmusic-player-queue-item .byline:hover,
+body.liquid-glass
+  ytmusic-player-page
+  ytmusic-responsive-list-item-renderer
+  .secondary-flex-columns:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.lg-artist-menu {
+  position: fixed;
+  z-index: 3100;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 20px;
+  background: var(--lg-glass-tint);
+  backdrop-filter: var(--lg-filter);
+  box-shadow: var(--lg-shadow);
+  clip-path: inset(0 round 20px);
+  animation: lg-menu-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lg-artist-menu button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #fff;
+  font-family: var(--lg-font);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lg-artist-menu button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes lg-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
 }

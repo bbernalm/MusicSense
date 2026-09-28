@@ -7,6 +7,7 @@ import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
+import { PanelActions } from './panel-actions';
 import { PlayerLayout } from './player';
 import { PreferMusic } from './prefer-music';
 import { ProfilePage } from './profile';
@@ -221,6 +222,7 @@ export default createPlugin({
     topBar: null as TopBar | null,
     sidebar: null as LibrarySidebar | null,
     upNext: null as UpNext | null,
+    panelActions: null as PanelActions | null,
     profile: null as ProfilePage | null,
     invoke: null as Invoke | null,
     playerApi: null as MusicPlayer | null,
@@ -317,8 +319,16 @@ export default createPlugin({
         next: t('plugins.liquid-glass.queue.next'),
         hint: t('plugins.liquid-glass.queue.hint'),
         remove: t('plugins.liquid-glass.queue.remove'),
+        added: t('plugins.liquid-glass.queue.added'),
       });
       this.upNext.start();
+
+      const upNext = this.upNext;
+      this.panelActions = new PanelActions(
+        { addToQueue: t('plugins.liquid-glass.queue.add') },
+        (videoId) => upNext.addToQueue(videoId),
+      );
+      this.panelActions.start();
       this.player = new PlayerLayout({
         showVideo: t('plugins.liquid-glass.player.show-video'),
         showArtwork: t('plugins.liquid-glass.player.show-artwork'),
@@ -387,6 +397,8 @@ export default createPlugin({
       this.lyrics = null;
       this.upNext?.stop();
       this.upNext = null;
+      this.panelActions?.stop();
+      this.panelActions = null;
       this.player?.stop();
       this.player = null;
       this.settings?.stop();

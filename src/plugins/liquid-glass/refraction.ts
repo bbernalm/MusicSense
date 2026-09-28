@@ -17,6 +17,9 @@ export const REFRACTION_TARGETS = [
   'ytmusic-search-box #suggestion-list',
   '#guide-renderer',
   '.lg-volume-panel',
+  // Menús ⋮ / clic derecho y el del artista (panel-actions.ts)
+  'ytmusic-menu-popup-renderer',
+  '.lg-artist-menu',
 ];
 
 type Target = {
@@ -122,6 +125,9 @@ export class LiquidRefraction {
     });
 
     this.scan();
+    // Los menús aparecen al hacer clic: se buscan enseguida
+    document.addEventListener('click', this.onInteraction, true);
+    document.addEventListener('contextmenu', this.onInteraction, true);
     // YouTube Music crea algunos paneles más tarde (p. ej. la pantalla del reproductor)
     this.scanTimer = window.setInterval(() => this.scan(), 2000);
   }
@@ -131,7 +137,14 @@ export class LiquidRefraction {
     for (const target of this.targets.values()) this.applyStyle(target);
   }
 
+  private readonly onInteraction = () => {
+    window.setTimeout(() => this.scan(), 60);
+    window.setTimeout(() => this.scan(), 300);
+  };
+
   stop() {
+    document.removeEventListener('click', this.onInteraction, true);
+    document.removeEventListener('contextmenu', this.onInteraction, true);
     if (this.scanTimer !== null) window.clearInterval(this.scanTimer);
     this.scanTimer = null;
     this.resizeObserver?.disconnect();

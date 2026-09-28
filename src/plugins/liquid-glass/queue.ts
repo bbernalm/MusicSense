@@ -14,6 +14,7 @@
  * complemento Music Together.
  */
 
+import type { MusicPlayerAppElement } from '@/types/music-player-app-element';
 import type { QueueElement } from '@/types/queue';
 
 type Runs = { runs?: { text: string }[] };
@@ -38,6 +39,7 @@ type QueueState = {
   items: Item[];
   selectedItemIndex?: number;
   nextQueueItemId?: number;
+  queueContextParams?: string;
 };
 
 type Saved = {
@@ -54,6 +56,7 @@ export type UpNextLabels = {
   next: string;
   hint: string;
   remove: string;
+  added: string;
 };
 
 const OPEN_CLASS = 'lg-upnext-open';
@@ -515,6 +518,60 @@ export class UpNext {
     }
     row.addEventListener('click', () => this.play(index));
     return row;
+  }
+
+  // Botón del panel (panel-actions.ts): la canción va detrás de la actual y
+  // de lo que ya añadiste. Se pide a YouTube Music como Music Together
+  // (/music/get_queue) y se inserta en la cola con ADD_ITEMS.
+  async addToQueue(videoId: string) {
+    const state = this.state();
+    const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');
+    if (!state || !app) return false;
+    const response = await app.networkManager.fetch<
+      { queueDatas?: { content?: Item }[] },
+      { queueContextParams?: string; videoIds: string[] }
+    >('/music/get_queue', {
+      queueContextParams: state.queueContextParams,
+      videoIds: [videoId],
+    });
+    const items = (response?.queueDatas ?? [])
+      .map((data) => data.content)
+      .filter((item): item is Item => Boolean(item))
+      .map(unselected);
+    const fresh = this.state();
+    if (!items.length || !fresh) return false;
+
+    this.prune();
+    const userCount = this.upcomingUserCount(fresh);
+    this.dispatch('ADD_ITEMS', {
+      nextQueueItemId: fresh.nextQueueItemId ?? 0,
+      index: selectedIndex(fresh) + 1 + userCount,
+      items,
+      shuffleEnabled: false,
+      shouldAssignIds: true,
+    });
+    this.userQueue.splice(userCount, 0, ...items.map(videoIdOf));
+    this.rendered = '';
+    this.scheduleSave();
+    this.toast(this.labels.added);
+    return true;
+  }
+
+  // Aviso de vidrio de YouTube Music (el mismo de "Se agregó a la fila")
+  private toast(message: string) {
+    document
+      .querySelector<
+        HTMLElement & { resolveCommand?: (command: unknown) => unknown }
+      >('ytmusic-app')
+      ?.resolveCommand?.({
+        addToToastAction: {
+          item: {
+            notificationTextRenderer: {
+              successResponseText: { runs: [{ text: message }] },
+            },
+          },
+        },
+      });
   }
 
   private remove(index: number) {

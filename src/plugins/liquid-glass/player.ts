@@ -675,6 +675,16 @@ export class PlayerLayout {
         '--np-side-offset',
         `${Math.max(0, Math.round(offset))}px`,
       );
+      // Y terminan a la altura del final del texto bajo la portada
+      const info = this.npInfo?.querySelector('.lg-np-text');
+      const end = info?.getBoundingClientRect().bottom ?? 0;
+      if (end > 0) {
+        const bottom = side.getBoundingClientRect().bottom - end;
+        document.body.style.setProperty(
+          '--np-side-bottom',
+          `${Math.max(12, Math.round(bottom))}px`,
+        );
+      }
     }
   }
 
