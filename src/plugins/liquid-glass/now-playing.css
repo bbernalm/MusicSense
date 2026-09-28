@@ -657,3 +657,67 @@ body.lg-upnext-open:not(.lg-lyrics-open)
   * {
   color: rgba(255, 255, 255, 0.75) !important;
 }
+
+/* ---------- Similares: filas como las de "A continuación" ----------
+ * El carrusel ponía columnas de ~460 px en un panel más estrecho y las filas
+ * se cortaban por la derecha: cada columna ocupa el ancho del panel. Sin ⋮
+ * (el menú sigue con clic derecho); el botón de la fila va a la derecha. */
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-carousel
+  #items:has(> ytmusic-responsive-list-item-renderer) {
+  grid-auto-columns: 100% !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-carousel
+  ytmusic-responsive-list-item-renderer {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 6px 8px !important;
+  border-radius: 12px !important;
+  align-items: center !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  > ytmusic-menu-renderer,
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  > .fixed-columns {
+  display: none !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  > .flex-columns {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  .left-items {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+body.liquid-glass
+  ytmusic-player-page
+  #tab-renderer
+  ytmusic-responsive-list-item-renderer
+  > .lg-panel-add {
+  margin-left: auto;
+}
