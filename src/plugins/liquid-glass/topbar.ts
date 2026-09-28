@@ -1,7 +1,8 @@
 /*
  * Barra superior:
  * - [inicio][explorar][biblioteca] [‹][›] a la izquierda del buscador;
- * - [historial][perfil] a su derecha (historial solo con sesión iniciada);
+ * - [historial][ajustes][perfil] a su derecha (historial solo con sesión
+ *   iniciada);
  * - menú del perfil: foto y nombre, "Tu perfil", cambiar de cuenta y
  *   "Cerrar sesión" (con sesión) o "Acceder" y "Ajustes" (sin sesión);
  * - en la página de tu perfil, una cápsula bajo el buscador con las
@@ -339,7 +340,14 @@ export class TopBar {
         this.labels.profile,
         () => this.toggleProfileMenu(),
       );
-      group.append(this.history, this.profile);
+      // Ajustes (el mismo panel que "Complementos" en tu perfil)
+      const settings = iconButton(
+        'lg-nav-capsule lg-settings-button',
+        GEAR_ICON,
+        this.labels.settings,
+        () => this.openSettings(settings.getBoundingClientRect()),
+      );
+      group.append(this.history, settings, this.profile);
       search.after(group);
       this.rightGroup = group;
     }
