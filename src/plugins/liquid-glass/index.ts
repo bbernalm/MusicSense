@@ -3,16 +3,19 @@ import { createPlugin } from '@/utils';
 
 import { AnimatedArtwork } from './animated-art';
 import { backend } from './backend';
+import { BalatroBackground } from './balatro';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
 import { PlayerLayout } from './player';
 import { PreferMusic } from './prefer-music';
 import { ProfilePage } from './profile';
+import { UpNext } from './queue';
 import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
 import { LibrarySidebar } from './sidebar';
+import { SpatialAudio } from './spatial-audio';
 import style from './style.css?inline';
 import { TopBar } from './topbar';
 import topBarStyle from './topbar.css?inline';
@@ -28,6 +31,8 @@ type LiquidGlassConfig = {
   animatedArtwork: boolean;
   preferMusic: boolean;
   visualizer: boolean;
+  spatialAudio: boolean;
+  background: 'artwork' | 'balatro';
   blur: number;
 };
 
@@ -40,6 +45,8 @@ const defaultConfig: LiquidGlassConfig = {
   animatedArtwork: true,
   preferMusic: false,
   visualizer: false,
+  spatialAudio: false,
+  background: 'artwork',
   blur: 30,
 };
 
@@ -139,6 +146,27 @@ export default createPlugin({
         },
       },
       {
+        label: t('plugins.liquid-glass.menu.spatial-audio'),
+        type: 'checkbox',
+        checked: config.spatialAudio,
+        click(item) {
+          setConfig({ spatialAudio: item.checked });
+        },
+      },
+      {
+        label: t('plugins.liquid-glass.menu.background.label'),
+        submenu: (['artwork', 'balatro'] as const).map((background) => ({
+          label: t(
+            `plugins.liquid-glass.menu.background.submenu.${background}`,
+          ),
+          type: 'radio',
+          checked: config.background === background,
+          click() {
+            setConfig({ background });
+          },
+        })),
+      },
+      {
         label: t('plugins.liquid-glass.menu.animated-background'),
         type: 'checkbox',
         checked: config.animatedBackground,
@@ -187,6 +215,7 @@ export default createPlugin({
     settings: null as SettingsPanel | null,
     topBar: null as TopBar | null,
     sidebar: null as LibrarySidebar | null,
+    upNext: null as UpNext | null,
     profile: null as ProfilePage | null,
     invoke: null as Invoke | null,
     playerApi: null as MusicPlayer | null,
@@ -195,6 +224,8 @@ export default createPlugin({
     preferMusic: null as PreferMusic | null,
     preferMusicEnabled: false,
     visualizer: null as Visualizer | null,
+    spatialAudio: null as SpatialAudio | null,
+    balatro: null as BalatroBackground | null,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
@@ -274,6 +305,15 @@ export default createPlugin({
         },
       );
       this.lyrics.start();
+
+      this.upNext = new UpNext({
+        button: t('plugins.liquid-glass.queue.button'),
+        yours: t('plugins.liquid-glass.queue.yours'),
+        next: t('plugins.liquid-glass.queue.next'),
+        hint: t('plugins.liquid-glass.queue.hint'),
+        remove: t('plugins.liquid-glass.queue.remove'),
+      });
+      this.upNext.start();
       this.player = new PlayerLayout({
         showVideo: t('plugins.liquid-glass.player.show-video'),
         showArtwork: t('plugins.liquid-glass.player.show-artwork'),
@@ -291,6 +331,9 @@ export default createPlugin({
         '<div class="lg-layer"></div><div class="lg-layer"></div><div class="lg-shade"></div>';
       document.body.prepend(backdrop);
       this.backdrop = backdrop;
+
+      this.spatialAudio = new SpatialAudio();
+      this.spatialAudio.start();
 
       this.applyConfig(await getConfig());
     },
@@ -337,6 +380,8 @@ export default createPlugin({
       this.wave = null;
       this.lyrics?.stop();
       this.lyrics = null;
+      this.upNext?.stop();
+      this.upNext = null;
       this.player?.stop();
       this.player = null;
       this.settings?.stop();
@@ -353,6 +398,10 @@ export default createPlugin({
       this.preferMusic = null;
       this.visualizer?.stop();
       this.visualizer = null;
+      this.spatialAudio?.stop();
+      this.spatialAudio = null;
+      this.balatro?.stop();
+      this.balatro = null;
       this.playerApi = null;
       this.lastArtwork = '';
     },
@@ -395,6 +444,10 @@ export default createPlugin({
       this: {
         refraction: LiquidRefraction | null;
         visualizer: Visualizer | null;
+        spatialAudio: SpatialAudio | null;
+        balatro: BalatroBackground | null;
+        backdrop: HTMLDivElement | null;
+        lastArtwork: string;
         animatedArtEnabled: boolean;
         preferMusicEnabled: boolean;
         updateAnimatedArt: () => void;
@@ -409,6 +462,20 @@ export default createPlugin({
         this.visualizer.stop();
         this.visualizer = null;
       }
+      this.spatialAudio?.setEnabled(config.spatialAudio);
+
+      // Fondo "Balatro" (balatro.ts) en lugar de la portada desenfocada
+      const balatro = config.background === 'balatro';
+      if (balatro && !this.balatro && this.backdrop) {
+        this.balatro = new BalatroBackground();
+        this.balatro.start(this.backdrop);
+        this.balatro.setArtwork(this.lastArtwork);
+      } else if (!balatro && this.balatro) {
+        this.balatro.stop();
+        this.balatro = null;
+      }
+      document.body.classList.toggle('lg-balatro-bg', Boolean(this.balatro));
+
       this.animatedArtEnabled = config.animatedArtwork;
       this.updateAnimatedArt();
       this.preferMusicEnabled = config.preferMusic;
@@ -436,6 +503,7 @@ export default createPlugin({
         backdrop: HTMLDivElement | null;
         activeLayer: number;
         lastArtwork: string;
+        balatro: BalatroBackground | null;
       },
       url: string,
     ) {
@@ -455,6 +523,7 @@ export default createPlugin({
       };
       image.src = url;
       updateAccent(url);
+      this.balatro?.setArtwork(url);
     },
   },
 });

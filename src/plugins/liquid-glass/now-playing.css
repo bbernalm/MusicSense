@@ -477,3 +477,172 @@ body.liquid-glass ytmusic-player-page #side-panel {
   padding: 4px 14px 12px !important;
   box-sizing: border-box !important;
 }
+
+/* ---------- Fila de reproducción (queue.ts) ----------
+ * Botón ≡ a la izquierda de la cápsula "A continuación / Similares"; abre la
+ * vista "Fila" en lugar del contenido de las pestañas. */
+body.liquid-glass ytmusic-player-page #side-panel > .tab-header-container {
+  margin-left: 56px !important;
+}
+
+.lg-upnext-button {
+  position: absolute;
+  z-index: 1;
+  left: 14px;
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--lg-edge);
+  border-radius: 50%;
+  background: var(--lg-glass);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.lg-upnext-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.lg-upnext-button[aria-pressed='true'] {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+.lg-upnext {
+  display: none;
+}
+
+body.lg-upnext-open:not(.lg-lyrics-open)
+  ytmusic-player-page
+  #side-panel
+  > #tab-renderer {
+  display: none !important;
+}
+
+body.lg-upnext-open:not(.lg-lyrics-open) .lg-upnext {
+  flex: 1;
+  min-height: 0;
+  display: block;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 90%, transparent);
+  mask-image: linear-gradient(180deg, #000 90%, transparent);
+}
+
+body.lg-lyrics-open .lg-upnext-button {
+  display: none;
+}
+
+.lg-upnext-title {
+  margin: 6px 4px 8px;
+  color: #fff;
+  font-family: var(--lg-font);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lg-upnext-title:not(:first-child) {
+  margin-top: 18px;
+}
+
+.lg-upnext-hint {
+  margin: 0 4px 6px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--lg-font);
+  font-size: 13px;
+}
+
+.lg-upnext-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 6px;
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--lg-font);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lg-upnext-row:hover {
+  background: var(--lg-glass-hover);
+}
+
+.lg-upnext-row img {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lg-upnext-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lg-upnext-song,
+.lg-upnext-artist {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lg-upnext-song {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lg-upnext-artist,
+.lg-upnext-length {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.lg-upnext-remove {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.lg-upnext-remove:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Con la fila abierta ninguna pestaña se ve marcada (al pulsar una se
+   vuelve a ella) */
+body.lg-upnext-open:not(.lg-lyrics-open)
+  ytmusic-player-page
+  #tabsContent
+  > .tab-header[aria-selected='true'] {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+body.lg-upnext-open:not(.lg-lyrics-open)
+  ytmusic-player-page
+  #tabsContent
+  > .tab-header[aria-selected='true']
+  * {
+  color: rgba(255, 255, 255, 0.75) !important;
+}

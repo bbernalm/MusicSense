@@ -23,6 +23,9 @@ Responde siempre en español. El usuario no es programador experto: explica en l
 1. La app solo admite **una instancia**. Si el usuario la tiene abierta, pregúntale antes de cerrarla (`Get-Process electron | Stop-Process -Force`).
 2. Ábrela con depuración: `pnpm exec electron-vite dev --watch --remoteDebuggingPort 9333` (en segundo plano). Tarda ~40 s.
 3. Inspecciona y prueba con `node scripts/dev-cdp.mjs` (evaluar JS, capturas, clics reales; ver cabecera del script). Las capturas se leen con la herramienta de lectura de imágenes.
+   - Las coordenadas de `--click` son de la página (CSS); `--shot` con recorte usa píxeles de pantalla (× zoom).
+   - Con la ventana tapada Windows frena las animaciones: menús y popups no se colocan hasta forzar fotogramas (hacer un par de `--shot`). Comprueba con `elementFromPoint` qué hay bajo el puntero antes de cada clic.
+   - Los menús de YouTube solo responden bien a clics reales; y mucho cuidado con las filas de las listas: al lado del ⋮ están "Me gusta" y "Comenzar mix".
 4. Los cambios de CSS y del renderer recargan solos (~15 s). Los del **proceso principal** (`backend.ts`, `login-window.ts`, `apple-motion.ts`, `src/index.ts`, `src/config/*`, `src/menu.ts`) y los **textos nuevos de es/en.json** reinician la app: espera ~30 s.
 5. Al recargar, la app vuelve a la última canción (pantalla del reproductor abierta).
 6. El usuario tiene sesión iniciada (su cuenta). No pulses nada que cambie su cuenta: dar "Me gusta", guardar en playlists, cambiar de cuenta o cerrar sesión.
@@ -48,6 +51,10 @@ No se puede desactivar: `ALWAYS_ENABLED` en `src/config/plugins.ts` lo fuerza en
 | `animated-art.ts` / `apple-motion.ts` | Portadas animadas: servicio de Better Lyrics Shaders (`artwork.boidu.dev`, validado con el id de álbum de Apple) y alternativa directa de Apple (iTunes Search + página pública del álbum, variante H.264). Por álbum exacto o por sencillo (sencillos y videoclips con "Preferir música"). Se pinta en un `<canvas>`; **el `<video>` nunca va a la página**. Caché `lg-animated-art2:` |
 | `prefer-music.ts` | "Preferir música": modo Canción en videoclips y portada cuadrada en vez de video |
 | `visualizer.ts` | Píldora con barras sobre el reproductor (apagada por defecto), usa `peard:audio-can-play` |
+| `sidebar.ts` | Menú lateral solo con la biblioteca: cápsula Playlists / Álbumes / Artistas (álbumes y artistas pedidos con `networkManager`, `FEmusic_liked_albums` y `FEmusic_library_corpus_track_artists`). Principal/Explorar/Biblioteca van en la barra superior |
+| `queue.ts` | Fila de reproducción: "Agregar a la fila" cambia `queueInsertPosition` a `INSERT_AFTER_CURRENT_VIDEO` y lo coloca tras lo ya añadido (`MOVE_ITEM`); botón ≡ con la vista "Tu fila"; cola guardada en `localStorage` `lg-queue` y recuperada al reiniciar. La canción actual es la marcada `selected` (no `selectedItemIndex`). En `ADD_ITEMS` el `index` es la posición donde se inserta |
+| `spatial-audio.ts` | Audio espacial (opción, apagado por defecto): virtualizador HRTF para auriculares + sala suave + limitador; marca `lg-spatial-on` en `body` si está conectado |
+| `balatro.ts` | Fondo "Balatro" (opción Estilo del fondo): shader WebGL de pintura en espiral pixelada con 3 colores de la portada, a baja resolución y 30 fps |
 
 Otros cambios fuera del complemento: `src/plugins/scrobbler/services/clean-title.ts` (quita "(con X)", "(feat. X)" de los títulos), `src/plugins/synced-lyrics/providers/renderer.ts` (Musixmatch desactivado: devuelve letras codificadas sin cuenta), `src/index.ts` (DevTools), `assets/icon.svg` y `scripts/generate-icons.mjs`.
 
@@ -64,7 +71,7 @@ Otros cambios fuera del complemento: `src/plugins/scrobbler/services/clean-title
 ## Pendiente e ideas
 
 - Por confirmar con el usuario: letra no encontrada (aviso y botón), avisos en cápsula al dar "Me gusta", "Cambiar de cuenta" → atrás, escalado maximizado/mínimo.
-- Ideas no hechas: audio espacial (requiere un nodo en la cadena de audio de Pear), resaltado de letra palabra por palabra, traducciones de letras, crossfade/Automix, icono nuevo en la bandeja (`assets/tray*.png`), cambiar el nombre "Pear Desktop" de la ventana y el instalador por MusicSense.
+- Ideas no hechas: resaltado de letra palabra por palabra, traducciones de letras, crossfade/Automix, icono nuevo en la bandeja (`assets/tray*.png`), cambiar el nombre "Pear Desktop" de la ventana y el instalador por MusicSense.
 - No hay bloqueador de anuncios en esta versión de Pear (solo SponsorBlock).
 
 ## Notas técnicas de YouTube Music (verificadas)

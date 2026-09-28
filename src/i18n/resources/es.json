@@ -618,6 +618,14 @@
             "50": "Intenso"
           }
         },
+        "spatial-audio": "Audio espacial (auriculares)",
+        "background": {
+          "label": "Estilo del fondo",
+          "submenu": {
+            "artwork": "Portada",
+            "balatro": "Balatro (pintura en espiral)"
+          }
+        },
         "visualizer": "Visualizador sobre el reproductor"
       },
       "player": {
@@ -636,6 +644,13 @@
         "empty": "No hay complementos con ese nombre",
         "enabled": "Activados",
         "search": "Buscar complementos"
+      },
+      "queue": {
+        "button": "Fila de reproducción",
+        "yours": "Tu fila",
+        "next": "A continuación",
+        "hint": "Añade canciones con ⋮ › Agregar a la fila o Reproducir a continuación.",
+        "remove": "Quitar de la fila"
       },
       "sidebar": {
         "playlists": "Playlists",

@@ -618,6 +618,14 @@
             "50": "Intense"
           }
         },
+        "spatial-audio": "Spatial audio (headphones)",
+        "background": {
+          "label": "Background style",
+          "submenu": {
+            "artwork": "Artwork",
+            "balatro": "Balatro (paint swirl)"
+          }
+        },
         "visualizer": "Visualizer above the player"
       },
       "player": {
@@ -636,6 +644,13 @@
         "empty": "No plugins match that name",
         "enabled": "Enabled",
         "search": "Search plugins"
+      },
+      "queue": {
+        "button": "Playing queue",
+        "yours": "Your queue",
+        "next": "Up next",
+        "hint": "Add songs with ⋮ › Add to queue or Play next.",
+        "remove": "Remove from queue"
       },
       "sidebar": {
         "playlists": "Playlists",
