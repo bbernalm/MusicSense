@@ -1,3 +1,4 @@
+import { getSongInfo } from '@/providers/song-info-front';
 import { createRenderer } from '@/utils';
 import { waitForElement } from '@/utils/wait-for-element';
 
@@ -83,6 +84,12 @@ export const renderer = createRenderer<
     ctx.ipc.on('peard:update-song-info', (info: SongInfo) => {
       fetchLyrics(info);
     });
+
+    // MusicSense: Pear anuncia la canción en cuanto existe el reproductor,
+    // a veces antes de que este complemento empiece a escuchar (al abrir o
+    // recargar la app); sin esto la letra se quedaba "cargando"
+    const current = getSongInfo();
+    if (current?.videoId) fetchLyrics(current);
   },
 
   stop() {

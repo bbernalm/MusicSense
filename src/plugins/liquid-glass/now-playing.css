@@ -53,8 +53,17 @@ body.liquid-glass.lg-np.lg-prefer-music ytmusic-player-page #player {
 
 /* Video (sin "Preferir música"): el cuadro con la proporción del video,
    calculada en player.ts */
-/* (selector reforzado: otra regla de YouTube Music le ponía margen
-   automático y separaba el título del video) */
+/* Sin margen automático en la portada/video: una regla de YouTube Music más
+   específica (que no se puede leer) se lo ponía y separaba el título, sobre
+   todo en el modo letras. Por eso los selectores reforzados */
+body.liquid-glass.lg-np
+  ytmusic-player-page
+  #main-panel
+  > ytmusic-player#player#player {
+  margin: 0 !important;
+}
+
+/* (selector reforzado: ver arriba) */
 body.liquid-glass.lg-np:not(.lg-prefer-music)
   ytmusic-player-page[video-mode]
   #main-panel

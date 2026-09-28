@@ -16,10 +16,11 @@
 body.liquid-glass {
   --lyrics-font-family: var(--lg-font);
   --lyrics-font-size: clamp(1.5rem, 2vw, 2.5rem);
-  --lyrics-line-height: 1.22;
+  /* Con aire entre renglones y entre versos (se veían aplastadas) */
+  --lyrics-line-height: 1.38;
   --lyrics-width: 100%;
-  --lyrics-padding: 0.35rem;
-  --global-margin: 0.55rem;
+  --lyrics-padding: 0.6rem;
+  --global-margin: 0.8rem;
 
   --lyrics-inactive-font-weight: 700;
   --lyrics-inactive-opacity: 0.3;
@@ -38,7 +39,7 @@ body.liquid-glass {
 }
 
 body.liquid-glass .synced-line .text-lyrics {
-  letter-spacing: -0.02em;
+  letter-spacing: -0.005em;
   transition:
     scale var(--lyrics-scale-duration) cubic-bezier(0.25, 0.8, 0.25, 1),
     filter 0.6s ease;
@@ -156,23 +157,25 @@ body.lg-lyrics-open.lg-lyrics-missing #synced-lyrics-container {
   transform: scale(1.05);
 }
 
-/* Crédito al pie del panel */
-.lg-lyrics-credit {
-  display: none;
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 12px;
-  font-size: 11px;
+/* Crédito al final de la letra, tras la última línea (el pie lo añade Synced
+   Lyrics y el texto lo pone lyrics.ts en --lg-lyrics-credit) */
+body.liquid-glass .synced-lyrics-footer {
+  /* abajo sobra espacio para que quede por encima del desvanecido */
+  padding: 28px 15px 170px;
+  font-family: var(--lg-font);
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0;
   color: rgba(255, 255, 255, 0.5);
-  pointer-events: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-body.lg-lyrics-open .lg-lyrics-credit:not(:empty) {
-  display: block;
+body.liquid-glass .synced-lyrics-footer::before {
+  content: var(--lg-lyrics-credit, '');
+}
+
+/* Columna de la letra más ancha en el modo letras (con ~350 px partía versos
+   cortos en dos); la portada se ajusta sola al espacio que queda */
+body.liquid-glass.lg-lyrics-open ytmusic-player-page #side-panel {
+  flex: 0 0 min(580px, 40vw) !important;
+  max-width: none !important;
+  transition: flex-basis 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }

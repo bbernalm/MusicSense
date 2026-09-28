@@ -10,6 +10,7 @@ import { lyricsStore } from '@/plugins/synced-lyrics/renderer/store';
 
 const MODE_CLASS = 'lg-lyrics-open';
 const BUTTON_CLASS = 'lg-lyrics-button';
+const CREDIT_VAR = '--lg-lyrics-credit';
 
 // Burbuja con comillas, como el botón de letras de Apple Music
 const ICON = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -50,7 +51,6 @@ export type LyricsLabels = {
 
 export class LyricsMode {
   private button: HTMLButtonElement | null = null;
-  private credit: HTMLDivElement | null = null;
   private notFound: HTMLDivElement | null = null;
   private timer: number | null = null;
 
@@ -114,8 +114,7 @@ export class LyricsMode {
     this.timer = null;
     this.button?.remove();
     this.button = null;
-    this.credit?.remove();
-    this.credit = null;
+    document.body.style.removeProperty(CREDIT_VAR);
     this.notFound?.remove();
     this.notFound = null;
     document.body.classList.remove(MODE_CLASS, 'lg-lyrics-missing');
@@ -130,15 +129,12 @@ export class LyricsMode {
     if (open) this.updateCredit();
   }
 
-  // Crédito al pie del panel de letras: fuente real y estilo de Better Lyrics
+  // Crédito (fuente real y estilo de Better Lyrics) al final de la letra: lo
+  // pinta el pie que Synced Lyrics añade tras la última línea, con esta
+  // variable CSS
   private updateCredit() {
     const side = document.querySelector('ytmusic-player-page #side-panel');
     if (!side) return;
-    if (!this.credit?.isConnected) {
-      this.credit = document.createElement('div');
-      this.credit.className = 'lg-lyrics-credit';
-      side.append(this.credit);
-    }
     this.updateNotFound(side);
 
     const provider = lyricsStore.provider;
@@ -147,7 +143,9 @@ export class LyricsMode {
     const text = found
       ? this.labels.credit(PROVIDER_LABELS[provider] ?? provider)
       : '';
-    if (this.credit.textContent !== text) this.credit.textContent = text;
+    const value = JSON.stringify(text);
+    if (document.body.style.getPropertyValue(CREDIT_VAR) !== value)
+      document.body.style.setProperty(CREDIT_VAR, value);
   }
 
   private attachButton() {

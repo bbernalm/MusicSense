@@ -139,9 +139,13 @@ type LyricsRendererChild =
   | {
       kind: 'PlainLine';
       line: string;
-    };
+    }
+  // MusicSense: pie al final de la letra (el complemento Liquid Glass pone el
+  // crédito con la variable CSS --lg-lyrics-credit)
+  | { kind: 'Footer' };
 
 const lyricsPicker: LyricsRendererChild = { kind: 'LyricsPicker' };
+const lyricsFooter: LyricsRendererChild = { kind: 'Footer' };
 
 export const [currentTime, setCurrentTime] = createSignal<number>(-1);
 export const LyricsRenderer = () => {
@@ -211,18 +215,24 @@ export const LyricsRenderer = () => {
       }
 
       if (data?.lines) {
-        return data.lines.map((line) => ({
-          kind: 'SyncedLine' as const,
-          line,
-        }));
+        return [
+          ...data.lines.map((line) => ({
+            kind: 'SyncedLine' as const,
+            line,
+          })),
+          lyricsFooter,
+        ];
       }
 
       if (data?.lyrics) {
         const lines = data.lyrics.split('\n').filter((line) => line.trim());
-        return lines.map((line) => ({
-          kind: 'PlainLine' as const,
-          line,
-        }));
+        return [
+          ...lines.map((line) => ({
+            kind: 'PlainLine' as const,
+            line,
+          })),
+          lyricsFooter,
+        ];
       }
 
       return [{ kind: 'NotFoundKaomoji' }];
@@ -310,6 +320,9 @@ export const LyricsRenderer = () => {
             }
             case 'PlainLine': {
               return <PlainLyrics {...props} />;
+            }
+            case 'Footer': {
+              return <div class="synced-lyrics-footer" />;
             }
           }
         }}
