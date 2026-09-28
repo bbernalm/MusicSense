@@ -1788,3 +1788,8 @@ body.liquid-glass
     transform: scale(0.96);
   }
 }
+
+/* Más pegado a los ⋮ (su botón es un círculo de 36 px con el icono centrado) */
+ytmusic-player-queue-item > .lg-panel-add {
+  margin-right: -10px;
+}
