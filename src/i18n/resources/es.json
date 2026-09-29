@@ -638,6 +638,16 @@
           "seconds": "{{seconds}} segundos"
         },
         "spatial-audio": "Audio espacial (auriculares)",
+        "stereo-width": "Estéreo amplio",
+        "room": {
+          "label": "Sala (reverberación)",
+          "submenu": {
+            "off": "Sin sala",
+            "studio": "Estudio",
+            "room": "Sala",
+            "hall": "Auditorio"
+          }
+        },
         "background": {
           "label": "Estilo del fondo",
           "submenu": {

@@ -638,6 +638,16 @@
           "seconds": "{{seconds}} seconds"
         },
         "spatial-audio": "Spatial audio (headphones)",
+        "stereo-width": "Wide stereo",
+        "room": {
+          "label": "Room (reverb)",
+          "submenu": {
+            "off": "No room",
+            "studio": "Studio",
+            "room": "Room",
+            "hall": "Concert hall"
+          }
+        },
         "background": {
           "label": "Background style",
           "submenu": {

@@ -2,7 +2,7 @@ import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
 
 import { AnimatedArtwork } from './animated-art';
-import { AudioEngine, EQ_PRESETS } from './audio-engine';
+import { AudioEngine, EQ_PRESETS, ROOMS } from './audio-engine';
 import { backend } from './backend';
 import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
@@ -35,6 +35,8 @@ type LiquidGlassConfig = {
   preferMusic: boolean;
   visualizer: boolean;
   spatialAudio: boolean;
+  stereoWidth: boolean;
+  room: string;
   eqPreset: string;
   crossfade: number;
   translateLyrics: boolean;
@@ -53,6 +55,8 @@ const defaultConfig: LiquidGlassConfig = {
   preferMusic: false,
   visualizer: false,
   spatialAudio: false,
+  stereoWidth: false,
+  room: 'off',
   eqPreset: 'flat',
   crossfade: 0,
   translateLyrics: true,
@@ -197,6 +201,25 @@ export default createPlugin({
         click(item) {
           setConfig({ spatialAudio: item.checked });
         },
+      },
+      {
+        label: t('plugins.liquid-glass.menu.stereo-width'),
+        type: 'checkbox',
+        checked: config.stereoWidth,
+        click(item) {
+          setConfig({ stereoWidth: item.checked });
+        },
+      },
+      {
+        label: t('plugins.liquid-glass.menu.room.label'),
+        submenu: Object.keys(ROOMS).map((room) => ({
+          label: t(`plugins.liquid-glass.menu.room.submenu.${room}`),
+          type: 'radio',
+          checked: config.room === room,
+          click() {
+            setConfig({ room });
+          },
+        })),
       },
       {
         label: t('plugins.liquid-glass.menu.background.label'),
@@ -543,6 +566,8 @@ export default createPlugin({
         this.visualizer = null;
       }
       this.audio?.setSpatial(config.spatialAudio);
+      this.audio?.setWidth(config.stereoWidth);
+      this.audio?.setRoom(config.room);
       this.audio?.setEq(config.eqPreset);
       this.audio?.setCrossfade(config.crossfade);
       this.lyrics?.setTranslate(config.translateLyrics);
