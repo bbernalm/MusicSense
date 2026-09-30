@@ -1,4 +1,6 @@
-appId: "com.github.th-ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u002d\u006d\u0075\u0073\u0069\u0063"
+# MusicSense: identificador propio (instalación aparte de Pear Desktop);
+# también en app.setAppUserModelId (src/index.ts)
+appId: "com.bbernalm.musicsense"
 productName: "\u0059\u006f\u0075\u0054\u0075\u0062\u0065\u0020\u004d\u0075\u0073\u0069\u0063"
 files:
   - '!*'
@@ -24,25 +26,25 @@ mac:
   compression: maximum
 win:
   icon: assets/generated/icons/win/icon.ico
+  # MusicSense: instalador completo (el "web" descargaba el resto desde
+  # GitHub y con el repositorio privado fallaba) y versión portable, x64
   target:
-    - target: nsis-web
+    - target: nsis
       arch:
         - x64
-        - ia32
-        - arm64
     - target: portable
       arch:
         - x64
-        - ia32
-        - arm64
   compression: maximum
-nsisWeb:
-  runAfterFinish: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  runAfterFinish: true
   # MusicSense: nombre visible (productName no se cambia: de él depende la
   # carpeta de datos con la sesión y los ajustes)
   shortcutName: MusicSense
   uninstallDisplayName: MusicSense
-  artifactName: MusicSense-Web-Setup-${version}.${ext}
+  artifactName: MusicSense-Setup-${version}.${ext}
 portable:
   artifactName: MusicSense-${version}-portable.${ext}
 linux:

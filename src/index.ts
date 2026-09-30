@@ -685,8 +685,9 @@ app.whenReady().then(async () => {
 
   // Register appID on windows
   if (is.windows()) {
-    const appID =
-      'com.github.th-ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u002d\u006d\u0075\u0073\u0069\u0063';
+    // MusicSense: identificador propio (el mismo que appId en
+    // electron-builder.yml) para no mezclarse con Pear Desktop en Windows
+    const appID = 'com.bbernalm.musicsense';
     app.setAppUserModelId(appID);
     const appLocation = process.execPath;
     const appData = app.getPath('appData');
@@ -823,7 +824,11 @@ app.whenReady().then(async () => {
     openAtLogin: config.get('options.startAtLogin'),
   });
 
-  if (!is.dev() && config.get('options.autoUpdates')) {
+  // MusicSense: el buscador de actualizaciones de Pear miraba las versiones
+  // de Pear Desktop (y ofrecía instalarlo encima). Apagado hasta tener
+  // versiones propias publicadas
+  const checkUpdates = false as boolean;
+  if (checkUpdates && !is.dev() && config.get('options.autoUpdates')) {
     const updateTimeout = setTimeout(() => {
       electronUpdater.autoUpdater.checkForUpdatesAndNotify();
       clearTimeout(updateTimeout);

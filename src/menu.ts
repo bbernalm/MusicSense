@@ -179,6 +179,8 @@ export const mainMenuTemplate = async (
         {
           label: t('main.menu.options.submenu.auto-update'),
           type: 'checkbox',
+          // MusicSense: sin actualizaciones automáticas (ver src/index.ts)
+          visible: false,
           checked: config.get('options.autoUpdates'),
           click(item: MenuItem) {
             config.setMenuOption('options.autoUpdates', item.checked);
