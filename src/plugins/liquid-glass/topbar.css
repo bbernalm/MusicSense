@@ -897,6 +897,9 @@ body.lg-guide-grid
 body.lg-guide-grid.lg-guide-filtered .lg-guide-list {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* filas a la altura de su contenido (la lista tiene alto fijo y las
+     comprimía hasta encimarse) */
+  grid-auto-rows: max-content;
   align-content: start;
   gap: 6px 4px;
   padding-left: 8px !important;
