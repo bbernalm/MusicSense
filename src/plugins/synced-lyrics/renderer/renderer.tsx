@@ -148,6 +148,7 @@ const lyricsPicker: LyricsRendererChild = { kind: 'LyricsPicker' };
 const lyricsFooter: LyricsRendererChild = { kind: 'Footer' };
 
 export const [currentTime, setCurrentTime] = createSignal<number>(-1);
+const LINE_LEAD_MS = 200;
 export const LyricsRenderer = () => {
   const [scroller, setScroller] = createSignal<VirtualizerHandle>();
   const [stickyRef, setStickRef] = createSignal<HTMLElement | null>(null);
@@ -243,7 +244,9 @@ export const LyricsRenderer = () => {
     ('previous' | 'current' | 'upcoming')[]
   >([]);
   createEffect(() => {
-    const time = currentTime();
+    // MusicSense: la línea se activa un poco antes, como en Apple Music, para
+    // que su transición (tamaño y brillo) termine cuando empieza a cantarse
+    const time = currentTime() + LINE_LEAD_MS;
     const data = currentLyrics()?.data;
 
     if (!data || !data.lines) return setStatuses([]);

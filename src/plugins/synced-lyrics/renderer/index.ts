@@ -54,11 +54,17 @@ export const renderer = createRenderer<
     await this.videoDataChange();
   },
   async videoDataChange() {
+    // MusicSense: el tiempo se lee en cada fotograma (antes cada 100 ms, y la
+    // línea y el relleno de palabras iban con retraso)
     if (!this.updateTimestampInterval) {
-      this.updateTimestampInterval = setInterval(
-        () => setCurrentTime((_ytAPI?.getCurrentTime() ?? 0) * 1000),
-        100,
-      );
+      let last = -1;
+      const tick = () => {
+        const time = (_ytAPI?.getCurrentTime() ?? 0) * 1000;
+        if (time !== last) setCurrentTime(time);
+        last = time;
+        this.updateTimestampInterval = requestAnimationFrame(tick);
+      };
+      this.updateTimestampInterval = requestAnimationFrame(tick);
     }
 
     // prettier-ignore

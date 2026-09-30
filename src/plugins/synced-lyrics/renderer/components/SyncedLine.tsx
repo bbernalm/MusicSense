@@ -1,11 +1,4 @@
-import {
-  createEffect,
-  For,
-  Show,
-  createSignal,
-  createMemo,
-  untrack,
-} from 'solid-js';
+import { createEffect, For, Show, createSignal, createMemo } from 'solid-js';
 import { type VirtualizerHandle } from 'virtua/solid';
 
 import { type LineLyrics } from '@/plugins/synced-lyrics/types';
@@ -117,13 +110,33 @@ export const SyncedLine = (props: SyncedLineProps) => {
     });
   });
 
-  // Al volverse la línea actual: cuánto lleva sonando (por si se entra a
-  // mitad de línea, p. ej. al adelantar)
+  // Cuánto tarda en cantarse la línea (s). La duración que dan las letras va
+  // hasta la línea siguiente e incluye los silencios (y la última es
+  // infinita): se limita a lo que suele durar cantar ese texto
+  const fill = createMemo(() => {
+    const duration = props.line.duration / 1000;
+    // ~0,095 s por letra y un margen para la última palabra
+    const letters = text().length * 0.095;
+    const sung = letters + 0.6;
+    const limit = Number.isFinite(duration) && duration > 0 ? duration : sung;
+    return Math.max(0.4, Math.min(limit * 0.97, sung));
+  });
+
+  // En cada fotograma, la línea actual recibe su avance (--lp, de 0 a 1): el
+  // CSS rellena, eleva y hace brillar cada palabra con él. Así sigue al
+  // tiempo real aunque se pause o se salte a otro punto
   let lyricsDiv: HTMLDivElement | undefined;
   createEffect(() => {
-    if (props.status !== 'current' || !lyricsDiv) return;
-    const elapsed = Math.max(0, untrack(currentTime) - props.line.timeInMs);
-    lyricsDiv.style.setProperty('--line-elapsed', `${elapsed / 1000}s`);
+    // Se lee el estado antes de nada para que el efecto lo siga siempre
+    const status = props.status;
+    if (!lyricsDiv) return;
+    if (status !== 'current') {
+      lyricsDiv.style.setProperty('--lp', status === 'previous' ? '1' : '0');
+      return;
+    }
+    const elapsed = (currentTime() - props.line.timeInMs) / 1000;
+    const progress = Math.min(1, Math.max(0, elapsed / fill()));
+    lyricsDiv.style.setProperty('--lp', progress.toFixed(4));
   });
 
   const translation = createMemo(() => translations()[text()] ?? '');
@@ -161,6 +174,7 @@ export const SyncedLine = (props: SyncedLineProps) => {
             class="text-lyrics"
             ref={(div: HTMLDivElement) => {
               lyricsDiv = div;
+              div.style.setProperty('--fill', fill().toFixed(3));
               // TODO: Investigate the animation, even though the duration is properly set, all lines have the same animation duration
               div.style.setProperty(
                 '--lyrics-duration',
