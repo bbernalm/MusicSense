@@ -2,7 +2,10 @@
  * Ajustes rápidos: botón (deslizadores) en la cápsula, junto al volumen y
  * las letras. Abre hacia arriba un panel de vidrio, como el del volumen, con:
  * - Sonido: ecualizador, fundido, audio espacial, estéreo amplio y sala.
- * - Reproductor: estilo del fondo, fondo animado y traducir letras.
+ * - Reproductor: estilo del fondo, fondo animado, visualizador y traducir
+ *   letras.
+ * Las listas (ecualizador, fundido, sala, fondo) son una fila con la opción
+ * elegida que abre un desplegable al lado del panel.
  * - "Más ajustes": abre el panel de configuración completo.
  *
  * Las opciones son las del menú de nuestro complemento (se pulsan igual que
@@ -33,6 +36,11 @@ export type QuickMenuLabels = {
 const ICON =
   '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></g></svg>';
 
+const CHEVRON =
+  '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHECK =
+  '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 const BUTTON_CLASS = 'lg-quick-button';
 
 const el = <K extends keyof HTMLElementTagNameMap>(
@@ -49,14 +57,26 @@ const el = <K extends keyof HTMLElementTagNameMap>(
 export class QuickMenu {
   private button: HTMLButtonElement | null = null;
   private panel: HTMLDivElement | null = null;
+  // Desplegable con las opciones de una lista (ecualizador, fundido...)
+  private flyout: HTMLDivElement | null = null;
+  private flyoutFor = '';
   private timer: number | null = null;
   private readonly onDocumentDown = (event: PointerEvent) => {
     const target = event.target as Node;
-    if (this.panel?.contains(target) || this.button?.contains(target)) return;
+    if (this.flyout?.contains(target)) return;
+    if (this.panel?.contains(target)) {
+      // Clic en el panel fuera de la fila abierta: se cierra el desplegable
+      if (!(target as Element).closest?.('.lg-quick-row.open'))
+        this.closeFlyout();
+      return;
+    }
+    if (this.button?.contains(target)) return;
     this.close();
   };
   private readonly onKey = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') this.close();
+    if (event.key !== 'Escape') return;
+    if (this.flyout?.classList.contains('visible')) this.closeFlyout();
+    else this.close();
   };
   private readonly onResize = () => this.close();
 
@@ -69,8 +89,12 @@ export class QuickMenu {
   start() {
     const panel = el('div', 'lg-quick-menu');
     panel.setAttribute('role', 'dialog');
-    document.body.append(panel);
+    const flyout = el('div', 'lg-quick-flyout');
+    document.body.append(panel, flyout);
     this.panel = panel;
+    this.flyout = flyout;
+    // Al desplazar el panel, el desplegable ya no estaría junto a su fila
+    panel.addEventListener('scroll', () => this.closeFlyout());
     // YouTube Music puede volver a crear la barra: se revisa periódicamente
     this.timer = window.setInterval(() => this.attach(), 500);
     this.attach();
@@ -89,6 +113,8 @@ export class QuickMenu {
     this.button = null;
     this.panel?.remove();
     this.panel = null;
+    this.flyout?.remove();
+    this.flyout = null;
   }
 
   private attach() {
@@ -119,6 +145,7 @@ export class QuickMenu {
   }
 
   private close() {
+    this.closeFlyout();
     this.panel?.classList.remove('visible');
     this.button?.classList.remove('active');
   }
@@ -210,25 +237,83 @@ export class QuickMenu {
       return row;
     }
 
-    // Opciones de una lista (ecualizador, fundido, sala, fondo): fichas
-    const block = el('div', 'lg-quick-block');
-    block.append(el('span', 'lg-quick-label', node.label));
-    const chips = el('div', 'lg-quick-chips');
-    for (const option of node.submenu?.items ?? []) {
-      if (option.type !== 'radio') continue;
-      const chip = el('button', 'lg-quick-chip', option.label);
-      chip.type = 'button';
-      chip.classList.toggle('active', Boolean(option.checked));
-      chip.addEventListener('click', () => {
-        if (option.checked) return;
-        chips
-          .querySelectorAll('.lg-quick-chip')
-          .forEach((other) => other.classList.toggle('active', other === chip));
-        this.press(option).catch(console.error);
-      });
-      chips.append(chip);
-    }
-    block.append(chips);
-    return block;
+    // Opciones de una lista (ecualizador, fundido, sala, fondo): fila con la
+    // opción elegida que abre un desplegable al lado del panel
+    const options = (node.submenu?.items ?? []).filter(
+      (option) => option.type === 'radio',
+    );
+    const selected = options.find((option) => option.checked);
+    const row = el('div', 'lg-quick-row clickable lg-quick-select');
+    row.classList.toggle('open', this.flyoutFor === node.label);
+    row.append(
+      el('span', 'lg-quick-label', node.label),
+      el('span', 'lg-quick-value', selected?.label ?? ''),
+    );
+    const chevron = el('span', 'lg-quick-chevron');
+    chevron.innerHTML = CHEVRON;
+    row.append(chevron);
+    row.addEventListener('click', () => {
+      if (this.flyoutFor === node.label) this.closeFlyout();
+      else this.openFlyout(row, node.label, options);
+    });
+    return row;
+  }
+
+  private openFlyout(row: HTMLElement, label: string, options: MenuNode[]) {
+    const flyout = this.flyout;
+    const panel = this.panel;
+    if (!flyout || !panel) return;
+    this.panel
+      ?.querySelectorAll('.lg-quick-row.open')
+      .forEach((other) => other.classList.remove('open'));
+    row.classList.add('open');
+    this.flyoutFor = label;
+
+    flyout.replaceChildren(
+      ...options.map((option) => {
+        const item = el('button', 'lg-quick-option');
+        item.type = 'button';
+        item.append(el('span', '', option.label));
+        const mark = el('span', 'lg-quick-check');
+        if (option.checked) mark.innerHTML = CHECK;
+        item.append(mark);
+        item.addEventListener('click', () => {
+          this.closeFlyout();
+          if (option.checked) return;
+          // Respuesta inmediata en la fila; el estado real llega al releer
+          const value = row.querySelector('.lg-quick-value');
+          if (value) value.textContent = option.label;
+          this.press(option).catch(console.error);
+        });
+        return item;
+      }),
+    );
+
+    // A la derecha del panel; si no cabe, a la izquierda. Alineado con la
+    // fila y sin salirse por abajo
+    const panelRect = panel.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    flyout.classList.add('measure');
+    const width = flyout.offsetWidth;
+    const height = flyout.offsetHeight;
+    flyout.classList.remove('measure');
+    const gap = 10;
+    const right = panelRect.right + gap;
+    const fitsRight = right + width <= window.innerWidth - 12;
+    const left = fitsRight ? right : panelRect.left - gap - width;
+    const bottomLimit = window.innerHeight - height - 12;
+    const top = Math.max(12, Math.min(rowRect.top - 6, bottomLimit));
+    flyout.style.left = `${Math.round(left)}px`;
+    flyout.style.top = `${Math.round(top)}px`;
+    flyout.classList.toggle('left', !fitsRight);
+    flyout.classList.add('visible');
+  }
+
+  private closeFlyout() {
+    this.flyoutFor = '';
+    this.flyout?.classList.remove('visible');
+    this.panel
+      ?.querySelectorAll('.lg-quick-row.open')
+      .forEach((row) => row.classList.remove('open'));
   }
 }
