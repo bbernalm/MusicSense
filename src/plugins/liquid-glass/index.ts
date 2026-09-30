@@ -25,7 +25,7 @@ import style from './style.css?inline';
 import { TopBar } from './topbar';
 import topBarStyle from './topbar.css?inline';
 import { Visualizer } from './visualizer';
-import { WaveProgress } from './wave';
+import { PROGRESS_STYLES, WaveProgress } from './wave';
 import { WrappedView } from './wrapped';
 import wrappedStyle from './wrapped.css?inline';
 
@@ -46,6 +46,8 @@ type LiquidGlassConfig = {
   translateLyrics: boolean;
   // 'balatro' era el estilo anterior: ahora cuenta como 'liquid'
   background: 'artwork' | 'liquid' | 'balatro';
+  // Estilo de la barra de progreso (wave.ts)
+  progressStyle: string;
   blur: number;
 };
 
@@ -66,6 +68,7 @@ const defaultConfig: LiquidGlassConfig = {
   translateLyrics: true,
   background: 'liquid',
   blur: 15,
+  progressStyle: 'wave',
 };
 
 type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
@@ -222,6 +225,17 @@ export default createPlugin({
           checked: config.room === room,
           click() {
             setConfig({ room });
+          },
+        })),
+      },
+      {
+        label: t('plugins.liquid-glass.menu.progress-style.label'),
+        submenu: PROGRESS_STYLES.map((style) => ({
+          label: t(`plugins.liquid-glass.menu.progress-style.submenu.${style}`),
+          type: 'radio',
+          checked: config.progressStyle === style,
+          click() {
+            setConfig({ progressStyle: style });
           },
         })),
       },
@@ -446,6 +460,7 @@ export default createPlugin({
             menu('room.label'),
           ],
           playerItems: [
+            menu('progress-style.label'),
             menu('background.label'),
             menu('animated-background'),
             menu('visualizer'),
@@ -620,6 +635,7 @@ export default createPlugin({
       this: {
         refraction: LiquidRefraction | null;
         lyrics: LyricsMode | null;
+        wave: WaveProgress | null;
         visualizer: Visualizer | null;
         audio: AudioEngine | null;
         liquid: LiquidBackground | null;
@@ -645,6 +661,7 @@ export default createPlugin({
       this.audio?.setEq(config.eqPreset);
       this.audio?.setCrossfade(config.crossfade);
       this.lyrics?.setTranslate(config.translateLyrics);
+      this.wave?.setStyle(config.progressStyle);
 
       // Fondo líquido (liquid-background.ts) en lugar de la portada
       // desenfocada

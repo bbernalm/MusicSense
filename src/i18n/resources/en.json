@@ -655,7 +655,16 @@
             "liquid": "Liquid (artwork waves)"
           }
         },
-        "visualizer": "Visualizer around the cover"
+        "visualizer": "Visualizer around the cover",
+        "progress-style": {
+          "label": "Progress bar",
+          "submenu": {
+            "wave": "Wave",
+            "wave-dot": "Wave with dot",
+            "line": "Line",
+            "line-dot": "Line with dot"
+          }
+        }
       },
       "player": {
         "show-video": "Show video",

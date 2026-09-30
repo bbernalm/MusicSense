@@ -52,7 +52,7 @@ const playerBar = () =>
 
 // Zonas de las píldoras que no son botones ni enlaces
 const INTERACTIVE =
-  'button, a, input, [role="button"], [role="slider"], tp-yt-paper-slider, #progress-bar, .lg-wave, .image, .content-info-wrapper';
+  'button, a, input, [role="button"], [role="slider"], tp-yt-paper-slider, #progress-bar, .lg-seek, .image, .content-info-wrapper';
 
 const VIDEO_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
   <rect x="3" y="5.5" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>

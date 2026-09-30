@@ -1,13 +1,25 @@
 /*
- * Barra de progreso ondulada (estilo Android 13+).
- * Se dibuja encima de la barra nativa de YouTube Music, que sigue
- * encargándose de los clics y el arrastre.
+ * Barra de progreso propia, encima de la de YouTube Music (que queda debajo
+ * solo para el teclado):
+ * - Se pulsa en cualquier punto y salta ahí; se arrastra de forma fluida con
+ *   una vista previa del tiempo. La de YouTube agarraba su indicador al
+ *   pulsar cerca (no dejaba volver unos segundos) e iba a saltos.
+ * - Avanza en cada fotograma (el video solo avisa ~4 veces por segundo).
+ * - Estilos (opción progressStyle, clase lg-seek-<estilo> en body):
+ *   onda + indicador (Android 13), onda + bolita, línea y línea + bolita.
+ * - Tiempo transcurrido a la izquierda y restante a la derecha.
  */
 
-type SliderElement = HTMLElement & {
-  value?: number;
-  immediateValue?: number;
-  max?: number;
+export const PROGRESS_STYLES = [
+  'wave',
+  'wave-dot',
+  'line',
+  'line-dot',
+] as const;
+export type ProgressStyle = (typeof PROGRESS_STYLES)[number];
+
+type Player = HTMLElement & {
+  seekTo?: (seconds: number, ahead: boolean) => void;
 };
 
 // 3:07 o 1:02:05
@@ -21,127 +33,207 @@ const formatTime = (totalSeconds: number) => {
     : `${minutes}:${secs}`;
 };
 
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
 export class WaveProgress {
   private elapsed: HTMLSpanElement | null = null;
   private remaining: HTMLSpanElement | null = null;
   private overlay: HTMLDivElement | null = null;
-  private slider: SliderElement | null = null;
+  private tip: HTMLDivElement | null = null;
   private video: HTMLVideoElement | null = null;
+  private frame: number | null = null;
   private retryTimer: number | null = null;
-  private readonly update = () => this.render();
+  // Mientras se arrastra: posición elegida (0 a 1)
+  private dragRatio: number | null = null;
+  // Tras soltar, hasta que el video llega al punto elegido
+  private pendingRatio: number | null = null;
+  private pendingUntil = 0;
+  private lastRatio = -1;
+  private lastSecond = -1;
+  private style: ProgressStyle = 'wave';
+
   private readonly onPlay = () => this.setPlaying(true);
   private readonly onPause = () => this.setPlaying(false);
-  private readonly onHover = (event: MouseEvent) => this.fixHoverTime(event);
 
   start() {
+    this.setStyle(this.style);
     this.attach();
   }
 
   stop() {
     if (this.retryTimer !== null) window.clearTimeout(this.retryTimer);
+    if (this.frame !== null) cancelAnimationFrame(this.frame);
     this.retryTimer = null;
-    this.slider?.removeEventListener('immediate-value-change', this.update);
-    this.slider?.removeEventListener('value-change', this.update);
-    window.removeEventListener('mousemove', this.onHover);
-    if (this.video) {
-      this.video.removeEventListener('timeupdate', this.update);
-      this.video.removeEventListener('seeked', this.update);
-      this.video.removeEventListener('play', this.onPlay);
-      this.video.removeEventListener('pause', this.onPause);
-    }
+    this.frame = null;
+    this.video?.removeEventListener('play', this.onPlay);
+    this.video?.removeEventListener('pause', this.onPause);
     this.overlay?.remove();
-    this.overlay = null;
+    this.tip?.remove();
     this.elapsed?.remove();
     this.remaining?.remove();
+    this.overlay = null;
+    this.tip = null;
     this.elapsed = null;
     this.remaining = null;
-    this.slider = null;
     this.video = null;
+    for (const name of PROGRESS_STYLES)
+      document.body.classList.remove(`lg-seek-${name}`);
+  }
+
+  setStyle(style: string) {
+    const next = PROGRESS_STYLES.find((name) => name === style) ?? 'wave';
+    this.style = next;
+    for (const name of PROGRESS_STYLES)
+      document.body.classList.toggle(`lg-seek-${name}`, name === next);
   }
 
   private attach() {
-    const slider = document.querySelector<SliderElement>(
+    const slider = document.querySelector<HTMLElement>(
       'ytmusic-player-bar #progress-bar',
     );
-    const container = slider?.querySelector<HTMLElement>('#sliderContainer');
     // El del reproductor de YouTube (no el de la portada animada)
     const video = document.querySelector<HTMLVideoElement>(
       '#movie_player video.video-stream',
     );
-    if (!slider || !container || !video) {
+    if (!slider || !video) {
       this.retryTimer = window.setTimeout(() => this.attach(), 1000);
       return;
     }
-
-    this.slider = slider;
     this.video = video;
 
     const overlay = document.createElement('div');
-    overlay.className = 'lg-wave';
+    overlay.className = 'lg-seek';
     overlay.innerHTML =
-      '<div class="lg-wave-played"><div class="lg-wave-line"></div><div class="lg-wave-flat"></div></div>';
-    container.append(overlay);
+      '<div class="lg-seek-track"></div><div class="lg-seek-played"><div class="lg-seek-wave"></div><div class="lg-seek-flat"></div></div><div class="lg-seek-thumb"></div>';
+    slider.append(overlay);
     this.overlay = overlay;
 
-    slider.addEventListener('immediate-value-change', this.update);
-    slider.addEventListener('value-change', this.update);
-    video.addEventListener('timeupdate', this.update);
-    video.addEventListener('seeked', this.update);
+    const tip = document.createElement('div');
+    tip.className = 'lg-seek-tip';
+    document.body.append(tip);
+    this.tip = tip;
+
+    this.bindPointer(overlay);
     video.addEventListener('play', this.onPlay);
     video.addEventListener('pause', this.onPause);
-    // En la ventana para ejecutarse después del cálculo de YouTube Music
-    window.addEventListener('mousemove', this.onHover);
-
     this.setPlaying(!video.paused);
-    this.render();
+    this.loop();
   }
 
   private setPlaying(playing: boolean) {
     this.overlay?.classList.toggle('playing', playing);
   }
 
-  /*
-   * YouTube Music calcula el tiempo que muestra al pasar el ratón como si la
-   * barra empezara en el borde izquierdo de la ventana. Se corrige con la
-   * posición real de la barra dentro de la píldora.
-   */
-  private fixHoverTime(event: MouseEvent) {
-    const label = document.querySelector<HTMLElement>('#hover-time-info');
-    const bar = document.querySelector<HTMLElement>('ytmusic-player-bar');
-    if (!this.slider || !this.video || !label || !bar) return;
-    if (!this.slider.contains(event.target as Node)) return;
-
-    const rect = this.slider.getBoundingClientRect();
-    const duration = this.video.duration;
-    if (!(duration > 0) || rect.width <= 0) return;
-
-    const ratio = Math.min(
-      1,
-      Math.max(0, (event.clientX - rect.left) / rect.width),
-    );
-    label.textContent = formatTime(ratio * duration);
-    label.style.left = `${event.clientX - bar.getBoundingClientRect().left}px`;
+  private ratioAt(clientX: number) {
+    const rect = this.overlay?.getBoundingClientRect();
+    if (!rect || rect.width <= 0) return 0;
+    return clamp01((clientX - rect.left) / rect.width);
   }
 
-  private render() {
-    if (!this.overlay) return;
-    let ratio = 0;
-    const max = this.slider?.max;
-    const value = this.slider?.immediateValue ?? this.slider?.value;
-    if (typeof max === 'number' && max > 0 && typeof value === 'number') {
-      ratio = value / max;
-    } else if (this.video && this.video.duration > 0) {
-      ratio = this.video.currentTime / this.video.duration;
+  private duration() {
+    const duration = this.video?.duration ?? 0;
+    return Number.isFinite(duration) && duration > 0 ? duration : 0;
+  }
+
+  private bindPointer(overlay: HTMLDivElement) {
+    // La barra de YouTube no debe enterarse (haría su propio salto)
+    const block = (event: Event) => event.stopPropagation();
+    for (const type of ['mousedown', 'touchstart', 'click', 'tap'])
+      overlay.addEventListener(type, block);
+
+    overlay.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || !this.duration()) return;
+      event.stopPropagation();
+      event.preventDefault();
+      overlay.setPointerCapture(event.pointerId);
+      overlay.classList.add('dragging');
+      this.dragRatio = this.ratioAt(event.clientX);
+      this.showTip(event.clientX);
+    });
+    overlay.addEventListener('pointermove', (event) => {
+      if (this.dragRatio !== null) this.dragRatio = this.ratioAt(event.clientX);
+      this.showTip(event.clientX);
+    });
+    const finish = (event: PointerEvent, apply: boolean) => {
+      if (this.dragRatio === null) return;
+      const ratio = this.ratioAt(event.clientX);
+      this.dragRatio = null;
+      overlay.classList.remove('dragging');
+      if (apply) this.seek(ratio);
+    };
+    overlay.addEventListener('pointerup', (event) => finish(event, true));
+    overlay.addEventListener('pointercancel', (event) => finish(event, false));
+    overlay.addEventListener('pointerleave', () => {
+      if (this.dragRatio === null) this.hideTip();
+    });
+    overlay.addEventListener('lostpointercapture', () => {
+      if (this.dragRatio === null) this.hideTip();
+    });
+  }
+
+  private seek(ratio: number) {
+    const duration = this.duration();
+    if (!duration) return;
+    const seconds = ratio * duration;
+    const player = document.querySelector<Player>('#movie_player');
+    if (player?.seekTo) player.seekTo(seconds, true);
+    else if (this.video) this.video.currentTime = seconds;
+    // Hasta que el video llegue ahí se sigue mostrando el punto elegido
+    this.pendingRatio = ratio;
+    this.pendingUntil = performance.now() + 1500;
+  }
+
+  // Tiempo en el punto del puntero, encima de la barra
+  private showTip(clientX: number) {
+    const tip = this.tip;
+    const rect = this.overlay?.getBoundingClientRect();
+    const duration = this.duration();
+    if (!tip || !rect || !duration) return;
+    const ratio = this.dragRatio ?? this.ratioAt(clientX);
+    tip.textContent = formatTime(ratio * duration);
+    const offset = ratio * rect.width;
+    tip.style.left = `${rect.left + offset}px`;
+    tip.style.top = `${rect.top}px`;
+    tip.classList.add('visible');
+  }
+
+  private hideTip() {
+    this.tip?.classList.remove('visible');
+  }
+
+  // Cada fotograma: posición real del video (o la del arrastre)
+  private loop() {
+    this.frame = requestAnimationFrame(() => this.loop());
+    if (!this.overlay?.isConnected) {
+      // YouTube Music volvió a crear la barra: se engancha a la nueva
+      if (this.frame !== null) cancelAnimationFrame(this.frame);
+      this.frame = null;
+      this.overlay?.remove();
+      this.tip?.remove();
+      this.video?.removeEventListener('play', this.onPlay);
+      this.video?.removeEventListener('pause', this.onPause);
+      this.attach();
+      return;
     }
-    ratio = Math.min(1, Math.max(0, ratio));
-    this.overlay.style.setProperty('--lg-progress', String(ratio));
-    // La pista gris de la barra nativa usa el mismo valor para empezar tras la onda
-    this.slider?.style.setProperty('--lg-progress', String(ratio));
-    this.renderTimes(ratio);
+    const duration = this.duration();
+    let ratio = duration ? (this.video?.currentTime ?? 0) / duration : 0;
+    if (this.pendingRatio !== null) {
+      const arrived = Math.abs(ratio - this.pendingRatio) * duration < 1;
+      if (arrived || performance.now() > this.pendingUntil)
+        this.pendingRatio = null;
+      else ratio = this.pendingRatio;
+    }
+    if (this.dragRatio !== null) ratio = this.dragRatio;
+    ratio = clamp01(ratio);
+    if (Math.abs(ratio - this.lastRatio) > 0.00005) {
+      this.lastRatio = ratio;
+      this.overlay.style.setProperty('--lg-progress', ratio.toFixed(5));
+    }
+    this.renderTimes(ratio, duration);
   }
 
   // Tiempo transcurrido a la izquierda de la barra y restante a la derecha
-  private renderTimes(ratio: number) {
+  private renderTimes(ratio: number, duration: number) {
     const bar = document.querySelector('ytmusic-player-bar');
     if (!bar) return;
     if (!this.elapsed?.isConnected || !this.remaining?.isConnected) {
@@ -152,15 +244,15 @@ export class WaveProgress {
       this.remaining = document.createElement('span');
       this.remaining.className = 'lg-time lg-time-remaining';
       bar.append(this.elapsed, this.remaining);
+      this.lastSecond = -1;
     }
-    const duration = this.video?.duration ?? 0;
-    const known = Number.isFinite(duration) && duration > 0;
-    const current = known ? ratio * duration : 0;
-    const elapsedText = known ? formatTime(current) : '';
-    const remainingText = known ? `-${formatTime(duration - current)}` : '';
-    if (this.elapsed.textContent !== elapsedText)
-      this.elapsed.textContent = elapsedText;
-    if (this.remaining.textContent !== remainingText)
-      this.remaining.textContent = remainingText;
+    const current = ratio * duration;
+    const second = duration ? Math.floor(current) : -2;
+    if (second === this.lastSecond) return;
+    this.lastSecond = second;
+    this.elapsed.textContent = duration ? formatTime(current) : '';
+    this.remaining.textContent = duration
+      ? `-${formatTime(duration - current)}`
+      : '';
   }
 }

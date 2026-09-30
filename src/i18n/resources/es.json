@@ -655,7 +655,16 @@
             "liquid": "Líquido (ondas con la portada)"
           }
         },
-        "visualizer": "Visualizador en la portada"
+        "visualizer": "Visualizador en la portada",
+        "progress-style": {
+          "label": "Barra de progreso",
+          "submenu": {
+            "wave": "Onda",
+            "wave-dot": "Onda con bolita",
+            "line": "Línea",
+            "line-dot": "Línea con bolita"
+          }
+        }
       },
       "player": {
         "show-video": "Ver video",
