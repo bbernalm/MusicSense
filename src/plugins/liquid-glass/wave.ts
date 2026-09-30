@@ -5,7 +5,7 @@
  *   una vista previa del tiempo. La de YouTube agarraba su indicador al
  *   pulsar cerca (no dejaba volver unos segundos) e iba a saltos.
  * - Avanza en cada fotograma (el video solo avisa ~4 veces por segundo).
- * - Estilos (opción progressStyle, clase lg-seek-<estilo> en body):
+ * - Estilos (opción progressStyle, clase lg-progress-<estilo> en body):
  *   onda + indicador (Android 13), onda + bolita, línea y línea + bolita.
  * - Tiempo transcurrido a la izquierda y restante a la derecha.
  */
@@ -77,14 +77,14 @@ export class WaveProgress {
     this.remaining = null;
     this.video = null;
     for (const name of PROGRESS_STYLES)
-      document.body.classList.remove(`lg-seek-${name}`);
+      document.body.classList.remove(`lg-progress-${name}`);
   }
 
   setStyle(style: string) {
     const next = PROGRESS_STYLES.find((name) => name === style) ?? 'wave';
     this.style = next;
     for (const name of PROGRESS_STYLES)
-      document.body.classList.toggle(`lg-seek-${name}`, name === next);
+      document.body.classList.toggle(`lg-progress-${name}`, name === next);
   }
 
   private attach() {
@@ -104,7 +104,7 @@ export class WaveProgress {
     const overlay = document.createElement('div');
     overlay.className = 'lg-seek';
     overlay.innerHTML =
-      '<div class="lg-seek-track"></div><div class="lg-seek-played"><div class="lg-seek-wave"></div><div class="lg-seek-flat"></div></div><div class="lg-seek-thumb"></div>';
+      '<div class="lg-seek-track"></div><div class="lg-seek-played"><div class="lg-seek-strip"></div><div class="lg-seek-flat"></div></div><div class="lg-seek-thumb"></div>';
     slider.append(overlay);
     this.overlay = overlay;
 

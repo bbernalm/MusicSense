@@ -1390,7 +1390,7 @@ body.liquid-glass ytmusic-player-bar #hover-time-info {
 }
 
 /* Onda: tira más ancha que se desplaza con transform (sin redibujar) */
-.lg-seek-wave {
+.lg-seek-strip {
   position: absolute;
   top: 0;
   left: 0;
@@ -1407,12 +1407,16 @@ body.liquid-glass ytmusic-player-bar #hover-time-info {
 }
 
 /* Con la onda, al sonar se cambia la línea recta por la onda */
-body:is(.lg-seek-wave, .lg-seek-wave-dot) .lg-seek.playing .lg-seek-wave {
+body:is(.lg-progress-wave, .lg-progress-wave-dot)
+  .lg-seek.playing
+  .lg-seek-strip {
   opacity: 1;
   animation-play-state: running;
 }
 
-body:is(.lg-seek-wave, .lg-seek-wave-dot) .lg-seek.playing .lg-seek-flat {
+body:is(.lg-progress-wave, .lg-progress-wave-dot)
+  .lg-seek.playing
+  .lg-seek-flat {
   opacity: 0;
 }
 
@@ -1443,22 +1447,23 @@ body:is(.lg-seek-wave, .lg-seek-wave-dot) .lg-seek.playing .lg-seek-flat {
   transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.64, 1);
 }
 
-body:is(.lg-seek-wave-dot, .lg-seek-line-dot) .lg-seek-thumb {
+body:is(.lg-progress-wave-dot, .lg-progress-line-dot) .lg-seek-thumb {
   width: 13px;
   height: 13px;
   border-radius: 50%;
 }
 
 /* Línea: más gruesa, sin indicador (crece al pasar el ratón) */
-body:is(.lg-seek-line, .lg-seek-line-dot) .lg-seek {
+body:is(.lg-progress-line, .lg-progress-line-dot) .lg-seek {
   --lg-seek-height: 5px;
 }
 
-body:is(.lg-seek-line, .lg-seek-line-dot) .lg-seek:is(:hover, .dragging) {
+body:is(.lg-progress-line, .lg-progress-line-dot)
+  .lg-seek:is(:hover, .dragging) {
   --lg-seek-height: 8px;
 }
 
-body.lg-seek-line .lg-seek-thumb {
+body.lg-progress-line .lg-seek-thumb {
   display: none;
 }
 
