@@ -819,3 +819,34 @@ body.lg-guide-filtered .lg-guide-list {
   font-family: var(--lg-font);
   font-size: 13px;
 }
+
+/* Fila de Last.fm en Integraciones: nombre, estado y botón "Configurar" */
+.lg-card-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lg-card-row-text small {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+.lg-card-button {
+  flex: none;
+  padding: 6px 14px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lg-card-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}

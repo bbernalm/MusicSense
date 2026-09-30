@@ -292,3 +292,121 @@
   opacity: 0.4;
   cursor: default;
 }
+
+/* ---------- Pestaña Last.fm (lastfm-panel.ts) ---------- */
+.lg-lastfm-hero,
+.lg-lastfm-account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+}
+
+.lg-lastfm-hero {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lg-lastfm-logo {
+  display: inline-flex;
+  flex: none;
+}
+
+.lg-lastfm-avatar {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.lg-lastfm-name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.lg-lastfm-badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--lg-accent, #d51007);
+  color: #111;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lg-lastfm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+
+.lg-lastfm-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.lg-lastfm-input:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.lg-lastfm-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.lg-lastfm-button {
+  flex: none;
+  padding: 8px 16px;
+  border: 1px solid var(--lg-edge);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lg-lastfm-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.lg-lastfm-button.primary {
+  align-self: flex-start;
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+.lg-lastfm-button.danger {
+  color: #ff6b6b;
+}
+
+.lg-lastfm-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.lg-lastfm-error,
+.lg-lastfm-note {
+  margin: 10px 6px 0;
+  font-size: 13px;
+}
+
+.lg-lastfm-error {
+  color: #ff6b6b;
+}
+
+.lg-lastfm-note {
+  opacity: 0.55;
+}

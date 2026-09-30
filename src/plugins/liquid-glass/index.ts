@@ -4,6 +4,7 @@ import { createPlugin } from '@/utils';
 import { AnimatedArtwork } from './animated-art';
 import { AudioEngine, EQ_PRESETS, ROOMS } from './audio-engine';
 import { backend } from './backend';
+import { LastFmView } from './lastfm-panel';
 import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
@@ -301,6 +302,14 @@ export default createPlugin({
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
       this.invoke = (channel, ...args) => ipc.invoke(channel, ...args);
+      const lastFm = new LastFmView(
+        (key, vars) => t(`plugins.liquid-glass.lastfm.${key}`, vars),
+        (channel, ...args) => ipc.invoke(channel, ...args),
+        () => this.settings?.onLastFmChanged(),
+      );
+      ipc.on('liquid-glass:lastfm-changed', () =>
+        this.settings?.onLastFmChanged(),
+      );
       this.settings = new SettingsPanel(
         {
           title: t('plugins.liquid-glass.settings'),
@@ -312,6 +321,7 @@ export default createPlugin({
           ownPlugin: t('plugins.liquid-glass.name'),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
+        lastFm,
       );
       this.settings.start();
       this.topBar = new TopBar(
@@ -359,13 +369,19 @@ export default createPlugin({
           minutes: (count) =>
             t('plugins.liquid-glass.profile.minutes', { count }),
           discord: 'Discord',
-          scrobbler: t('plugins.liquid-glass.profile.scrobbler'),
+          lastFmConnected: (user) =>
+            t('plugins.liquid-glass.lastfm.connected-as', { user }),
+          lastFmOff: t('plugins.liquid-glass.lastfm.not-connected'),
+          lastFmSetup: t('plugins.liquid-glass.lastfm.setup'),
           share: t('plugins.liquid-glass.profile.share'),
           wrapped: (month) =>
             t('plugins.liquid-glass.wrapped.button', { month }),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
         (month) => wrapped.open(month),
+        () => {
+          this.settings?.openLastFm().catch(console.error);
+        },
       );
       this.profile.start();
 

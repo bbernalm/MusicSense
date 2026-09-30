@@ -3,7 +3,6 @@ import { net } from 'electron';
 import { APPLICATION_NAME } from '@/i18n';
 
 import { ScrobblerBase } from './base';
-import { cleanTrackTitle } from './clean-title';
 
 import type { ScrobblerPluginConfig } from '../index';
 import type { SetConfType } from '../main';
@@ -91,7 +90,7 @@ function createRequestBody(
 
   const trackMetadata = {
     artist_name: artist,
-    track_name: cleanTrackTitle(title),
+    track_name: title,
     release_name: songInfo.album ?? undefined,
     additional_info: {
       media_player: `${APPLICATION_NAME} Desktop App`,

@@ -5,7 +5,6 @@ import { BrowserWindow, dialog, net } from 'electron';
 import { t } from '@/i18n';
 
 import { ScrobblerBase } from './base';
-import { cleanTrackTitle } from './clean-title';
 
 import type { ScrobblerPluginConfig } from '../index';
 import type { SetConfType } from '../main';
@@ -139,7 +138,7 @@ export class LastFmScrobbler extends ScrobblerBase {
         : songInfo.artist;
 
     const postData: LastFmSongData = {
-      track: cleanTrackTitle(title),
+      track: title,
       duration: songInfo.songDuration,
       artist: artist,
       ...(songInfo.album ? { album: songInfo.album } : undefined), // Will be undefined if current song is a video

@@ -10,6 +10,8 @@
  * que funciona igual que el menú original.
  */
 
+import type { LastFmView } from './lastfm-panel';
+
 type MenuNode = {
   label: string;
   type: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio';
@@ -35,7 +37,7 @@ export type SettingsLabels = {
 
 type Tab = {
   label: string;
-  kind: 'plugins' | 'items';
+  kind: 'plugins' | 'items' | 'lastfm';
   items: MenuNode[];
 };
 
@@ -94,6 +96,7 @@ export class SettingsPanel {
   private menu: Tab[] = [];
   private tab = 0;
   private query = '';
+  private lastFmTurn = 0;
   private readonly expanded = new Set<string>();
   private readonly onKey = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && this.isOpen()) this.close();
@@ -102,7 +105,26 @@ export class SettingsPanel {
   constructor(
     private readonly labels: SettingsLabels,
     private readonly invoke: Invoke,
+    // Pestaña propia de Last.fm (lastfm-panel.ts)
+    private readonly lastFm?: LastFmView,
   ) {}
+
+  // Abre el panel directamente en la pestaña de Last.fm (tarjeta del perfil)
+  async openLastFm() {
+    if (!this.overlay) return;
+    await this.refresh();
+    const index = this.menu.findIndex((tab) => tab.kind === 'lastfm');
+    if (index >= 0) this.tab = index;
+    this.renderTabs();
+    this.renderBody();
+    this.overlay.classList.add('open');
+  }
+
+  // Last.fm cambió (conectado, desconectado...): se vuelve a dibujar
+  onLastFmChanged() {
+    if (this.isOpen() && this.menu[this.tab]?.kind === 'lastfm')
+      this.renderBody();
+  }
 
   start() {
     const overlay = el('div', 'lg-settings-overlay');
@@ -192,6 +214,7 @@ export class SettingsPanel {
         items: pluginOptions(own),
       });
     }
+    if (this.lastFm) tabs.push({ label: 'Last.fm', kind: 'lastfm', items: [] });
     if (plugins) {
       tabs.push({
         label: plugins.label,
@@ -249,6 +272,19 @@ export class SettingsPanel {
   private renderBody() {
     if (!this.body) return;
     const current = this.menu[this.tab];
+    if (current?.kind === 'lastfm' && this.lastFm) {
+      // Solo se pinta el último dibujo pedido (cada uno consulta a Last.fm)
+      const tab = this.tab;
+      const turn = ++this.lastFmTurn;
+      this.lastFm
+        .render()
+        .then((content) => {
+          if (this.tab === tab && turn === this.lastFmTurn)
+            this.body?.replaceChildren(content);
+        })
+        .catch(console.error);
+      return;
+    }
     const items = (current?.items ?? []).filter(isVisible);
     const content =
       current?.kind === 'plugins'

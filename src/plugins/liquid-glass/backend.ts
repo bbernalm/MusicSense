@@ -19,6 +19,7 @@ import {
   type MotionQuery,
   sameCollection,
 } from './apple-motion';
+import { defaultLastFm, LastFm, type LastFmConfig } from './lastfm';
 import { isLoginUrl, openLoginWindow } from './login-window';
 
 /*
@@ -64,9 +65,20 @@ let onWillNavigate: ((event: Electron.Event, url: string) => void) | null =
 // Music y el inicio de sesión sigue en la ventana emergente
 let onDidNavigate: ((event: Electron.Event, url: string) => void) | null = null;
 let onScale: (() => void) | null = null;
+let lastFm: LastFm | null = null;
 
 export const backend = createBackend({
-  start({ ipc, window }) {
+  start({ ipc, window, getConfig, setConfig }) {
+    // Last.fm propio (lastfm.ts): lee y guarda solo su parte de la configuración
+    const readLastFm = async () => ({
+      ...defaultLastFm,
+      ...((await getConfig()) as { lastfm?: Partial<LastFmConfig> }).lastfm,
+    });
+    lastFm = new LastFm(window, readLastFm, (next) =>
+      setConfig({ lastfm: next } as never),
+    );
+    lastFm.start((event, listener) => ipc.handle(event, listener));
+
     // Por debajo de este tamaño el diseño (buscador centrado, píldora y
     // cápsulas, panel del reproductor) ya no cabe
     window.setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
@@ -212,6 +224,9 @@ export const backend = createBackend({
     });
   },
   stop({ ipc, window }) {
+    lastFm?.stop();
+    lastFm = null;
+    for (const channel of LastFm.channels) ipc.removeHandler(channel);
     if (onScale) {
       window.removeListener('resize', onScale);
       window.webContents.removeListener('did-finish-load', onScale);

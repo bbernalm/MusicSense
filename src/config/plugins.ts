@@ -29,6 +29,8 @@ export const DISCARDED = new Set([
   'album-actions',
   'music-together',
   'touchbar',
+  // Sustituido por el Last.fm propio de liquid-glass (lastfm.ts)
+  'scrobbler',
 ]);
 
 export function getPlugins() {

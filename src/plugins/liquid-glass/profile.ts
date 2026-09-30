@@ -2,9 +2,9 @@
  * Página de tu perfil: tarjetas de Integraciones y Estadísticas bajo la
  * cabecera del canal (solo en tu propio perfil, clase lg-profile-page).
  *
- * - Integraciones: interruptores de los complementos Discord Rich Presence y
- *   Scrobbler (Last.fm / ListenBrainz), que se activan desde el menú de la
- *   app igual que en el panel de ajustes.
+ * - Integraciones: interruptor del complemento Discord Rich Presence (se
+ *   activa desde el menú de la app igual que en el panel de ajustes) y el
+ *   estado de Last.fm (lastfm.ts), con un botón que abre su pestaña.
  * - Estadísticas: YouTube Music no las ofrece, así que se registran en este
  *   PC (localStorage) a partir de ahora: tiempo escuchado por artista y total.
  */
@@ -34,7 +34,10 @@ export type ProfileLabels = {
   statsSince: (date: string) => string;
   minutes: (count: number) => string;
   discord: string;
-  scrobbler: string;
+  // Last.fm propio (lastfm.ts): estado y botón para abrir sus ajustes
+  lastFmConnected: (user: string) => string;
+  lastFmOff: string;
+  lastFmSetup: string;
   share: string;
   // Botón del resumen mensual ("Ver tu resumen de septiembre")
   wrapped: (month: string) => string;
@@ -54,7 +57,6 @@ const COLORS = [
 // el menú, que no se traduce)
 const INTEGRATIONS: { match: RegExp; label: keyof ProfileLabels }[] = [
   { match: /^Discord/i, label: 'discord' },
-  { match: /^Scrobbler/i, label: 'scrobbler' },
 ];
 
 const el = <K extends keyof HTMLElementTagNameMap>(
@@ -121,6 +123,7 @@ export class ProfilePage {
     private readonly labels: ProfileLabels,
     private readonly invoke: Invoke,
     private readonly openWrapped: (month: string) => void,
+    private readonly openLastFm: () => void,
   ) {}
 
   start() {
@@ -278,6 +281,30 @@ export class ProfilePage {
           .catch(console.error);
       });
       row.append(button);
+      card.append(row);
+    }
+
+    // Last.fm: estado y botón que abre su pestaña en los ajustes
+    const lastFm = (await this.invoke('liquid-glass:lastfm-state', true).catch(
+      () => null,
+    )) as { connected: boolean; user: string } | null;
+    if (lastFm) {
+      const row = el('div', 'lg-card-row');
+      const text = el('span', 'lg-card-row-text');
+      text.append(
+        el('span', '', 'Last.fm'),
+        el(
+          'small',
+          '',
+          lastFm.connected
+            ? this.labels.lastFmConnected(lastFm.user)
+            : this.labels.lastFmOff,
+        ),
+      );
+      const setup = el('button', 'lg-card-button', this.labels.lastFmSetup);
+      setup.type = 'button';
+      setup.addEventListener('click', () => this.openLastFm());
+      row.append(text, setup);
       card.append(row);
     }
     return card;
