@@ -256,10 +256,9 @@ export class DiscordPresence {
       type: ActivityType.Listening,
       // Lo que se lee en la lista de miembros: lo mismo que la cabecera
       statusDisplayType: StatusDisplayType.Name,
+      // Sin enlaces (detailsUrl/stateUrl): Discord los subraya en azul
       details: title,
-      detailsUrl: song.url ?? undefined,
       state: artist,
-      stateUrl: song.artistUrl || undefined,
       largeImageKey: cover,
       // Texto al pasar el ratón por la portada (y tercera línea: el álbum)
       largeImageText: paused ? '⏸︎' : album,
