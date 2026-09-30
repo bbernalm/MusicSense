@@ -1,53 +1,79 @@
 <div align="center">
 
+<img src="docs/screenshots/icon.png" alt="Icono de MusicSense" width="128" height="128">
+
 # MusicSense
 
-Cliente de escritorio de YouTube Music con una estética inspirada en Apple Music: vidrio translúcido, fondos con la portada de la canción y un reproductor flotante.
+**YouTube Music en tu escritorio, con el estilo de Apple Music.**
+Vidrio translúcido, letras que brillan palabra por palabra, un visualizador que late con la música y audio con ecualizador, salas y sonido espacial.
+
+[**Descargar para Windows**](https://github.com/bbernalm/MusicSense/releases/latest)
+
+<img src="docs/screenshots/player.jpg" alt="Pantalla del reproductor con el visualizador alrededor de la portada" width="100%">
 
 </div>
 
 > [!IMPORTANT]
 > Proyecto personal y no oficial. No está afiliado, autorizado ni respaldado por Google LLC ni por YouTube. "YouTube" y "YouTube Music" son marcas de Google LLC.
 
+## Lo más destacado
+
+### Letras como en Apple Music
+
+Letra sincronizada, grande y centrada en la canción. Cada palabra se ilumina justo cuando se canta, sube un poco y brilla en las notas largas. Debajo de cada línea aparece la traducción a tu idioma.
+
+<img src="docs/screenshots/lyrics.jpg" alt="Modo letras con relleno palabra por palabra y traducción" width="100%">
+
+### Sonido a tu gusto, sin salir del reproductor
+
+El botón de ajustes rápidos de la cápsula abre un panel de vidrio con todo el audio:
+
+- **Ecualizador** de 10 bandas con modos (Más graves, Voz, Electrónica, Rock…).
+- **Fundido** entre canciones.
+- **Audio espacial** para auriculares y **estéreo amplio**.
+- **Salas** de reverberación: estudio, sala y auditorio.
+- Estilo del fondo, de la barra de progreso y traducción de letras.
+
+<img src="docs/screenshots/quick.jpg" alt="Panel de ajustes rápidos con el desplegable del ecualizador" width="100%">
+
+### Tu biblioteca a un clic
+
+Menú lateral flotante con tus playlists, álbumes y artistas, en lista o en **cuadrícula de portadas grandes**. Barra superior con Inicio, Explorar y Biblioteca, buscador en píldora y el historial.
+
+<img src="docs/screenshots/home.jpg" alt="Inicio con el menú lateral en cuadrícula de artistas" width="100%">
+
+### Discord y Last.fm integrados
+
+- **Estado de Discord** con la portada, el progreso de la canción y un botón para escucharla. Tú eliges el texto de "Escuchando…" y el icono pequeño, con vista previa en vivo.
+- **Last.fm**: conecta tu cuenta autorizando la app o con usuario y contraseña, y registra lo que escuchas (scrobbling).
+
+<img src="docs/screenshots/discord.jpg" alt="Ajustes de Discord con la vista previa de la tarjeta" width="100%">
+
+## Todas las funciones
+
+- **Diseño "liquid glass"** inspirado en iOS 26: vidrio con refracción y aberración cromática en los bordes.
+- **Fondo líquido** con los colores de la portada, en movimiento.
+- **Portadas animadas** de Apple Music cuando la canción las tiene.
+- **Visualizador en la portada**: ondas de luz que salen de sus bordes y la portada late con los graves.
+- **Barra de progreso** precisa y fluida, con cuatro estilos: onda, onda con bolita, línea y línea con bolita.
+- **Preferir música**: los videoclips se escuchan como canción y se ve la portada.
+- **Arranque en pausa**: al abrir la app vuelve tu última canción, en pausa.
+- **Controles en la barra de tareas de Windows** (anterior, pausa, siguiente) y la canción en el título de la ventana.
+- **Resumen mensual** estilo Wrapped y estadísticas de escucha en tu perfil.
+- **Sin publicidad de Premium** ni ventanas raras: diálogos centrados y menús de vidrio.
+
+## Descargar e instalar
+
+En [Releases](https://github.com/bbernalm/MusicSense/releases/latest) hay dos opciones para Windows de 64 bits:
+
+- **MusicSense-Setup.exe**: instalador (crea el acceso directo y te deja elegir la carpeta).
+- **MusicSense-portable.exe**: se abre sin instalar nada.
+
+El programa no lleva firma digital: si Windows muestra "Windows protegió su PC", pulsa **Más información → Ejecutar de todas formas**.
+
 ## Qué es
 
-MusicSense es una versión modificada de [Pear Desktop](https://github.com/pear-devs/pear-desktop) (antes `th-ch/youtube-music`), un cliente de YouTube Music hecho con Electron y TypeScript que admite complementos. Conserva todo lo que ofrece Pear Desktop (bloqueador de anuncios, letras sincronizadas, descargas, integración con Discord, etc.) y añade un tema visual propio: **Liquid Glass**.
-
-## Liquid Glass
-
-El complemento vive en [`src/plugins/liquid-glass/`](src/plugins/liquid-glass/) y se activa desde **Plugins → Liquid Glass**.
-
-- **Fondo vivo:** la portada de la canción actual, muy desenfocada, con un fundido al cambiar de canción y un movimiento lento opcional.
-- **Superficies de vidrio:** menú lateral, barra superior, menús emergentes, pestañas y chips translúcidos con un borde de luz.
-- **Reproductor flotante:** una píldora con la portada redonda que gira como un disco, la canción, ♡ y + (guardar en una playlist), los controles y a la derecha una barra de progreso ondulada; más una cápsula aparte con volumen (desplegable hacia arriba), letras, repetir, aleatorio y abrir el reproductor.
-- **Pantalla del reproductor:** portada grande (se encoge al pausar) con el título y el artista; a la derecha el panel de letras o la cola.
-- **Portadas animadas:** cuando la canción tiene portada animada en Apple Music, se muestra en movimiento en la pantalla del reproductor. Se obtienen del servicio de portadas de [Better Lyrics Shaders](https://github.com/better-lyrics/shaders) (`artwork.boidu.dev`) y, si no la tiene, directamente de las páginas públicas de Apple Music. Se pueden desactivar en Ajustes → MusicSense.
-- **Preferir música:** opción que reproduce los videoclips en modo canción (solo audio) y muestra la portada en lugar del video.
-- **Visualizador:** píldora con barras que siguen la música, del color de la portada, sobre el reproductor (se puede apagar).
-- **Tu perfil:** cápsula con las pestañas Perfil, Complementos y YouTube (solo los ajustes útiles), e integraciones (Discord, Last.fm) y estadísticas de escucha guardadas en el PC.
-- **Sin publicidad de Premium:** se ocultan las entradas y promociones de YouTube Music Premium.
-- **Barra superior:** cápsulas para ir atrás y adelante, buscador centrado y botón de perfil. Desde el perfil se abren los ajustes: un panel de vidrio con interruptores con las opciones de MusicSense, los complementos (con buscador y opciones desplegables) y el resto de opciones de la app. Las opciones del antiguo menú ⋮ (configuración, ayuda...) están al final del menú lateral.
-- **Letras estilo Apple Music:** la letra sincronizada, grande, con la línea actual resaltada y las demás atenuadas. La fuente se elige sola (primero la sincronizada de YouTube Music) y se indica al pie. Usa el complemento *Synced Lyrics*, que debe estar activado. Estilo inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics).
-- **Menú lateral estilo iPad:** tarjeta de vidrio flotante y animada que se muestra u oculta con el botón superior, sin desplazar el contenido cuando hay sitio.
-- **Buscador:** campo en forma de píldora y sugerencias en un panel de vidrio.
-- **Refracción:** aberración cromática sutil en los bordes del reproductor y del buscador (se puede desactivar).
-- **Opciones del menú:** fondo animado, aberración cromática y nivel de desenfoque (15, 30 o 50).
-
-Para que no haya conflictos, conviene desactivar *Album Color Theme*, *Transparent Player* y *Blur Navigation Bar*.
-
-| Archivo | Función |
-| --- | --- |
-| `index.ts` | Definición del complemento, menú y fondo con la portada |
-| `style.css` | Todo el diseño del tema |
-| `refraction.ts` | Refracción con aberración cromática (filtros SVG) |
-| `backend.ts` | Da al panel de configuración acceso al menú de la app |
-| `settings.ts` / `settings.css` | Panel de configuración con interruptores |
-| `animated-art.ts` / `apple-motion.ts` | Portadas animadas (servicio de Better Lyrics Shaders y, como alternativa, Apple Music) |
-| `topbar.ts` / `topbar.css` | Barra superior, menú del perfil, opciones en el menú lateral y ocultación de Premium |
-| `prefer-music.ts` | Opción "Preferir música" |
-| `player.ts` / `now-playing.css` | Vidrio de la cápsula, botones + y de configuración, volumen vertical, portada animada y pantalla del reproductor |
-| `lyrics.ts` / `lyrics.css` | Botón y modo de letras, estilo de las letras y crédito de la fuente |
-| `wave.ts` | Barra de progreso ondulada y corrección del tiempo al pasar el ratón |
+MusicSense es una versión modificada de [Pear Desktop](https://github.com/pear-devs/pear-desktop) (antes `th-ch/youtube-music`), un cliente de YouTube Music hecho con Electron y TypeScript. Todo el diseño y las funciones nuevas viven en el complemento [`src/plugins/liquid-glass/`](src/plugins/liquid-glass/), que siempre está activo.
 
 ## Desarrollo
 
@@ -58,8 +84,6 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-`pnpm dev` abre la app y la recarga al guardar cambios (los complementos nuevos solo se detectan al reiniciar).
-
 Comprobaciones:
 
 ```bash
@@ -68,15 +92,13 @@ pnpm lint
 pnpm format:check
 ```
 
-Generar el instalador de Windows:
+Instalador de Windows (cierra antes la app de desarrollo):
 
 ```bash
 pnpm dist:win
 ```
 
-## Actualizar desde Pear Desktop
-
-El proyecto original está configurado como el remoto `upstream` (solo lectura). Para traer sus novedades:
+Para traer las novedades de Pear Desktop (remoto `upstream`, solo lectura):
 
 ```bash
 git fetch upstream
@@ -85,4 +107,4 @@ git merge upstream/master
 
 ## Créditos y licencia
 
-Basado en [Pear Desktop](https://github.com/pear-devs/pear-desktop) y el trabajo de sus colaboradores. Estilo de letras inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics); portadas animadas gracias al servicio de [Better Lyrics Shaders](https://github.com/better-lyrics/shaders). Se distribuye bajo la licencia MIT; ver [`license`](license).
+Basado en [Pear Desktop](https://github.com/pear-devs/pear-desktop) y el trabajo de sus colaboradores. Estilo de letras inspirado en [Better Lyrics](https://github.com/better-lyrics/better-lyrics); portadas animadas gracias a [Better Lyrics Shaders](https://github.com/better-lyrics/shaders); fondo líquido con [Kawarp](https://www.npmjs.com/package/@kawarp/core). Se distribuye bajo la licencia MIT; ver [`license`](license).
