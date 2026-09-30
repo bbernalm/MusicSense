@@ -4,6 +4,7 @@ import { createPlugin } from '@/utils';
 import { AnimatedArtwork } from './animated-art';
 import { AudioEngine, EQ_PRESETS, ROOMS } from './audio-engine';
 import { backend } from './backend';
+import { DiscordView } from './discord-panel';
 import { LastFmView } from './lastfm-panel';
 import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
@@ -298,17 +299,29 @@ export default createPlugin({
     visualizer: null as Visualizer | null,
     audio: null as AudioEngine | null,
     liquid: null as LiquidBackground | null,
+    discord: null as DiscordView | null,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
       this.invoke = (channel, ...args) => ipc.invoke(channel, ...args);
+      // Pestañas propias del panel de ajustes: Last.fm y Discord
       const lastFm = new LastFmView(
         (key, vars) => t(`plugins.liquid-glass.lastfm.${key}`, vars),
         (channel, ...args) => ipc.invoke(channel, ...args),
-        () => this.settings?.onLastFmChanged(),
+        () => this.settings?.onTabChanged('Last.fm'),
       );
       ipc.on('liquid-glass:lastfm-changed', () =>
-        this.settings?.onLastFmChanged(),
+        this.settings?.onTabChanged('Last.fm'),
+      );
+      this.discord = new DiscordView(
+        (key, vars) => t(`plugins.liquid-glass.discord.${key}`, vars),
+        (channel, ...args) => ipc.invoke(channel, ...args),
+        () => this.settings?.onTabChanged('Discord'),
+      );
+      this.discord.start();
+      const discord = this.discord;
+      ipc.on('liquid-glass:discord-changed', () =>
+        this.settings?.onTabChanged('Discord'),
       );
       this.settings = new SettingsPanel(
         {
@@ -321,7 +334,10 @@ export default createPlugin({
           ownPlugin: t('plugins.liquid-glass.name'),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
-        lastFm,
+        [
+          { label: 'Last.fm', render: () => lastFm.render() },
+          { label: 'Discord', render: () => discord.render() },
+        ],
       );
       this.settings.start();
       this.topBar = new TopBar(
@@ -368,19 +384,21 @@ export default createPlugin({
             t('plugins.liquid-glass.profile.stats-since', { date }),
           minutes: (count) =>
             t('plugins.liquid-glass.profile.minutes', { count }),
-          discord: 'Discord',
           lastFmConnected: (user) =>
             t('plugins.liquid-glass.lastfm.connected-as', { user }),
           lastFmOff: t('plugins.liquid-glass.lastfm.not-connected'),
-          lastFmSetup: t('plugins.liquid-glass.lastfm.setup'),
+          setup: t('plugins.liquid-glass.lastfm.setup'),
+          discordOn: t('plugins.liquid-glass.discord.connected'),
+          discordWaiting: t('plugins.liquid-glass.discord.not-running'),
+          discordOff: t('plugins.liquid-glass.discord.off'),
           share: t('plugins.liquid-glass.profile.share'),
           wrapped: (month) =>
             t('plugins.liquid-glass.wrapped.button', { month }),
         },
         (channel, ...args) => ipc.invoke(channel, ...args),
         (month) => wrapped.open(month),
-        () => {
-          this.settings?.openLastFm().catch(console.error);
+        (tab) => {
+          this.settings?.openTab(tab).catch(console.error);
         },
       );
       this.profile.start();
@@ -509,6 +527,8 @@ export default createPlugin({
       this.sidebar?.stop();
       this.sidebar = null;
       this.profile?.stop();
+      this.discord?.stop();
+      this.discord = null;
       this.profile = null;
       this.animatedArt?.stop();
       this.animatedArt = null;

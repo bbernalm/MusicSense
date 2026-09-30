@@ -10,7 +10,11 @@
  * que funciona igual que el menú original.
  */
 
-import type { LastFmView } from './lastfm-panel';
+// Pestaña dibujada por otro módulo (lastfm-panel.ts, discord-panel.ts)
+export type CustomTab = {
+  label: string;
+  render: () => Promise<Node>;
+};
 
 type MenuNode = {
   label: string;
@@ -37,7 +41,7 @@ export type SettingsLabels = {
 
 type Tab = {
   label: string;
-  kind: 'plugins' | 'items' | 'lastfm';
+  kind: 'plugins' | 'items' | 'custom';
   items: MenuNode[];
 };
 
@@ -96,7 +100,7 @@ export class SettingsPanel {
   private menu: Tab[] = [];
   private tab = 0;
   private query = '';
-  private lastFmTurn = 0;
+  private customTurn = 0;
   private readonly expanded = new Set<string>();
   private readonly onKey = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && this.isOpen()) this.close();
@@ -105,24 +109,27 @@ export class SettingsPanel {
   constructor(
     private readonly labels: SettingsLabels,
     private readonly invoke: Invoke,
-    // Pestaña propia de Last.fm (lastfm-panel.ts)
-    private readonly lastFm?: LastFmView,
+    // Pestañas propias tras la de MusicSense (Last.fm, Discord...)
+    private readonly custom: CustomTab[] = [],
   ) {}
 
-  // Abre el panel directamente en la pestaña de Last.fm (tarjeta del perfil)
-  async openLastFm() {
+  // Abre el panel directamente en una pestaña propia (tarjeta del perfil)
+  async openTab(label: string) {
     if (!this.overlay) return;
     await this.refresh();
-    const index = this.menu.findIndex((tab) => tab.kind === 'lastfm');
+    const index = this.menu.findIndex(
+      (tab) => tab.kind === 'custom' && tab.label === label,
+    );
     if (index >= 0) this.tab = index;
     this.renderTabs();
     this.renderBody();
     this.overlay.classList.add('open');
   }
 
-  // Last.fm cambió (conectado, desconectado...): se vuelve a dibujar
-  onLastFmChanged() {
-    if (this.isOpen() && this.menu[this.tab]?.kind === 'lastfm')
+  // Algo cambió en una pestaña propia (conexión...): se vuelve a dibujar
+  onTabChanged(label: string) {
+    const current = this.menu[this.tab];
+    if (this.isOpen() && current?.kind === 'custom' && current.label === label)
       this.renderBody();
   }
 
@@ -214,7 +221,8 @@ export class SettingsPanel {
         items: pluginOptions(own),
       });
     }
-    if (this.lastFm) tabs.push({ label: 'Last.fm', kind: 'lastfm', items: [] });
+    for (const { label } of this.custom)
+      tabs.push({ label, kind: 'custom', items: [] });
     if (plugins) {
       tabs.push({
         label: plugins.label,
@@ -272,14 +280,16 @@ export class SettingsPanel {
   private renderBody() {
     if (!this.body) return;
     const current = this.menu[this.tab];
-    if (current?.kind === 'lastfm' && this.lastFm) {
-      // Solo se pinta el último dibujo pedido (cada uno consulta a Last.fm)
+    const view = this.custom.find((item) => item.label === current?.label);
+    if (current?.kind === 'custom' && view) {
+      // Solo se pinta el último dibujo pedido (cada uno consulta al proceso
+      // principal, que puede tardar)
       const tab = this.tab;
-      const turn = ++this.lastFmTurn;
-      this.lastFm
+      const turn = ++this.customTurn;
+      view
         .render()
         .then((content) => {
-          if (this.tab === tab && turn === this.lastFmTurn)
+          if (this.tab === tab && turn === this.customTurn)
             this.body?.replaceChildren(content);
         })
         .catch(console.error);

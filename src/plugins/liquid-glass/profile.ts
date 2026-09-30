@@ -2,9 +2,8 @@
  * Página de tu perfil: tarjetas de Integraciones y Estadísticas bajo la
  * cabecera del canal (solo en tu propio perfil, clase lg-profile-page).
  *
- * - Integraciones: interruptor del complemento Discord Rich Presence (se
- *   activa desde el menú de la app igual que en el panel de ajustes) y el
- *   estado de Last.fm (lastfm.ts), con un botón que abre su pestaña.
+ * - Integraciones: estado de Discord (discord.ts) y Last.fm (lastfm.ts), con
+ *   un botón que abre su pestaña en el panel de ajustes.
  * - Estadísticas: YouTube Music no las ofrece, así que se registran en este
  *   PC (localStorage) a partir de ahora: tiempo escuchado por artista y total.
  */
@@ -12,14 +11,6 @@
 import { availableMonths, monthKey, recordListening } from './wrapped';
 
 type Invoke = (channel: string, ...args: unknown[]) => Promise<unknown>;
-
-type MenuNode = {
-  label: string;
-  type: string;
-  commandId: number;
-  checked?: boolean;
-  submenu?: { items: MenuNode[] };
-};
 
 type Stats = {
   since: number;
@@ -33,11 +24,14 @@ export type ProfileLabels = {
   statsEmpty: string;
   statsSince: (date: string) => string;
   minutes: (count: number) => string;
-  discord: string;
-  // Last.fm propio (lastfm.ts): estado y botón para abrir sus ajustes
+  // Last.fm y Discord propios (lastfm.ts, discord.ts): estado y botón para
+  // abrir su pestaña en los ajustes
   lastFmConnected: (user: string) => string;
   lastFmOff: string;
-  lastFmSetup: string;
+  discordOn: string;
+  discordWaiting: string;
+  discordOff: string;
+  setup: string;
   share: string;
   // Botón del resumen mensual ("Ver tu resumen de septiembre")
   wrapped: (month: string) => string;
@@ -51,12 +45,6 @@ const COLORS = [
   '#64d2ff',
   '#bf5af2',
   '#8e8e93',
-];
-
-// Complementos de Pear que se muestran como integraciones (por su nombre en
-// el menú, que no se traduce)
-const INTEGRATIONS: { match: RegExp; label: keyof ProfileLabels }[] = [
-  { match: /^Discord/i, label: 'discord' },
 ];
 
 const el = <K extends keyof HTMLElementTagNameMap>(
@@ -104,14 +92,6 @@ const saveStats = (stats: Stats) => {
   }
 };
 
-const pluginToggle = (node: MenuNode) => {
-  if (node.type === 'checkbox') return node;
-  const [first, second] = node.submenu?.items ?? [];
-  return first?.type === 'checkbox' && second?.type === 'separator'
-    ? first
-    : undefined;
-};
-
 export class ProfilePage {
   private cards: HTMLDivElement | null = null;
   private timer: number | null = null;
@@ -123,7 +103,7 @@ export class ProfilePage {
     private readonly labels: ProfileLabels,
     private readonly invoke: Invoke,
     private readonly openWrapped: (month: string) => void,
-    private readonly openLastFm: () => void,
+    private readonly openTab: (tab: string) => void,
   ) {}
 
   start() {
@@ -254,60 +234,46 @@ export class ProfilePage {
     const card = el('section', 'lg-card');
     card.append(el('h3', 'lg-card-title', this.labels.integrations));
 
-    const menu = (await this.invoke('liquid-glass:get-menu')) as {
-      items?: MenuNode[];
-    } | null;
-    const plugins = menu?.items?.[0]?.submenu?.items ?? [];
-
-    for (const { match, label } of INTEGRATIONS) {
-      const plugin = plugins.find((item) => match.test(item.label));
-      const toggle = plugin && pluginToggle(plugin);
-      if (!toggle) continue;
-
-      const row = el('div', 'lg-card-row');
-      row.append(el('span', '', String(this.labels[label])));
-      const button = el('button', 'lg-switch');
-      button.type = 'button';
-      button.setAttribute('role', 'switch');
-      button.setAttribute('aria-checked', String(Boolean(toggle.checked)));
-      button.append(el('span'));
-      button.addEventListener('click', () => {
-        button.setAttribute(
-          'aria-checked',
-          String(button.getAttribute('aria-checked') !== 'true'),
-        );
-        this.invoke('liquid-glass:menu-click', toggle.commandId)
-          .then(() => window.setTimeout(() => this.render(), 200))
-          .catch(console.error);
-      });
-      row.append(button);
-      card.append(row);
-    }
-
-    // Last.fm: estado y botón que abre su pestaña en los ajustes
-    const lastFm = (await this.invoke('liquid-glass:lastfm-state', true).catch(
-      () => null,
-    )) as { connected: boolean; user: string } | null;
-    if (lastFm) {
-      const row = el('div', 'lg-card-row');
-      const text = el('span', 'lg-card-row-text');
-      text.append(
-        el('span', '', 'Last.fm'),
-        el(
-          'small',
-          '',
+    const [discord, lastFm] = (await Promise.all([
+      this.invoke('liquid-glass:discord-state').catch(() => null),
+      this.invoke('liquid-glass:lastfm-state', true).catch(() => null),
+    ])) as [
+      { enabled: boolean; connected: boolean } | null,
+      { connected: boolean; user: string } | null,
+    ];
+    if (discord)
+      card.append(
+        this.integrationRow(
+          'Discord',
+          discord.enabled
+            ? discord.connected
+              ? this.labels.discordOn
+              : this.labels.discordWaiting
+            : this.labels.discordOff,
+        ),
+      );
+    if (lastFm)
+      card.append(
+        this.integrationRow(
+          'Last.fm',
           lastFm.connected
             ? this.labels.lastFmConnected(lastFm.user)
             : this.labels.lastFmOff,
         ),
       );
-      const setup = el('button', 'lg-card-button', this.labels.lastFmSetup);
-      setup.type = 'button';
-      setup.addEventListener('click', () => this.openLastFm());
-      row.append(text, setup);
-      card.append(row);
-    }
     return card;
+  }
+
+  // Nombre, estado y botón que abre su pestaña en los ajustes
+  private integrationRow(name: string, status: string) {
+    const row = el('div', 'lg-card-row');
+    const text = el('span', 'lg-card-row-text');
+    text.append(el('span', '', name), el('small', '', status));
+    const setup = el('button', 'lg-card-button', this.labels.setup);
+    setup.type = 'button';
+    setup.addEventListener('click', () => this.openTab(name));
+    row.append(text, setup);
+    return row;
   }
 
   // ---------- Estadísticas ----------

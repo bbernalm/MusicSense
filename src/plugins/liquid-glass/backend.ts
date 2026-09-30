@@ -10,6 +10,7 @@ import {
   type WebContents,
 } from 'electron';
 
+import { store } from '@/config/store';
 import { t } from '@/i18n';
 import { createBackend } from '@/utils';
 
@@ -19,6 +20,7 @@ import {
   type MotionQuery,
   sameCollection,
 } from './apple-motion';
+import { defaultDiscord, DiscordPresence, type DiscordConfig } from './discord';
 import { defaultLastFm, LastFm, type LastFmConfig } from './lastfm';
 import { isLoginUrl, openLoginWindow } from './login-window';
 
@@ -66,6 +68,7 @@ let onWillNavigate: ((event: Electron.Event, url: string) => void) | null =
 let onDidNavigate: ((event: Electron.Event, url: string) => void) | null = null;
 let onScale: (() => void) | null = null;
 let lastFm: LastFm | null = null;
+let discord: DiscordPresence | null = null;
 
 export const backend = createBackend({
   start({ ipc, window, getConfig, setConfig }) {
@@ -78,6 +81,28 @@ export const backend = createBackend({
       setConfig({ lastfm: next } as never),
     );
     lastFm.start((event, listener) => ipc.handle(event, listener));
+
+    // Estado de Discord propio (discord.ts). La primera vez hereda si estaba
+    // activado el complemento Discord de Pear (ahora descartado)
+    const readDiscord = async () => {
+      const saved = (
+        (await getConfig()) as { discord?: Partial<DiscordConfig> }
+      ).discord;
+      const pear = store.get('plugins.discord.enabled') as boolean | undefined;
+      return {
+        ...defaultDiscord,
+        ...(saved ? {} : { enabled: Boolean(pear) }),
+        ...saved,
+      };
+    };
+    discord = new DiscordPresence(window, readDiscord, (next) =>
+      setConfig({ discord: next } as never),
+    );
+    discord.start(
+      (event, listener) => ipc.handle(event, listener),
+      (event, listener) => ipc.on(event, listener),
+      (channel) => ipc.send(channel),
+    );
 
     // Por debajo de este tamaño el diseño (buscador centrado, píldora y
     // cápsulas, panel del reproductor) ya no cabe
@@ -227,6 +252,9 @@ export const backend = createBackend({
     lastFm?.stop();
     lastFm = null;
     for (const channel of LastFm.channels) ipc.removeHandler(channel);
+    discord?.stop();
+    discord = null;
+    for (const channel of DiscordPresence.channels) ipc.removeHandler(channel);
     if (onScale) {
       window.removeListener('resize', onScale);
       window.webContents.removeListener('did-finish-load', onScale);
