@@ -6,6 +6,7 @@ import { AudioEngine, EQ_PRESETS, ROOMS } from './audio-engine';
 import { backend } from './backend';
 import { DiscordView } from './discord-panel';
 import { LastFmView } from './lastfm-panel';
+import { pauseOnLaunch } from './launch-pause';
 import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
@@ -319,6 +320,8 @@ export default createPlugin({
     quickMenu: null as QuickMenu | null,
 
     async start({ getConfig, ipc }) {
+      // La canción recuperada al abrir la app empieza en pausa
+      pauseOnLaunch(() => ipc.send('liquid-glass:launch-done'));
       document.body.classList.add(BODY_CLASS);
       this.invoke = (channel, ...args) => ipc.invoke(channel, ...args);
       // Pestañas propias del panel de ajustes: Last.fm y Discord

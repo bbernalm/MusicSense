@@ -11,7 +11,8 @@ import {
 } from 'electron';
 
 import { store } from '@/config/store';
-import { t } from '@/i18n';
+import { APPLICATION_NAME, t } from '@/i18n';
+import { registerCallback, SongInfoEvent } from '@/providers/song-info';
 import { createBackend } from '@/utils';
 
 import {
@@ -72,6 +73,15 @@ let discord: DiscordPresence | null = null;
 
 export const backend = createBackend({
   start({ ipc, window, getConfig, setConfig }) {
+    // Al abrir, YouTube Music empieza a sonar la última canción antes de que
+    // launch-pause.ts la pause: la ventana arranca en silencio y recupera el
+    // sonido en cuanto queda en pausa (o como mucho a los 30 s)
+    window.webContents.setAudioMuted(true);
+    const unmute = () => {
+      if (!window.isDestroyed()) window.webContents.setAudioMuted(false);
+    };
+    ipc.on('liquid-glass:launch-done', unmute);
+    setTimeout(unmute, 30_000);
     // Last.fm propio (lastfm.ts): lee y guarda solo su parte de la configuración
     const readLastFm = async () => ({
       ...defaultLastFm,
@@ -81,6 +91,17 @@ export const backend = createBackend({
       setConfig({ lastfm: next } as never),
     );
     lastFm.start((event, listener) => ipc.handle(event, listener));
+
+    // Título de la ventana (barra de tareas, Alt+Tab): "Canción · Artista",
+    // como Spotify, aunque esté en pausa
+    registerCallback((info, event) => {
+      if (event === SongInfoEvent.TimeChanged || window.isDestroyed()) return;
+      const title = [info.alternativeTitle || info.title, info.artist]
+        .filter(Boolean)
+        .join(' · ');
+      const next = title || APPLICATION_NAME;
+      if (window.getTitle() !== next) window.setTitle(next);
+    });
 
     // Estado de Discord propio (discord.ts). La primera vez hereda si estaba
     // activado el complemento Discord de Pear (ahora descartado)

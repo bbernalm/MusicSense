@@ -614,22 +614,16 @@ app.once('browser-window-created', (_event, win) => {
 
   const customWindowTitle = config.get('options.customWindowTitle');
 
-  win.on('page-title-updated', (event, title) => {
+  win.on('page-title-updated', (event) => {
     event.preventDefault();
     if (customWindowTitle) {
       win.setTitle(customWindowTitle);
       return;
     }
-    // MusicSense: "Canción | YouTube Music" → "Canción · MusicSense"
-    const song = title
-      .replace(/\s*[|·–-]\s*YouTube Music\s*$/i, '')
-      .replace(/^YouTube Music$/i, '')
-      .trim();
-    if (song === APPLICATION_NAME) {
-      win.setTitle(APPLICATION_NAME);
-      return;
-    }
-    win.setTitle(song ? `${song} · ${APPLICATION_NAME}` : APPLICATION_NAME);
+    // MusicSense: el título lo pone el complemento Liquid Glass con la
+    // canción cargada ("Canción · Artista", también en pausa); YouTube Music
+    // solo pone la canción mientras suena. Aquí solo el nombre al empezar
+    if (!win.getTitle().includes(' · ')) win.setTitle(APPLICATION_NAME);
   });
 });
 

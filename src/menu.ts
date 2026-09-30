@@ -131,9 +131,15 @@ export const mainMenuTemplate = async (
       }),
   );
 
-  // MusicSense: sin los complementos descartados
+  // MusicSense: sin los complementos descartados ni los que siempre están
+  // activos y no tienen opciones (su interruptor no haría nada)
   const availablePlugins = Object.keys(await allPlugins()).filter(
-    (id) => !config.plugins.DISCARDED.has(id),
+    (id) =>
+      !config.plugins.DISCARDED.has(id) &&
+      !(
+        config.plugins.ALWAYS_ENABLED.has(id) &&
+        !menuResult.some(([menuId]) => menuId === id)
+      ),
   );
   const pluginMenus = await Promise.all(
     availablePlugins
