@@ -9,7 +9,7 @@ Responde siempre en español. El usuario no es programador experto: explica en l
 - Node >= 22, pnpm >= 11. Instalar: `pnpm install --frozen-lockfile`
 - Desarrollo con recarga: `pnpm dev`. Las DevTools ya no se abren solas (`PEAR_DEVTOOLS=1 pnpm dev` para abrirlas).
 - Comprobaciones: `pnpm typecheck`, `pnpm lint`, `pnpm format:check` (formateador `oxfmt`, linter `oxlint`; ver "Estilo de código").
-- Instalador de Windows: `pnpm dist:win`. Iconos: `pnpm exec electron scripts/generate-icons.mjs` (desde `assets/icon.svg`).
+- Instalador de Windows: `pnpm dist:win` → `pack/MusicSense-Setup-<versión>.exe` (instalador completo NSIS, carpeta a elegir) y `pack/MusicSense-<versión>-portable.exe`. Empieza borrando `dist/`: **cierra antes la app de desarrollo** (si no, se queda en negro). Sin firma digital: Windows avisa con SmartScreen. Actualizaciones automáticas apagadas (miraban las de Pear). `appId` propio `com.bbernalm.musicsense`; la versión sigue siendo la de Pear (3.12.0) para no romper las migraciones de la configuración. Iconos: `pnpm exec electron scripts/generate-icons.mjs` (desde `assets/icon.svg`).
 
 ## Git
 
