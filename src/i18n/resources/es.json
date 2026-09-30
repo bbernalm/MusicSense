@@ -708,7 +708,9 @@
         "playlists": "Playlists",
         "albums": "Álbumes",
         "artists": "Artistas",
-        "empty": "Nada por aquí todavía"
+        "empty": "Nada por aquí todavía",
+        "grid": "Ver como cuadrícula",
+        "list": "Ver como lista"
       },
       "topbar": {
         "back": "Atrás",

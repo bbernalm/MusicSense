@@ -371,6 +371,8 @@ export default createPlugin({
         albums: t('plugins.liquid-glass.sidebar.albums'),
         artists: t('plugins.liquid-glass.sidebar.artists'),
         empty: t('plugins.liquid-glass.sidebar.empty'),
+        grid: t('plugins.liquid-glass.sidebar.grid'),
+        list: t('plugins.liquid-glass.sidebar.list'),
       });
       this.sidebar.start();
       const wrapped = new WrappedView(

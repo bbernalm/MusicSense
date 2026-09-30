@@ -5,6 +5,8 @@
  *   (la lista de YouTube Music, con "Nueva playlist"), Álbumes y Artistas.
  * - Álbumes y Artistas se piden a YouTube Music con la sesión de la app (las
  *   mismas consultas que la Biblioteca) y se renuevan cada 10 minutos.
+ * - Botón de vista: lista o cuadrícula de portadas grandes (como Spotify),
+ *   para las playlists de YouTube Music y para álbumes y artistas.
  * - Sin sesión iniciada se deja el menú original.
  */
 
@@ -29,6 +31,9 @@ export type SidebarLabels = {
   albums: string;
   artists: string;
   empty: string;
+  // Botón para cambiar de vista (descripción emergente)
+  grid: string;
+  list: string;
 };
 
 const svg = (body: string) =>
@@ -49,7 +54,19 @@ const FILTER_ICONS: Record<Filter, string> = {
   ),
 };
 
+// Vista de lista o de cuadrícula (portadas grandes, como Spotify)
+const VIEW_ICONS = {
+  list: svg(
+    `<path d="M9 6h11M9 12h11M9 18h11" ${line}/><rect x="3.5" y="4.5" width="3" height="3" rx="0.8" ${line}/><rect x="3.5" y="10.5" width="3" height="3" rx="0.8" ${line}/><rect x="3.5" y="16.5" width="3" height="3" rx="0.8" ${line}/>`,
+  ),
+  grid: svg(
+    `<rect x="4" y="4" width="7" height="7" rx="1.6" ${line}/><rect x="13" y="4" width="7" height="7" rx="1.6" ${line}/><rect x="4" y="13" width="7" height="7" rx="1.6" ${line}/><rect x="13" y="13" width="7" height="7" rx="1.6" ${line}/>`,
+  ),
+};
+
 const FILTER_KEY = 'lg-guide-filter';
+const VIEW_KEY = 'lg-guide-view';
+const GRID_CLASS = 'lg-guide-grid';
 const FILTERED_CLASS = 'lg-guide-filtered';
 const SIGNED_IN_CLASS = 'lg-guide-library';
 const REFRESH_MS = 10 * 60 * 1000;
@@ -139,7 +156,10 @@ const parse = (response: unknown) => {
 };
 
 export class LibrarySidebar {
+  private top: HTMLDivElement | null = null;
   private chips: HTMLDivElement | null = null;
+  private viewButton: HTMLButtonElement | null = null;
+  private grid = false;
   private list: HTMLDivElement | null = null;
   private filter: Filter = 'playlists';
   private cache = new Map<Filter, { items: LibraryItem[]; at: number }>();
@@ -153,6 +173,7 @@ export class LibrarySidebar {
     try {
       const saved = localStorage.getItem(FILTER_KEY);
       if (saved === 'albums' || saved === 'artists') this.filter = saved;
+      this.grid = localStorage.getItem(VIEW_KEY) === 'grid';
     } catch {
       // Sin acceso al almacenamiento: se empieza en Playlists
     }
@@ -163,12 +184,14 @@ export class LibrarySidebar {
   stop() {
     if (this.timer !== null) window.clearInterval(this.timer);
     this.timer = null;
-    this.chips?.remove();
+    this.top?.remove();
     this.list?.remove();
+    this.top = null;
     this.chips = null;
+    this.viewButton = null;
     this.list = null;
     this.rendered = '';
-    document.body.classList.remove(FILTERED_CLASS, SIGNED_IN_CLASS);
+    document.body.classList.remove(FILTERED_CLASS, SIGNED_IN_CLASS, GRID_CLASS);
   }
 
   private tick() {
@@ -181,6 +204,7 @@ export class LibrarySidebar {
     }
     this.ensureElements(guide);
     document.body.classList.toggle(FILTERED_CLASS, this.filter !== 'playlists');
+    document.body.classList.toggle(GRID_CLASS, this.grid);
     if (this.filter !== 'playlists') {
       this.load(this.filter).catch(console.error);
       this.render();
@@ -188,7 +212,10 @@ export class LibrarySidebar {
   }
 
   private ensureElements(guide: HTMLElement) {
-    if (!this.chips?.isConnected) {
+    if (!this.top?.isConnected) {
+      // Fila de arriba: filtros en cápsula y el botón de vista
+      const top = document.createElement('div');
+      top.className = 'lg-guide-top';
       const chips = document.createElement('div');
       chips.className = 'lg-guide-filters';
       const filters: [Filter, string][] = [
@@ -207,9 +234,18 @@ export class LibrarySidebar {
         chip.addEventListener('click', () => this.select(filter));
         chips.append(chip);
       }
-      guide.prepend(chips);
+      const view = document.createElement('button');
+      view.type = 'button';
+      view.className = 'lg-guide-view';
+      view.addEventListener('click', () => this.toggleView());
+      top.append(chips, view);
+      guide.prepend(top);
+      this.top = top;
       this.chips = chips;
+      this.viewButton = view;
     }
+    this.updateViewButton();
+    if (!this.chips) return;
     for (const chip of this.chips.querySelectorAll<HTMLElement>(
       '.lg-guide-filter',
     )) {
@@ -223,6 +259,29 @@ export class LibrarySidebar {
       this.list = list;
       this.rendered = '';
     }
+  }
+
+  // El botón muestra la vista a la que se cambia al pulsarlo
+  private updateViewButton() {
+    const button = this.viewButton;
+    if (!button) return;
+    const next = this.grid ? 'list' : 'grid';
+    if (button.dataset.next === next) return;
+    button.dataset.next = next;
+    button.innerHTML = VIEW_ICONS[next];
+    const label = this.grid ? this.labels.list : this.labels.grid;
+    button.title = label;
+    button.setAttribute('aria-label', label);
+  }
+
+  private toggleView() {
+    this.grid = !this.grid;
+    try {
+      localStorage.setItem(VIEW_KEY, this.grid ? 'grid' : 'list');
+    } catch {
+      // Solo se pierde la vista elegida al reiniciar
+    }
+    this.tick();
   }
 
   private select(filter: Filter) {

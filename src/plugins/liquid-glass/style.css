@@ -379,7 +379,8 @@ body.liquid-glass #guide-wrapper {
 /* El menú flota sobre el contenido y entra deslizándose con un rebote */
 body.liquid-glass #guide-wrapper,
 body.liquid-glass ytmusic-app-layout > [slot='guide'] {
-  width: 240px !important;
+  /* más ancho que el de YouTube Music (240): las filas se veían apretadas */
+  width: 288px !important;
 }
 
 body.liquid-glass #guide-wrapper {
@@ -474,7 +475,7 @@ body.liquid-glass ytmusic-app {
 }
 
 body.liquid-glass ytmusic-app:not([guide-collapsed]) {
-  --ytmusic-guide-width: max(0px, min(204px, 1998px - 100vw)) !important;
+  --ytmusic-guide-width: max(0px, min(252px, 2046px - 100vw)) !important;
 }
 
 body.liquid-glass #content-wrapper,
@@ -516,13 +517,13 @@ body.liquid-glass #mini-guide-spacer {
   display: none !important;
 }
 
-/* Filas: más compactas, ícono + texto, esquinas redondeadas */
+/* Filas: ícono + texto, esquinas redondeadas y algo de aire entre ellas */
 body.liquid-glass tp-yt-paper-item.ytmusic-guide-entry-renderer {
-  min-height: 40px !important;
-  height: 40px !important;
+  min-height: 44px !important;
+  height: 44px !important;
   padding: 0 12px !important;
   /* separada de los bordes de la tarjeta (radio 26 px) */
-  margin: 0 4px !important;
+  margin: 2px 8px !important;
   border-radius: 14px !important;
   transition: background 0.2s ease;
 }

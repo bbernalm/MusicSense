@@ -708,7 +708,9 @@
         "playlists": "Playlists",
         "albums": "Albums",
         "artists": "Artists",
-        "empty": "Nothing here yet"
+        "empty": "Nothing here yet",
+        "grid": "Grid view",
+        "list": "List view"
       },
       "topbar": {
         "back": "Back",
