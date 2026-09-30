@@ -2032,3 +2032,19 @@ ytmusic-player-queue-item.lg-own-menu > .lg-panel-add {
 body.liquid-glass ytmusic-player-bar .lg-quick-button.active {
   color: var(--lg-accent, #fff);
 }
+
+/* Rendimiento: YouTube Music deja girando, invisible, el icono de "cargando"
+   del botón de reproducir de cada playlist del menú lateral. Aunque no se ve,
+   obligaba a redibujar el vidrio del menú en cada fotograma (~35 % de CPU) */
+body.liquid-glass #guide tp-yt-paper-spinner-lite {
+  display: none !important;
+}
+
+/* Rendimiento: en las listas largas (historial, playlists) el navegador no
+   dibuja las filas que quedan fuera de la pantalla */
+body.liquid-glass
+  ytmusic-browse-response
+  ytmusic-responsive-list-item-renderer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}

@@ -3,7 +3,7 @@ import { createRenderer } from '@/utils';
 import { waitForElement } from '@/utils/wait-for-element';
 
 import { disposeReactiveRoot } from './reactive-root';
-import { setConfig, setCurrentTime } from './renderer';
+import { isVisible, setConfig, setCurrentTime } from './renderer';
 import { fetchLyrics } from './store';
 import { selectors, tabStates } from './utils';
 
@@ -57,12 +57,16 @@ export const renderer = createRenderer<
     // MusicSense: el tiempo se lee en cada fotograma (antes cada 100 ms, y la
     // línea y el relleno de palabras iban con retraso)
     if (!this.updateTimestampInterval) {
+      // Con la letra oculta basta con 4 veces por segundo (ahorra CPU)
       let last = -1;
-      const tick = () => {
+      let lastUpdate = 0;
+      const tick = (now: number) => {
+        this.updateTimestampInterval = requestAnimationFrame(tick);
+        if (!isVisible() && now - lastUpdate < 250) return;
+        lastUpdate = now;
         const time = (_ytAPI?.getCurrentTime() ?? 0) * 1000;
         if (time !== last) setCurrentTime(time);
         last = time;
-        this.updateTimestampInterval = requestAnimationFrame(tick);
       };
       this.updateTimestampInterval = requestAnimationFrame(tick);
     }

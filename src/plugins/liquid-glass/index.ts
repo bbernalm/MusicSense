@@ -11,6 +11,7 @@ import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
 import { PanelActions } from './panel-actions';
+import { PerformanceFixes } from './performance';
 import { PlayerLayout } from './player';
 import { PreferMusic } from './prefer-music';
 import { ProfilePage } from './profile';
@@ -455,6 +456,7 @@ export default createPlugin({
         },
       );
       this.quickMenu.start();
+      new PerformanceFixes().start();
 
       this.upNext = new UpNext({
         button: t('plugins.liquid-glass.queue.button'),
