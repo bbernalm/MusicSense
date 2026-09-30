@@ -15,6 +15,7 @@ import { PlayerLayout } from './player';
 import { PreferMusic } from './prefer-music';
 import { ProfilePage } from './profile';
 import { UpNext } from './queue';
+import { QuickMenu } from './quick-menu';
 import { LiquidRefraction } from './refraction';
 import { SettingsPanel } from './settings';
 import settingsStyle from './settings.css?inline';
@@ -300,6 +301,7 @@ export default createPlugin({
     audio: null as AudioEngine | null,
     liquid: null as LiquidBackground | null,
     discord: null as DiscordView | null,
+    quickMenu: null as QuickMenu | null,
 
     async start({ getConfig, ipc }) {
       document.body.classList.add(BODY_CLASS);
@@ -424,6 +426,36 @@ export default createPlugin({
       );
       this.lyrics.start();
 
+      // Ajustes rápidos de sonido y del reproductor en la cápsula
+      const menu = (key: string) => t(`plugins.liquid-glass.menu.${key}`);
+      this.quickMenu = new QuickMenu(
+        {
+          button: t('plugins.liquid-glass.quick-menu.button'),
+          sound: t('plugins.liquid-glass.quick-menu.sound'),
+          player: t('plugins.liquid-glass.quick-menu.player'),
+          more: t('plugins.liquid-glass.quick-menu.more'),
+          ownPlugin: t('plugins.liquid-glass.name'),
+          soundItems: [
+            menu('equalizer.label'),
+            menu('crossfade.label'),
+            menu('spatial-audio'),
+            menu('stereo-width'),
+            menu('room.label'),
+          ],
+          playerItems: [
+            menu('background.label'),
+            menu('animated-background'),
+            menu('visualizer'),
+            menu('translate-lyrics'),
+          ],
+        },
+        (channel, ...args) => ipc.invoke(channel, ...args),
+        () => {
+          this.settings?.toggle().catch(console.error);
+        },
+      );
+      this.quickMenu.start();
+
       this.upNext = new UpNext({
         button: t('plugins.liquid-glass.queue.button'),
         yours: t('plugins.liquid-glass.queue.yours'),
@@ -514,6 +546,8 @@ export default createPlugin({
       this.wave = null;
       this.lyrics?.stop();
       this.lyrics = null;
+      this.quickMenu?.stop();
+      this.quickMenu = null;
       this.upNext?.stop();
       this.upNext = null;
       this.panelActions?.stop();

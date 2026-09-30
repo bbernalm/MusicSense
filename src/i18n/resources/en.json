@@ -813,6 +813,12 @@
         "app-reset": "Use Pear's",
         "save": "Save",
         "listen-button": "Listen on YouTube Music"
+      },
+      "quick-menu": {
+        "button": "Quick settings",
+        "sound": "Sound",
+        "player": "Player",
+        "more": "More settings"
       }
     },
     "lumiastream": {

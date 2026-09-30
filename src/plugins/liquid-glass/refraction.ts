@@ -20,6 +20,8 @@ export const REFRACTION_TARGETS = [
   // Menús ⋮ / clic derecho y el del artista (panel-actions.ts)
   'ytmusic-menu-popup-renderer',
   '.lg-artist-menu',
+  // Ajustes rápidos de la cápsula (quick-menu.ts)
+  '.lg-quick-menu',
 ];
 
 type Target = {

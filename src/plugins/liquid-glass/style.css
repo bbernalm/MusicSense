@@ -1833,3 +1833,143 @@ ytmusic-player-queue-item.lg-own-menu > .lg-panel-add {
   margin-left: auto;
   margin-right: -4px;
 }
+
+/* ---------- Ajustes rápidos (quick-menu.ts) ----------
+ * Panel de vidrio que sale hacia arriba desde su botón de la cápsula, con
+ * el mismo rebote que el del volumen */
+.lg-quick-menu {
+  position: fixed;
+  z-index: 2000;
+  width: 340px;
+  max-height: min(720px, calc(100vh - 130px));
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 14px 12px 12px;
+  box-sizing: border-box;
+  color: #fff;
+  font-family: var(--lg-font);
+  background: var(--lg-glass-tint);
+  backdrop-filter: var(--lg-filter);
+  border: 1px solid var(--lg-edge);
+  border-radius: 28px;
+  box-shadow: var(--lg-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-100% - 16px)) scale(0.6, 0.4);
+  transition:
+    opacity 0.2s ease,
+    transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.lg-quick-menu.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(calc(-100% - 16px)) scale(1);
+}
+
+.lg-quick-title {
+  margin: 4px 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+.lg-quick-title:not(:first-child) {
+  margin-top: 14px;
+}
+
+.lg-quick-card {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.lg-quick-row,
+.lg-quick-block {
+  padding: 9px 12px;
+}
+
+.lg-quick-row + .lg-quick-row,
+.lg-quick-row + .lg-quick-block,
+.lg-quick-block + .lg-quick-row,
+.lg-quick-block + .lg-quick-block {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lg-quick-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lg-quick-row.clickable {
+  cursor: pointer;
+}
+
+.lg-quick-label {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.lg-quick-block .lg-quick-label {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.lg-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.lg-quick-chip {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.8);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.lg-quick-chip:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.lg-quick-chip.active {
+  background: rgba(255, 255, 255, 0.92);
+  color: #111;
+}
+
+.lg-quick-more {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lg-quick-more:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Botón activo mientras el panel está abierto */
+body.liquid-glass ytmusic-player-bar .lg-quick-button.active {
+  color: var(--lg-accent, #fff);
+}
