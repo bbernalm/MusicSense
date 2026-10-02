@@ -11,6 +11,7 @@ import { LiquidBackground } from './liquid-background';
 import { LyricsMode } from './lyrics';
 import lyricsStyle from './lyrics.css?inline';
 import nowPlayingStyle from './now-playing.css?inline';
+import { OverlayGuard } from './overlay-guard';
 import { PanelActions } from './panel-actions';
 import { PerformanceFixes } from './performance';
 import { PlayerLayout } from './player';
@@ -477,6 +478,8 @@ export default createPlugin({
       );
       this.quickMenu.start();
       new PerformanceFixes().start();
+      // Cierra menús o diálogos de YouTube que se quedan abiertos sin verse
+      new OverlayGuard().start();
 
       this.upNext = new UpNext({
         button: t('plugins.liquid-glass.queue.button'),
