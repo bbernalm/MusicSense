@@ -1594,6 +1594,14 @@ body.liquid-glass tp-yt-paper-dialog {
   overflow: hidden;
 }
 
+/* Centrados y sin llegar al reproductor flotante: YouTube Music los estira
+   casi hasta abajo y "Guardar en una playlist" quedaba pegado a la píldora */
+body.liquid-glass tp-yt-paper-dialog {
+  max-height: calc(
+    100vh - (var(--lg-bar-height) + var(--lg-bar-bottom) + 28px) * 2
+  ) !important;
+}
+
 body.liquid-glass
   tp-yt-paper-dialog
   :is(
@@ -1727,6 +1735,70 @@ body.liquid-glass
   > * {
   width: 100% !important;
   max-width: 100% !important;
+}
+
+/* ---------- "Me gusta" con corazón en toda la app (hearts.ts) ----------
+ * Botones de las filas (historial, playlists...): el pulgar se cambia por el
+ * corazón de la píldora, relleno con el acento cuando ya te gusta */
+body.liquid-glass ytmusic-like-button-renderer .like-button-wrapper button {
+  position: relative;
+}
+
+body.liquid-glass
+  ytmusic-like-button-renderer
+  .like-button-wrapper
+  button
+  .ytSpecButtonShapeNextIcon {
+  opacity: 0;
+}
+
+body.liquid-glass
+  ytmusic-like-button-renderer
+  .like-button-wrapper
+  button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: var(--lg-heart-outline) center / contain no-repeat;
+  pointer-events: none;
+}
+
+body.liquid-glass
+  ytmusic-like-button-renderer
+  .like-button-wrapper
+  button[aria-pressed='true']::before {
+  background: var(--lg-accent);
+  -webkit-mask-image: var(--lg-heart-filled);
+}
+
+/* Opciones "canciones que te gustaron" de los menús ⋮ */
+body.liquid-glass .lg-heart-item yt-icon.icon {
+  position: relative;
+}
+
+body.liquid-glass .lg-heart-item yt-icon.icon > * {
+  opacity: 0;
+}
+
+body.liquid-glass .lg-heart-item yt-icon.icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  -webkit-mask: var(--lg-heart-filled) center / contain no-repeat;
+}
+
+/* Portada de "Música que te gustó" (un pulgar morado): un corazón */
+body.liquid-glass img[src*='/ytm/images/pbg/liked-'] {
+  content: var(--lg-liked-cover);
+}
+
+body.liquid-glass {
+  --lg-liked-cover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff6fae'/%3E%3Cstop offset='1' stop-color='%237b5cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='192' height='192' fill='url(%23g)'/%3E%3Cpath d='M96 150s-56-33-56-75a31 31 0 0 1 56-19 31 31 0 0 1 56 19c0 42-56 75-56 75Z' fill='white'/%3E%3C/svg%3E");
 }
 
 /* Sin "No me gusta" en ninguna parte (también en las filas de las listas,

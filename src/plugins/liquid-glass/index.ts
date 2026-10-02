@@ -5,6 +5,7 @@ import { AnimatedArtwork } from './animated-art';
 import { AudioEngine, EQ_PRESETS, ROOMS } from './audio-engine';
 import { backend } from './backend';
 import { DiscordView } from './discord-panel';
+import { Hearts } from './hearts';
 import { LastFmView } from './lastfm-panel';
 import { pauseOnLaunch } from './launch-pause';
 import { LiquidBackground } from './liquid-background';
@@ -480,6 +481,8 @@ export default createPlugin({
       new PerformanceFixes().start();
       // Cierra menús o diálogos de YouTube que se quedan abiertos sin verse
       new OverlayGuard().start();
+      // Corazones en lugar de pulgares en menús y filas
+      new Hearts().start();
 
       this.upNext = new UpNext({
         button: t('plugins.liquid-glass.queue.button'),

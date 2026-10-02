@@ -311,6 +311,12 @@ body.liquid-glass
   background: transparent !important;
 }
 
+/* "Nueva playlist" (también un ytmusic-dialog): su formulario traía un fondo
+   gris opaco que tapaba el vidrio */
+body.liquid-glass ytmusic-dialog ytmusic-playlist-form {
+  background: transparent !important;
+}
+
 body.liquid-glass ytmusic-settings-page tp-yt-paper-listbox {
   padding: 8px !important;
   border-right: 1px solid rgba(255, 255, 255, 0.08);

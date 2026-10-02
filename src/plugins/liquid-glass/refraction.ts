@@ -22,6 +22,9 @@ export const REFRACTION_TARGETS = [
   '.lg-artist-menu',
   // Ajustes rápidos de la cápsula (quick-menu.ts)
   '.lg-quick-menu',
+  // Diálogos de YouTube: "Guardar en una playlist", "Nueva playlist"...
+  'tp-yt-paper-dialog',
+  'ytmusic-dialog',
 ];
 
 type Target = {
