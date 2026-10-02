@@ -7,7 +7,17 @@
 **YouTube Music en tu escritorio, con el estilo de Apple Music.**
 Vidrio translúcido, letras que brillan palabra por palabra, un visualizador que late con la música y audio con ecualizador, salas y sonido espacial.
 
-[**Descargar para Windows**](https://github.com/bbernalm/MusicSense/releases/latest)
+[![Última versión](https://img.shields.io/github/v/release/bbernalm/MusicSense?label=versi%C3%B3n&color=ff6fae&style=for-the-badge)](https://github.com/bbernalm/MusicSense/releases/latest)
+[![Descargas](https://img.shields.io/github/downloads/bbernalm/MusicSense/total?label=descargas&color=7b5cff&style=for-the-badge)](https://github.com/bbernalm/MusicSense/releases)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows11&logoColor=white&style=for-the-badge)](https://github.com/bbernalm/MusicSense/releases/latest)
+
+![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white&style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square)
+![Licencia MIT](https://img.shields.io/badge/licencia-MIT-green?style=flat-square)
+![Basado en Pear Desktop](https://img.shields.io/badge/basado%20en-Pear%20Desktop-a3c639?style=flat-square)
+![Hecho con IA](https://img.shields.io/badge/hecho%20con-Claude%20Code-d97757?logo=anthropic&logoColor=white&style=flat-square)
+
+[**⬇ Descargar para Windows**](https://github.com/bbernalm/MusicSense/releases/latest)
 
 <img src="docs/screenshots/player.jpg" alt="Pantalla del reproductor con el visualizador alrededor de la portada" width="100%">
 
@@ -104,6 +114,10 @@ Para traer las novedades de Pear Desktop (remoto `upstream`, solo lectura):
 git fetch upstream
 git merge upstream/master
 ```
+
+## Hecho con IA
+
+MusicSense se ha desarrollado con ayuda de **[Claude Code](https://claude.com/claude-code)**, el asistente de programación de Anthropic: la idea, el diseño y las pruebas son de una persona, y gran parte del código se escribió junto a la IA. Las notas que usa para trabajar en el proyecto están en [`CLAUDE.md`](CLAUDE.md).
 
 ## Créditos y licencia
 
