@@ -11,6 +11,7 @@ Vidrio translúcido, letras que brillan palabra por palabra, un visualizador que
 [![Descargas](https://img.shields.io/github/downloads/bbernalm/MusicSense/total?label=descargas&color=7b5cff&style=for-the-badge)](https://github.com/bbernalm/MusicSense/releases)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows11&logoColor=white&style=for-the-badge)](https://github.com/bbernalm/MusicSense/releases/latest)
 
+[![Comprobaciones](https://img.shields.io/github/actions/workflow/status/bbernalm/MusicSense/musicsense-checks.yml?branch=main&label=comprobaciones&style=flat-square)](https://github.com/bbernalm/MusicSense/actions/workflows/musicsense-checks.yml)
 ![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white&style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square)
 ![Licencia MIT](https://img.shields.io/badge/licencia-MIT-green?style=flat-square)
